@@ -195,6 +195,12 @@ textarea.inp{min-height:90px;resize:vertical}
 @media (prefers-reduced-motion:no-preference){.hint svg{animation:swipe 1.6s ease-in-out infinite}}
 @keyframes swipe{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
 
+.wrapR.hall{bottom:calc(env(safe-area-inset-bottom,0px) + var(--tabh) + 58px)}
+.room-bar.hall{bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px));padding:8px 0 10px;background:linear-gradient(rgba(7,11,26,0),var(--bg) 35%)}
+.room-hdr .logo{flex:none}
+.scene .note{cursor:pointer;outline:none}
+.scene .note .paper{transition:filter .2s}
+.scene .note:hover .paper,.scene .note:focus-visible .paper{filter:drop-shadow(0 0 12px rgba(127,224,255,.7)) brightness(1.04)}
 /* bottom sheet */
 .sheet-bg{position:fixed;inset:0;z-index:50;background:rgba(5,7,18,.45);animation:fade .25s}
 .sheet{position:fixed;z-index:51;left:0;right:0;bottom:0;max-width:600px;margin:0 auto;max-height:82vh;max-height:82dvh;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(180deg,#15143a,#0b0e24);border:1px solid var(--line);border-bottom:0;border-radius:28px 28px 0 0;padding:10px max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));animation:up .38s cubic-bezier(.2,.9,.3,1)}
@@ -311,9 +317,10 @@ const quest=id=>DB.Q.find(q=>q.id===id);
 /* ============ STATE ============ */
 let tab="board", stack=[], ui={cat:"all",hcat:"all",sort:"r",cmp:{}};
 const cur=()=>stack[stack.length-1];
-function go(s){stack.push(s);render(true)}
-function back(){stack.pop();render(true)}
-function setTab(t){tab=t;stack=[];render(true)}
+const clearModal=()=>{const m=document.getElementById("modal");if(m)m.innerHTML=""};
+function go(s){clearModal();stack.push(s);render(true)}
+function back(){clearModal();stack.pop();render(true)}
+function setTab(t){clearModal();tab=t;stack=[];render(true)}
 
 /* ============ HELPERS ============ */
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -368,7 +375,7 @@ function qcard(q){
 }
 function vBoard(){
  const list=DB.Q.filter(q=>q.st!=="done"&&(ui.cat==="all"||q.c===ui.cat)).sort((a,b)=>b.at-a.at);
- return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Созвездие</b><small>Доска квестов · твой город</small></div></div><span class="sp"></span></header>
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Созвездие</b><small>Доска квестов · твой город</small></div></div><span class="sp"></span><button class="iconbtn" data-act="boardview" data-id="room" aria-label="Открыть зал квестов">${IC.sky}</button></header>
  <div class="stack">
   <div class="chips">${[["all","Все"],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${ui.cat===k?"on":""}" data-act="cat" data-id="${k}">${v}</button>`).join("")}</div>
   <div class="h2">Свежие квесты <small>${plural(list.length,"квест","квеста","квестов")}</small></div>
@@ -637,10 +644,11 @@ function vRoom(h){
 let roomH=null;
 function initRoom(h){
  roomH=h;const wrap=document.getElementById("wrapR"),sc=document.getElementById("scene");
- const fit=()=>{const wh=wrap.clientHeight,ww=wrap.clientWidth,w=Math.max(ww,wh*1500/860);sc.setAttribute("width",w);sc.setAttribute("height",wh);sc.style.width=w+"px";sc.style.height=wh+"px"};
- fit();wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)/2;
+ const vbw=sc.viewBox.baseVal.width,vbh=sc.viewBox.baseVal.height,isHall=sc.dataset.kind==="hall";
+ const fit=()=>{const wh=wrap.clientHeight,ww=wrap.clientWidth,w=Math.max(ww,wh*vbw/vbh);sc.setAttribute("width",w);sc.setAttribute("height",wh);sc.style.width=w+"px";sc.style.height=wh+"px"};
+ fit();wrap.scrollLeft=isHall&&ui.hallScroll!=null?ui.hallScroll:isHall?(wrap.scrollWidth-wrap.clientWidth)*.33:(wrap.scrollWidth-wrap.clientWidth)/2;if(isHall)ui.hallSeen=true;
  const sky=document.getElementById("skyp"),hint=document.getElementById("hint");
- wrap.addEventListener("scroll",()=>{const c=(wrap.scrollLeft-(wrap.scrollWidth-wrap.clientWidth)/2);if(sky)sky.setAttribute("transform",`translate(${(-c*.06).toFixed(1)} 0)`);if(hint&&ready)hint.style.opacity=0},{passive:true});let ready=false;setTimeout(()=>ready=true,400);
+ wrap.addEventListener("scroll",()=>{const c=(wrap.scrollLeft-(wrap.scrollWidth-wrap.clientWidth)/2);if(sky)sky.setAttribute("transform",`translate(${(-c*.06).toFixed(1)} 0)`);if(hint&&ready)hint.style.opacity=0;if(isHall&&ready)ui.hallScroll=wrap.scrollLeft},{passive:true});let ready=false;setTimeout(()=>ready=true,400);
  setTimeout(()=>{if(hint)hint.style.opacity=0},3500);
  window.onresize=()=>{if(document.getElementById("scene"))fit()};
 }
@@ -677,16 +685,123 @@ function sheet(obj,h,extra){
   <div class="mu">${esc(h.bio)}</div>
   <div class="stats"><div><b>${h.lv}</b><span>уровень</span></div><div><b>${h.o}</b><span>квестов</span></div><div><b>~${5+h.id%4*5}</b><span>мин на ответ</span></div></div>
   <div class="card">${xpbar(h)}</div></div>`}
- document.getElementById("modal").innerHTML=`<div class="sheet-bg" data-act="shclose"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(t)}"><div class="grab"></div><div class="sh-h"><span class="ico">${ic}</span><h3>${esc(t)}</h3><button class="iconbtn" data-act="shclose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${b}</div>`;
+ sheetRaw(t,ic,b);
  const r=document.getElementById("baR");if(r)r.addEventListener("input",()=>document.getElementById("ba").style.setProperty("--cut",r.value+"%"));
- // swipe down to close
+}
+function sheetRaw(t,ic,b){
+ document.getElementById("modal").innerHTML=`<div class="sheet-bg" data-act="shclose"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(t)}"><div class="grab"></div><div class="sh-h"><span class="ico">${ic}</span><h3>${esc(t)}</h3><button class="iconbtn" data-act="shclose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${b}</div>`;
  const sh=document.querySelector(".sheet");let y0=null;
  sh.addEventListener("touchstart",e=>{if(sh.scrollTop<=0)y0=e.touches[0].clientY},{passive:true});
  sh.addEventListener("touchmove",e=>{if(y0!=null){const d=e.touches[0].clientY-y0;if(d>0)sh.style.transform=`translateY(${d}px)`}},{passive:true});
  sh.addEventListener("touchend",e=>{if(y0!=null){const d=e.changedTouches[0].clientY-y0;y0=null;if(d>90)closeSheet();else sh.style.transform=""}});
 }
+/* ============ QUEST HALL ============ */
+const CATCOL={plumb:"#7fe0ff",electric:"#ffd88a",repair:"#ffb27a",clean:"#7fe8b0",move:"#ff9ecf",it:"#b7a6ff",design:"#ff8fa3",tutor:"#9fb6ff"};
+function wrapText(t,max,lines){const w=String(t).split(/\s+/),out=[];let cur="";for(const x of w){if((cur+" "+x).trim().length>max&&cur){out.push(cur);cur=x}else cur=(cur+" "+x).trim()}if(cur)out.push(cur);if(out.length>lines){out.length=lines;out[lines-1]=out[lines-1].replace(/.{0,2}$/,"")+"…"}return out}
+const hallQuests=()=>DB.Q.filter(q=>q.st!=="done"&&(ui.cat==="all"||q.c===ui.cat)).sort((a,b)=>b.at-a.at);
+function noteSVG(q,x,y,i){
+ const w=190,h=124,col=CATCOL[q.c],rot=((q.id*37)%7-3)*.9,lines=wrapText(q.t,16,2),n=q.resp.length;
+ let s=`<g class="note" data-q="${q.id}" role="button" tabindex="0" aria-label="${esc(q.t)}, ${rub(q.rw)}" transform="rotate(${rot.toFixed(1)} ${x+w/2} ${y+h/2})">
+  <rect class="paper" x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${q.mine?"#efe9ff":"#ecebff"}"/>
+  <rect x="${x}" y="${y}" width="6" height="${h}" rx="2" fill="${col}"/>
+  <text x="${x+18}" y="${y+28}" font-size="13" fill="#6f6d9c" letter-spacing=".03em">${CATS[q.c].toUpperCase()}</text>
+  ${lines.map((l,k)=>`<text x="${x+18}" y="${y+54+k*21}" font-size="18" font-weight="600" fill="#15143a">${esc(l)}</text>`).join("")}
+  <text x="${x+18}" y="${y+h-13}" font-family="Unbounded,sans-serif" font-size="18" fill="#15143a">${rub(q.rw)}</text>
+  <text x="${x+w-12}" y="${y+h-15}" text-anchor="end" font-size="13" fill="#6f6d9c">${q.st==="work"||q.mine?"":plural(n,"отклик","отклика","откликов")}</text>
+  <circle cx="${x+w/2}" cy="${y+8}" r="7" fill="${col}" stroke="rgba(0,0,0,.25)"/><circle cx="${x+w/2-2}" cy="${y+6}" r="2" fill="#fff" opacity=".8"/>`;
+ if(q.mine)s+=`<path d="M${x+w-52} ${y}h52v22h-46z" fill="#b7a6ff"/><text x="${x+w-22}" y="${y+15}" text-anchor="middle" font-size="11" font-weight="700" fill="#15143a">МОЙ</text>`;
+ if(q.st==="work")s+=`<g transform="rotate(-12 ${x+w-60} ${y+h-40})"><rect x="${x+w-112}" y="${y+h-56}" width="104" height="28" rx="4" fill="none" stroke="#e08a2e" stroke-width="2.5"/><text x="${x+w-60}" y="${y+h-37}" text-anchor="middle" font-size="12" font-weight="700" fill="#e08a2e" letter-spacing=".08em">В РАБОТЕ</text></g>`;
+ if(q.mine&&q.st==="open"&&n)s+=`<circle cx="${x+w-8}" cy="${y+h-8}" r="13" fill="#7fe0ff"/><text x="${x+w-8}" y="${y+h-3}" text-anchor="middle" font-size="13" font-weight="700" fill="#0b0c22">${n}</text>`;
+ return s+"</g>";
+}
+function hallSVG(){
+ const W=1800,H=860,R=rng(42),list=hallQuests(),top=[...DB.H].sort((a,b)=>b.r-a.r||b.o-a.o).slice(0,6);
+ const open=DB.Q.filter(q=>q.st==="open"),feat=open.filter(q=>!q.mine).sort((a,b)=>b.rw-a.rw)[0];
+ const wx=1260,wy=250;
+ let s=`<defs>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121338"/><stop offset="1" stop-color="#0b0d26"/></linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0f2a"/><stop offset="1" stop-color="#07081a"/></linearGradient>
+  <radialGradient id="skyg" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#1e2468"/><stop offset=".6" stop-color="#0c1040"/><stop offset="1" stop-color="#060824"/></radialGradient>
+  <radialGradient id="lampg"><stop offset="0" stop-color="#ffd88a" stop-opacity=".4"/><stop offset="1" stop-color="#ffd88a" stop-opacity="0"/></radialGradient>
+  <radialGradient id="cyang"><stop offset="0" stop-color="#7fe0ff" stop-opacity=".45"/><stop offset="1" stop-color="#7fe0ff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1c4"/><stop offset=".5" stop-color="#ffd88a"/><stop offset="1" stop-color="#c8953f"/></linearGradient>
+  <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fe0ff" stop-opacity="0"/><stop offset="1" stop-color="#7fe0ff" stop-opacity=".25"/></linearGradient>
+  <clipPath id="win"><circle cx="${wx}" cy="${wy}" r="150"/></clipPath><filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+ </defs>`;
+ s+=`<rect width="${W}" height="640" fill="url(#wall)"/>`;
+ for(let x=150;x<W;x+=150)s+=`<line x1="${x}" y1="110" x2="${x}" y2="640" stroke="rgba(183,166,255,.05)"/>`;
+ s+=`<path d="M0 0H${W}V120Q${W/2} -40 0 120z" fill="#080922"/><path d="M0 120Q${W/2} -40 ${W} 120" fill="none" stroke="rgba(183,166,255,.25)" stroke-width="3"/>`;
+ for(let k=1;k<12;k++){const x=k*150,y=120-((1-Math.pow((x-W/2)/(W/2),2))*80);s+=`<line x1="${x}" y1="${y.toFixed(0)}" x2="${W/2+(x-W/2)*.35}" y2="0" stroke="rgba(183,166,255,.12)" stroke-width="2"/>`}
+ s+=`<rect y="640" width="${W}" height="${H-640}" fill="url(#floor)"/><line x1="0" y1="640" x2="${W}" y2="640" stroke="rgba(183,166,255,.3)" stroke-width="2"/>`;
+ for(let x=-1800;x<=3600;x+=130){const xt=W/2+(x-W/2)*(640-300)/(H-300);s+=`<line x1="${xt.toFixed(0)}" y1="640" x2="${x}" y2="${H}" stroke="rgba(183,166,255,.06)"/>`}
+ // pillars
+ [340,1100,1420].forEach(x=>{s+=`<rect x="${x-16}" y="110" width="32" height="530" fill="#15143a" stroke="rgba(183,166,255,.18)"/><rect x="${x-26}" y="110" width="52" height="18" rx="3" fill="#1d1b48"/><rect x="${x-26}" y="622" width="52" height="18" rx="3" fill="#1d1b48"/>`});
+ // desk: create quest
+ s+=`<g class="hs" data-obj="desk" role="button" tabindex="0" aria-label="Создать квест"><ellipse cx="200" cy="650" rx="160" ry="100" fill="url(#lampg)"/><g class="glowable">
+  <path d="M40 700H330L352 738H18z" fill="#2a2350" stroke="rgba(183,166,255,.35)"/><rect x="40" y="738" width="12" height="90" fill="#1d1840"/><rect x="318" y="738" width="12" height="90" fill="#1d1840"/>
+  <g transform="rotate(-6 180 680)"><rect x="110" y="650" width="140" height="44" rx="3" fill="#ecebff"/>${[0,1,2].map(k=>`<line x1="124" y1="${662+k*10}" x2="${k===2?190:234}" y2="${662+k*10}" stroke="#9a98c8" stroke-width="2"/>`).join("")}</g>
+  <path d="M250 690L292 620" stroke="#ecebff" stroke-width="2"/><path d="M292 620q16 -24 5 -38q-14 15 -12 34z" fill="#ecebff"/><circle cx="96" cy="684" r="12" fill="#1d1840" stroke="#7fe0ff" stroke-opacity=".6"/>
+  <g transform="translate(200 560)"><circle r="34" fill="url(#cyang)"/><path d="M0 -14v28M-14 0h28" stroke="#7fe0ff" stroke-width="4" stroke-linecap="round"/></g>
+ </g>${chip(190,512,"Создать квест")}</g>`;
+ // big quest board
+ s+=`<g><rect x="380" y="130" width="700" height="490" rx="14" fill="#1a1840" stroke="url(#gold)" stroke-width="3"/><rect x="392" y="142" width="676" height="466" rx="8" fill="#211e4a"/>
+  <ellipse cx="560" cy="150" rx="120" ry="40" fill="url(#lampg)"/><ellipse cx="900" cy="150" rx="120" ry="40" fill="url(#lampg)"/>
+  <rect x="610" y="112" width="240" height="40" rx="8" fill="url(#gold)"/><text x="730" y="139" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="16" fill="#3a2706" letter-spacing=".08em">ДОСКА КВЕСТОВ</text>`;
+ const slots=list.length>9?8:9;
+ list.slice(0,slots).forEach((q,i)=>{s+=noteSVG(q,410+(i%3)*222,175+Math.floor(i/3)*142,i)});
+ if(list.length>9){const x=410+2*222,y=175+2*142;s+=`<g class="note" data-more="1" role="button" tabindex="0" aria-label="Все квесты списком"><rect class="paper" x="${x}" y="${y}" width="190" height="124" rx="5" fill="rgba(255,255,255,.05)" stroke="#b7a6ff" stroke-dasharray="6 5"/><text x="${x+95}" y="${y+58}" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="18" fill="#ecebff">+${list.length-8}</text><text x="${x+95}" y="${y+84}" text-anchor="middle" font-size="14" fill="#9a98c8">все квесты списком</text></g>`}
+ if(!list.length)s+=`<text x="730" y="370" text-anchor="middle" font-size="20" fill="#9a98c8">В этой категории пока нет квестов</text><text x="730" y="400" text-anchor="middle" font-size="16" fill="#6f6d9c">Создай первый за письменным столом слева</text>`;
+ s+=`</g>`;
+ // window: quest map
+ s+=`<g class="hs" data-obj="map" role="button" tabindex="0" aria-label="Карта квестов"><g class="glowable"><circle cx="${wx}" cy="${wy}" r="166" fill="#0a0b24" stroke="rgba(183,166,255,.35)" stroke-width="4"/>
+  <g clip-path="url(#win)"><rect x="${wx-160}" y="${wy-160}" width="320" height="320" fill="url(#skyg)"/><g id="skyp">`;
+ for(let k=0;k<50;k++){const x=wx-180+R()*360,y=wy-160+R()*320;s+=`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(R()*1.1+.3).toFixed(2)}" fill="#fff" opacity=".6"><animate attributeName="opacity" values=".2;.8;.2" dur="${(2+R()*4).toFixed(1)}s" repeatCount="indefinite" begin="-${(R()*4).toFixed(1)}s"/></circle>`}
+ const qs=DB.Q.filter(q=>q.st!=="done");qs.forEach(q=>{const r2=rng(q.id),a=r2()*6.283,d=25+r2()*110,x=wx+Math.cos(a)*d,y=wy+Math.sin(a)*d,c=q.st==="work"?"#ffc27a":q.mine?"#b7a6ff":"#7fe0ff";
+  s+=`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="14" fill="${c}" opacity=".35" filter="url(#soft)"/><circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${q.mine?6:4.5}" fill="${c}"/>`});
+ s+=`</g></g><line x1="${wx-150}" y1="${wy}" x2="${wx+150}" y2="${wy}" stroke="rgba(183,166,255,.18)" stroke-width="3"/><line x1="${wx}" y1="${wy-150}" x2="${wx}" y2="${wy+150}" stroke="rgba(183,166,255,.18)" stroke-width="3"/></g>
+  ${chip(wx,wy-128,"Карта квестов · "+qs.length)}</g>`;
+ // quest of the day pedestal
+ if(feat){const lines=wrapText(feat.t,18,2);s+=`<g class="hs" data-obj="day" role="button" tabindex="0" aria-label="Квест дня: ${esc(feat.t)}">
+  <ellipse cx="${wx}" cy="700" rx="120" ry="22" fill="url(#cyang)"/><path d="M${wx-80} 700L${wx-50} 520H${wx+50}L${wx+80} 700z" fill="url(#beam)"/>
+  <path d="M${wx-60} 700h120l-12 -60h-96z" fill="#221f4c" stroke="rgba(183,166,255,.3)"/>
+  <g class="holo glowable"><rect x="${wx-118}" y="455" width="236" height="140" rx="12" fill="rgba(20,20,52,.9)" stroke="url(#gold)" stroke-width="2"/>
+   <text x="${wx}" y="482" text-anchor="middle" font-size="12" fill="#ffd88a" letter-spacing=".12em">★ КВЕСТ ДНЯ ★</text>
+   ${lines.map((l,k)=>`<text x="${wx}" y="${510+k*21}" text-anchor="middle" font-size="17" font-weight="600" fill="#ecebff">${esc(l)}</text>`).join("")}
+   <text x="${wx}" y="578" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="17" fill="#7fe0ff">${rub(feat.rw)}</text></g>
+ </g>`}
+ // hall of fame
+ s+=`<g class="hs" data-obj="fame" role="button" tabindex="0" aria-label="Зал славы"><g class="glowable"><rect x="1475" y="160" width="290" height="440" rx="14" fill="#16153a" stroke="rgba(255,216,138,.35)"/>
+  <rect x="1525" y="140" width="190" height="38" rx="8" fill="url(#gold)"/><text x="1620" y="165" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="14" fill="#3a2706" letter-spacing=".08em">ЗАЛ СЛАВЫ</text>`;
+ top.forEach((h,i)=>{const x=1550+(i%2)*140,y=245+Math.floor(i/2)*130;s+=`<circle cx="${x}" cy="${y}" r="44" fill="url(#gold)"/><circle cx="${x}" cy="${y}" r="38" fill="${h.a[0]}"/><circle cx="${x}" cy="${y}" r="38" fill="${h.a[1]}" opacity=".5"/>
+  <text x="${x}" y="${y+9}" text-anchor="middle" font-size="24" font-weight="600" fill="#0b0c22">${ini(h.n)}</text><circle cx="${x+32}" cy="${y-32}" r="13" fill="#15143a" stroke="url(#gold)" stroke-width="2"/><text x="${x+32}" y="${y-27}" text-anchor="middle" font-size="13" font-weight="700" fill="#ffd88a">${i+1}</text>
+  <text x="${x}" y="${y+66}" text-anchor="middle" font-size="17" fill="#ecebff">${esc(fn(h))}</text><text x="${x}" y="${y+86}" text-anchor="middle" font-size="15" fill="#ffd88a">★ ${h.r}</text>`});
+ s+=`</g>${chip(1620,630,"Лучшие герои")}</g>`;
+ // dust
+ for(let k=0;k<30;k++){const x=100+R()*1600,y=500+R()*300;s+=`<circle class="dust" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(1+R()*1.6).toFixed(1)}" fill="#cfe9ff" style="--d:${(9+R()*10).toFixed(1)}s;--x:${(R()*80-40).toFixed(0)}px;animation-delay:-${(R()*15).toFixed(1)}s" opacity="0"/>`}
+ return s;
+}
+function vHall(){
+ const n=hallQuests().length;
+ return `<header class="room-hdr"><div class="logo">${IC.logo}</div><div class="nm"><b>Зал квестов</b><span>${plural(n,"квест","квеста","квестов")} · твой город</span></div><button class="iconbtn" data-act="boardview" data-id="list" aria-label="Показать списком"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></header>
+ <div class="wrapR hall" id="wrapR"><svg class="scene" id="scene" data-kind="hall" viewBox="0 95 1800 650" preserveAspectRatio="xMidYMid slice">${hallSVG()}</svg></div>
+ ${ui.hallSeen?"":`<div class="hint" id="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 12h11M15 8l4 4-4 4M5 9v6"/></svg>Проведи пальцем, чтобы осмотреть зал</div>`}
+ <div class="room-bar hall"><div class="chips">${[["all","Все"],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${ui.cat===k?"on":""}" data-act="cat" data-id="${k}">${k!=="all"?`<i style="width:8px;height:8px;border-radius:50%;background:${CATCOL[k]}"></i>`:""}${v}</button>`).join("")}</div></div>`;
+}
+function openHall(obj){
+ if(obj==="desk"){go({type:"create"});return}
+ if(obj==="day"){const f=DB.Q.filter(q=>q.st==="open"&&!q.mine).sort((a,b)=>b.rw-a.rw)[0];if(f)go({type:"quest",id:f.id});return}
+ zoomTo(obj);
+ setTimeout(()=>{
+  if(obj==="map"){const qs=DB.Q.filter(q=>q.st!=="done"),by={};qs.forEach(q=>(by[q.dist]=by[q.dist]||[]).push(q));
+   sheetRaw("Карта квестов",IC.sky,`<p class="mu sm" style="margin-top:0">Каждая звезда в окне — квест. Голубые ищут героя, сиреневые — твои, оранжевые уже в работе.</p>
+   <div class="stack">${Object.entries(by).sort((a,b)=>b[1].length-a[1].length).map(([d,l])=>`<div class="h2">${esc(d)} <small>${plural(l.length,"квест","квеста","квестов")}</small></div>${l.map(q=>`<button class="card" data-act="quest" data-id="${q.id}" style="padding:12px 14px"><div class="row"><span style="display:flex;gap:8px;align-items:center;min-width:0"><i style="width:9px;height:9px;flex:none;border-radius:50%;background:${CATCOL[q.c]}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(q.t)}</span></span><b style="font-weight:500;white-space:nowrap">${rub(q.rw)}</b></div></button>`).join("")}`).join("")}</div>`)}
+  if(obj==="fame"){const top=[...DB.H].sort((a,b)=>b.r-a.r||b.o-a.o).slice(0,6);
+   sheetRaw("Зал славы",IC.heroes,`<p class="mu sm" style="margin-top:0">Лучшие герои города по оценкам заказчиков. Нажми на героя, чтобы зайти в его комнату.</p><div class="stack">${top.map((h,i)=>`<button class="card" data-act="hero" data-id="${h.id}"><div class="row l" style="gap:12px"><span class="price" style="color:var(--gold);width:22px">${i+1}</span>${ava(h)}<div style="flex:1;min-width:0"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span> · ${h.o} квестов</div></div></div></button>`).join("")}</div>`)}
+ },reduce?0:320);
+}
+
 function closeSheet(){document.getElementById("modal").innerHTML="";unzoom()}
-document.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest(".scene .hs");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openObj(g.dataset.obj)}});
+document.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const n=e.target.closest&&e.target.closest(".scene .note,.scene .hs");if(n){e.preventDefault();n.dispatchEvent(new MouseEvent("click",{bubbles:true}))}});
 setInterval(()=>{const hh=document.getElementById("hh"),mh=document.getElementById("mh");if(!hh)return;const d=new Date(),h=d.getHours()%12,m=d.getMinutes();
  hh.setAttribute("x2",1340+Math.sin((h+m/60)*Math.PI/6)*28);hh.setAttribute("y2",500-Math.cos((h+m/60)*Math.PI/6)*28);mh.setAttribute("x2",1340+Math.sin(m*Math.PI/30)*42);mh.setAttribute("y2",500-Math.cos(m*Math.PI/30)*42)},20000);
 
@@ -695,11 +810,12 @@ setInterval(()=>{const hh=document.getElementById("hh"),mh=document.getElementBy
 const appEl=document.getElementById("app"),navEl=document.getElementById("nav");
 function render(scrollTop){
  const s=cur();let html,bar="";
- if(!s){html=tab==="board"?vBoard():tab==="heroes"?vHeroes():vMine();}
+ if(!s&&tab==="board"&&ui.boardView!=="list"){html=null}
+ else if(!s){html=tab==="board"?vBoard():tab==="heroes"?vHeroes():vMine();}
  else if(s.type==="hero"){const h=hero(s.id);appEl.className="app roomv";appEl.innerHTML=vRoom(h);navEl.innerHTML="";initRoom(h);return}
  else{const r=s.type==="quest"?vQuest(s.id):s.type==="herolist"?vHero(s.id):s.type==="compare"?vCompare(s.id):s.type==="create"?vCreate(s):vRate(s.id);html=r.html??r;bar=r.bar||"";}
- appEl.className="app"+(s?" sub":"");
- appEl.innerHTML=`<div class="${scrollTop?"screen":""}">${html}</div>`;
+ if(html===null){appEl.className="app roomv";appEl.innerHTML=vHall()}
+ else{appEl.className="app"+(s?" sub":"");appEl.innerHTML=`<div class="${scrollTop?"screen":""}">${html}</div>`}
  const waiting=DB.Q.filter(q=>q.mine&&q.st==="open"&&q.resp.length).length;
  navEl.innerHTML=s?(bar?`<div class="actbar"><div class="in">${bar}</div></div>`:""):`<nav class="tabs" aria-label="Разделы"><div class="in">
   <button class="tab ${tab==="board"?"on":""}" data-act="tab" data-id="board">${IC.board}Доска</button>
@@ -708,7 +824,8 @@ function render(scrollTop){
   <button class="tab ${tab==="mine"?"on":""}" data-act="tab" data-id="mine">${IC.mine}Мои${waiting?`<span class="dot">${waiting}</span>`:""}</button>
   <button class="tab" data-act="about">${IC.sky}О сервисе</button>
  </div></nav>`;
- if(scrollTop)window.scrollTo(0,0);
+ if(html===null)initRoom(null);
+ else if(scrollTop)window.scrollTo(0,0);
 }
 
 /* ============ ACTIONS ============ */
@@ -764,7 +881,8 @@ function publish(){
 }
 
 document.addEventListener("click",e=>{
- const hs=e.target.closest(".scene .hs");if(hs){openObj(hs.dataset.obj);return}
+ const nt=e.target.closest(".scene .note");if(nt){if(nt.dataset.more){ui.boardView="list";render(true)}else go({type:"quest",id:+nt.dataset.q});return}
+ const hs=e.target.closest(".scene .hs");if(hs){if(document.getElementById("scene").dataset.kind==="hall")openHall(hs.dataset.obj);else openObj(hs.dataset.obj);return}
  const el=e.target.closest("[data-act]");if(!el)return;
  const a=el.dataset.act,id=el.dataset.id;
  switch(a){
@@ -786,6 +904,7 @@ document.addEventListener("click",e=>{
   case"sendrate":sendRate(+id);break;
   case"fcat":case"fdf":{const s=cur(),form=document.getElementById("cf");Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});if(a==="fcat")s.f.c=id;else s.f.df=+id;render(false);break}
   case"publish":publish();break;
+  case"boardview":ui.boardView=id;if(id==="room")ui.hallScroll=null;render(true);break;
   case"obj":if(document.querySelector(".sheet"))sheet(id,roomH);else openObj(id);break;
   case"work":sheet("work",roomH,+id);break;
   case"shclose":closeSheet();break;
