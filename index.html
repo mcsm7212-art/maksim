@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b1a">
+<title>Созвездие</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: mobile-first single column app (max 560px), sticky header, fixed bottom tab bar; sub-screens slide over tabs. Style: "Observatory" — heroes' skills drawn as constellations */
+:root{
+  --bg:#070b1a; --bg2:#0d1028; --sky:#16153a;
+  --card:rgba(255,255,255,.04); --card2:rgba(255,255,255,.07); --line:rgba(183,166,255,.16); --line2:rgba(255,255,255,.08);
+  --tx:#ecebff; --mu:#9a98c8; --mu2:#6f6d9c;
+  --acc:#b7a6ff; --acc2:#7fe0ff; --gold:#ffd88a; --ok:#7fe8b0; --warn:#ffc27a;
+  --grad:linear-gradient(90deg,#b7a6ff,#7fe0ff);
+  --f:"Jost",system-ui,-apple-system,sans-serif; --fd:"Unbounded","Jost",sans-serif;
+  --r:20px; --tabh:64px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;min-height:100%;background:radial-gradient(90% 50% at 80% -5%,var(--sky),transparent 70%) no-repeat,var(--bg);background-attachment:fixed;color:var(--tx);font-family:var(--f);font-size:15px;line-height:1.45}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;min-height:100vh;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(var(--tabh) + 28px + env(safe-area-inset-bottom,0px))}
+.app.sub{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+#stars{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+/* header */
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:12px;padding-block:14px 12px;background:linear-gradient(var(--bg) 70%,transparent)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo b{font-family:var(--fd);font-weight:700;font-size:19px;letter-spacing:.01em}
+.logo small{display:block;color:var(--mu);font-size:12px;margin-top:-2px}
+.hdr .sp{flex:1}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--card);display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.hdr h1{font-family:var(--fd);font-size:17px;font-weight:500;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* generic */
+.stack{display:flex;flex-direction:column;gap:12px}
+.h2{font-family:var(--fd);font-weight:500;font-size:15px;margin:10px 0 2px;display:flex;justify-content:space-between;align-items:baseline}
+.h2 small{font-family:var(--f);color:var(--mu);font-size:13px;font-weight:400}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;position:relative}
+button.card{text-align:left;width:100%}
+button.card:active{transform:scale(.99)}
+.mu{color:var(--mu)} .sm{font-size:13px} .xs{font-size:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.row.l{justify-content:flex-start}
+.ttl{font-weight:600;font-size:17px;line-height:1.25}
+.price{font-family:var(--fd);font-weight:500;font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12.5px;padding:4px 10px;border-radius:99px;background:rgba(183,166,255,.11);color:#d4caff;white-space:nowrap}
+.tag.c{background:rgba(127,224,255,.1);color:#aeeeff}
+.tag.g{background:rgba(255,216,138,.12);color:var(--gold)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.open{background:rgba(127,224,255,.12);color:var(--acc2)}
+.pill.open i{animation:pulse 1.6s infinite}
+.pill.work{background:rgba(255,194,122,.12);color:var(--warn)}
+.pill.done{background:rgba(127,232,176,.12);color:var(--ok)}
+.pill.mine{background:rgba(183,166,255,.14);color:var(--acc)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;padding-block:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line2);background:var(--card);border-radius:99px;padding:7px 14px;font-size:14px;color:var(--mu)}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:11px;color:var(--mu);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--tx)}
+.btn{border:0;border-radius:16px;padding:14px 18px;font-weight:600;font-size:16px;background:var(--grad);color:#0b0c22;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--line2)}
+.btn.sm{padding:10px 14px;font-size:14px;border-radius:12px;width:auto}
+.btn:disabled{opacity:.4}
+.link{background:none;border:0;color:var(--acc);padding:0;font-size:14px}
+
+/* avatars */
+.ava{position:relative;flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:17px;color:#0b0c22;background:conic-gradient(from 200deg,var(--a1),var(--a2),var(--a1))}
+.ava .lv{position:absolute;bottom:-3px;right:-5px;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:99px;background:var(--acc);color:#0b0c22;border:2px solid var(--bg)}
+.ava.s{width:28px;height:28px;font-size:10.5px;border:2px solid var(--bg)}
+.ava.xl{width:96px;height:96px;font-size:30px;box-shadow:0 0 0 4px rgba(183,166,255,.12),0 0 60px rgba(127,224,255,.25)}
+.ava.xl .lv{font-size:13px;padding:2px 9px;bottom:-2px;right:-4px}
+.who{display:flex;align-items:center}
+.who .ava{margin-left:-8px}.who .ava:first-child{margin-left:0}
+.rate{color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* radar */
+.radar{display:block;overflow:visible}
+.radar .grid{fill:none;stroke:rgba(255,255,255,.08)}
+.radar .ax{fill:var(--mu)}
+.radar .pt{filter:drop-shadow(0 0 4px rgba(127,224,255,.9))}
+.skl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--mu);min-width:0;flex:1}
+.skl li{display:flex;justify-content:space-between;gap:8px}
+.skl b{color:var(--tx);font-weight:500;font-variant-numeric:tabular-nums}
+.xp{font-size:12.5px;color:var(--mu)}
+.bar{height:5px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--grad);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(9,12,30,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line2)}
+.tabs .in{max-width:560px;margin:0 auto;height:var(--tabh);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mu2);position:relative}
+.tab svg{width:23px;height:23px}
+.tab.on{color:var(--tx)}
+.tab .dot{position:absolute;top:-2px;right:calc(50% - 18px);min-width:17px;height:17px;border-radius:99px;background:var(--acc2);color:#0b0c22;font-size:10.5px;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.tab.plus span{width:50px;height:50px;border-radius:18px;background:var(--grad);display:grid;place-items:center;color:#0b0c22;box-shadow:0 8px 30px -6px rgba(127,224,255,.6)}
+.tab.plus svg{width:26px;height:26px}
+
+/* sticky action bar on sub screens */
+.actbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.actbar .in{max-width:528px;margin:0 auto;display:flex;gap:10px}
+
+/* screen animation */
+.screen{animation:slide .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes slide{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{opacity:.3}}
+
+/* responder */
+.resp .msg{background:rgba(255,255,255,.035);border-radius:14px;padding:10px 12px;font-size:14px;color:#cfcdf0}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--mu);background:none;border:0;padding:0}
+.check i{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--mu2);display:grid;place-items:center}
+.check.on{color:var(--tx)} .check.on i{background:var(--acc2);border-color:var(--acc2)}
+.check.on i::after{content:"";width:9px;height:5px;border:2px solid #0b0c22;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+
+/* compare */
+.cmp{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.cmp th,.cmp td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line2)}
+.cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--mu);font-weight:400}
+.cmp td.best{color:var(--tx);font-weight:600}
+.cmp td.best::after{content:" ★";color:var(--gold);font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:50%}
+.tblwrap{overflow-x:auto}
+
+/* forms */
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:13px;color:var(--mu)}
+.inp{width:100%;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;font-size:16px;color:var(--tx)}
+.inp:focus{border-color:var(--acc);outline:none}
+textarea.inp{min-height:90px;resize:vertical}
+.starsel{display:flex;gap:6px}
+.starsel button{border:0;background:none;font-size:28px;line-height:1;color:rgba(255,255,255,.15);padding:2px}
+.starsel button.on{color:var(--gold);text-shadow:0 0 12px rgba(255,216,138,.5)}
+
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.tl li{display:flex;gap:12px;padding-bottom:14px;position:relative;font-size:14px;color:var(--mu)}
+.tl li::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--mu2);flex:none;margin-top:4px;background:var(--bg)}
+.tl li::after{content:"";position:absolute;left:5px;top:18px;bottom:0;width:2px;background:var(--line2)}
+.tl li:last-child::after{display:none}
+.tl li.ok{color:var(--tx)} .tl li.ok::before{background:var(--acc2);border-color:var(--acc2)}
+.tl li.now{color:var(--tx)} .tl li.now::before{border-color:var(--warn);box-shadow:0 0 0 4px rgba(255,194,122,.15)}
+
+/* achievements */
+.ach{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ach div{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:12px 8px;text-align:center;font-size:12px;color:var(--mu)}
+.ach b{display:block;font-size:22px;margin-bottom:4px;color:var(--gold);font-weight:400}
+.ach strong{display:block;color:var(--tx);font-weight:500;font-size:12.5px;margin-bottom:2px}
+.review{border-top:1px solid var(--line2);padding-top:10px;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats div{background:var(--card);border-radius:14px;padding:10px 4px;border:1px solid var(--line2)}
+.stats b{display:block;font-family:var(--fd);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--mu)}
+
+/* overlay + toast */
+.ovl{position:fixed;inset:0;z-index:60;background:rgba(5,7,18,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));animation:fade .25s}
+.ovl .box{width:100%;max-width:380px;background:linear-gradient(180deg,#17163d,#0c0f26);border:1px solid var(--line);border-radius:28px;padding:28px 22px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow:hidden;animation:pop .45s cubic-bezier(.2,1.3,.4,1)}
+.ovl h3{font-family:var(--fd);font-weight:500;font-size:20px;margin:6px 0 0;text-wrap:balance}
+.ovl p{margin:0;color:var(--mu)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:70;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-inline:16px}
+.toast{max-width:520px;width:100%;background:rgba(28,27,66,.95);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:14px;box-shadow:0 10px 40px rgba(0,0,0,.4);animation:drop .35s cubic-bezier(.2,1.2,.4,1);pointer-events:auto}
+@keyframes drop{from{transform:translateY(-20px);opacity:0}}
+.spark{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:80}
+.empty{text-align:center;padding:30px 10px;color:var(--mu)}
+.empty b{display:block;color:var(--tx);font-weight:500;margin-bottom:4px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.summary div{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:12px;}
+.summary b{font-family:var(--fd);font-weight:500;font-size:20px;display:block}
+.summary span{font-size:12px;color:var(--mu)}
+.hero-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding-top:8px}
+.hero-top h2{font-family:var(--fd);font-weight:500;font-size:22px;margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="app" id="app"></div>
+<div id="nav"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div id="modal"></div>
+
+<script>
+/* ============ DATA ============ */
+const CATS={plumb:"Сантехника",electric:"Электрика",repair:"Ремонт",clean:"Уборка",move:"Переезд",it:"IT и сайты",design:"Дизайн",tutor:"Репетиторы"};
+const CLS={plumb:"Сантехник",electric:"Электрик",repair:"Мастер на час",clean:"Клининг",move:"Грузчик",it:"Разработчик",design:"Дизайнер",tutor:"Репетитор"};
+const SK=[["s","Скорость"],["q","Качество"],["p","Пунктуальность"],["c","Общение"]];
+const SERIES=["#b7a6ff","#7fe0ff","#ffd88a","#ff9ecf"];
+const ACH={clean:["✦","Без жалоб","Ни одной претензии"],early:["⚡","Раньше срока","Сдаёт заранее"],tools:["⚒","Свой инструмент","Всё с собой"],hundred:["✸","100 квестов","Опытный герой"],guard:["◈","Гарантия","Ручается за работу"],night:["☾","Ночная смена","Приедет поздно"],star:["★","Звезда района","Топ-3 в районе"],rookie:["✧","Восходящая звезда","Быстро растёт"],teach:["❖","Наставник","Объясняет понятно"]};
+const NOW=Date.now(), M=60000;
+function seed(){
+ const H=[
+  {id:1,n:"Иван Ключников",c:"plumb",lv:27,xp:660,r:4.9,o:142,pr:1500,sk:{s:80,q:95,p:70,c:85},b:["clean","early","tools","hundred"],a:["#b7a6ff","#7fe0ff"],bio:"Чиню всё, что течёт и капает. 9 лет опыта, работаю аккуратно и убираю за собой.",rv:[["Ольга","Пришёл в тот же вечер, всё сделал за 30 минут.",5],["Тимофей","Аккуратный, вежливый, объяснил, как не допустить поломки.",5]]},
+  {id:2,n:"Алексей Соколов",c:"plumb",lv:19,xp:310,r:4.7,o:88,pr:1200,sk:{s:92,q:78,p:88,c:70},b:["early","night"],a:["#7fe0ff","#7fe8b0"],bio:"Быстрый выезд по городу, могу и рано утром, и поздно вечером.",rv:[["Нина","Очень быстро приехал.",5],["Игорь","Сделал хорошо, но немного опоздал.",4]]},
+  {id:3,f:1,n:"Мария Петрова",c:"plumb",lv:33,xp:820,r:4.95,o:210,pr:2500,sk:{s:75,q:98,p:95,c:90},b:["guard","hundred","star","clean"],a:["#ffd88a","#ff9ecf"],bio:"Мастер с дипломом и гарантией на работу 1 год. Сложные случаи — моя специализация.",rv:[["Анна","Лучший мастер, кого встречала. Всё идеально.",5],["Павел","Дороже других, но качество того стоит.",5]]},
+  {id:4,n:"Дмитрий Орлов",c:"repair",lv:12,xp:450,r:4.6,o:37,pr:900,sk:{s:88,q:72,p:65,c:80},b:["rookie"],a:["#7fe8b0","#7fe0ff"],bio:"Мастер на все руки, берусь за мелкий ремонт. Недорого и с улыбкой.",rv:[["Света","Приятный парень, всё сделал.",5]]},
+  {id:5,f:1,n:"Ольга Лебедева",c:"electric",lv:24,xp:540,r:4.8,o:120,pr:1800,sk:{s:85,q:90,p:92,c:75},b:["guard","hundred","tools"],a:["#ffd88a","#b7a6ff"],bio:"Электрик с допуском. Проводка, люстры, розетки, щитки.",rv:[["Денис","Всё чётко и безопасно.",5]]},
+  {id:6,n:"Сергей Волков",c:"move",lv:30,xp:200,r:4.85,o:260,pr:3000,sk:{s:95,q:80,p:85,c:78},b:["hundred","early","star"],a:["#7fe0ff","#b7a6ff"],bio:"Своя газель и команда из двух человек. Бережно упакуем и поднимем без лифта.",rv:[["Мила","Перевезли за 2 часа, ничего не поцарапали.",5]]},
+  {id:7,f:1,n:"Анна Смирнова",c:"clean",lv:21,xp:880,r:4.9,o:175,pr:2000,sk:{s:82,q:96,p:90,c:92},b:["clean","hundred","star"],a:["#ff9ecf","#b7a6ff"],bio:"Уборка квартир и домов, после ремонта и генеральная. Своя химия.",rv:[["Вика","Квартира сияет!",5]]},
+  {id:8,n:"Кирилл Нечаев",c:"it",lv:36,xp:120,r:4.95,o:95,pr:15000,sk:{s:70,q:98,p:80,c:88},b:["guard","star"],a:["#7fe0ff","#ffd88a"],bio:"Сайты и лендинги под ключ. Дизайн, вёрстка, запуск.",rv:[["Кофейня «Зерно»","Сайт сделал за неделю, заявки пошли сразу.",5]]},
+  {id:9,f:1,n:"Вера Ким",c:"design",lv:17,xp:600,r:4.8,o:54,pr:8000,sk:{s:76,q:94,p:82,c:90},b:["rookie","clean"],a:["#ff9ecf","#ffd88a"],bio:"Логотипы и фирменный стиль для малого бизнеса.",rv:[["Барбершоп «Борода»","Логотип всем нравится.",5]]},
+  {id:10,n:"Павел Егоров",c:"tutor",lv:28,xp:700,r:4.9,o:300,pr:1500,sk:{s:80,q:92,p:96,c:97},b:["teach","hundred","star"],a:["#b7a6ff","#7fe8b0"],bio:"Математика и физика, подготовка к ОГЭ и ЕГЭ. Средний балл учеников 86.",rv:[["Мама Саши","Сын наконец полюбил математику.",5]]},
+  {id:11,n:"Тимур Ахметов",c:"electric",lv:9,xp:300,r:4.5,o:21,pr:1000,sk:{s:90,q:70,p:75,c:68},b:["rookie","night"],a:["#7fe8b0","#ffd88a"],bio:"Начинающий электрик, делаю быстро и недорого.",rv:[["Олег","Нормально, по делу.",4]]}
+ ];
+ const Q=[
+  {id:101,mine:true,t:"Починить кран на кухне",c:"plumb",d:"Течёт смеситель, нужно заменить картридж. Удобно вечером.",rw:2000,dl:"2 дня",df:2,dist:"Центральный",at:NOW-5*M,st:"open",resp:[{h:1,p:2000,m:"Буду сегодня после 18:00, картридж привезу свой."},{h:2,p:1700,m:"Могу завтра в 8 утра, займёт полчаса."},{h:3,p:2500,m:"Сделаю с гарантией 1 год, приеду в течение часа."},{h:4,p:1500,m:"Быстро и аккуратно, недорого."}]},
+  {id:102,mine:true,t:"Повесить люстру и 3 розетки",c:"electric",d:"Потолок 2.7 м, люстра уже куплена.",rw:3500,dl:"Сегодня",df:3,dist:"Северный",at:NOW-3*60*M,st:"work",hired:5,price:3500,resp:[{h:5,p:3500,m:"Сделаю сегодня."}]},
+  {id:103,mine:true,t:"Генеральная уборка после ремонта",c:"clean",d:"Двушка 54 м², много строительной пыли.",rw:6000,dl:"Неделя",df:3,dist:"Центральный",at:NOW-5*24*60*M,st:"done",hired:7,price:6000,score:5,resp:[{h:7,p:6000,m:""}]},
+  {id:201,t:"Перевезти диван на 5 этаж",c:"move",d:"Без лифта, диван раскладной.",rw:2500,dl:"Завтра",df:3,dist:"Заречный",at:NOW-12*M,st:"open",resp:[{h:6}]},
+  {id:202,t:"Сайт-визитка для кофейни",c:"it",d:"Меню, контакты, онлайн-бронь столиков.",rw:30000,dl:"2 недели",df:4,dist:"Онлайн",at:NOW-40*M,st:"open",resp:[{h:8}]},
+  {id:203,t:"Логотип для барбершопа",c:"design",d:"Брутальный, в тёмных тонах.",rw:10000,dl:"Неделя",df:3,dist:"Онлайн",at:NOW-2*60*M,st:"open",resp:[{h:9}]},
+  {id:204,t:"Подготовка к ОГЭ по математике",c:"tutor",d:"9 класс, 2 раза в неделю.",rw:1500,dl:"Постоянно",df:2,dist:"Онлайн",at:NOW-90*M,st:"open",resp:[{h:10}]},
+  {id:205,t:"Собрать шкаф-купе",c:"repair",d:"Шкаф из ИКЕА, 3 двери.",rw:4000,dl:"3 дня",df:3,dist:"Южный",at:NOW-25*M,st:"open",resp:[{h:4}]},
+  {id:206,t:"Заменить смеситель в ванной",c:"plumb",d:"Смеситель купила, нужна установка.",rw:1800,dl:"2 дня",df:2,dist:"Южный",at:NOW-60*M,st:"open",resp:[{h:2},{h:1}]},
+  {id:207,t:"Установить 5 светильников",c:"electric",d:"Точечные, в натяжной потолок.",rw:2500,dl:"Неделя",df:2,dist:"Северный",at:NOW-4*60*M,st:"work",hired:11,resp:[{h:11}]}
+ ];
+ return {H,Q,nextId:300};
+}
+const KEY="sozvezdie-v1";
+let DB;
+try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!DB||!DB.H)DB=seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
+const hero=id=>DB.H.find(h=>h.id===id);
+const quest=id=>DB.Q.find(q=>q.id===id);
+
+/* ============ STATE ============ */
+let tab="board", stack=[], ui={cat:"all",hcat:"all",sort:"r",cmp:{}};
+const cur=()=>stack[stack.length-1];
+function go(s){stack.push(s);render(true)}
+function back(){stack.pop();render(true)}
+function setTab(t){tab=t;stack=[];render(true)}
+
+/* ============ HELPERS ============ */
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rub=n=>n.toLocaleString("ru-RU")+" ₽";
+const gv=(h,m,f)=>h.f?f:m;
+const fn=h=>h.n.split(" ")[0];
+const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2);
+const xpNext=lv=>1000;
+function ago(t){const m=Math.max(1,Math.round((Date.now()-t)/M));if(m<60)return m+" мин назад";const h=Math.round(m/60);if(h<24)return h+" ч назад";const d=Math.round(h/24);return d+(d===1?" день":d<5?" дня":" дней")+" назад"}
+function plural(n,a,b,c){const m=n%10,h=n%100;return n+" "+(m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c)}
+function ava(h,cls="",lv=true){return `<span class="ava ${cls}" style="--a1:${h.a[0]};--a2:${h.a[1]}">${ini(h.n)}${lv&&cls!=="s"?`<span class="lv">${h.lv}</span>`:""}</span>`}
+function radar(series,size=120,labels=false){
+ const c=60,R=labels?46:48,ang=[-90,0,90,180].map(a=>a*Math.PI/180);
+ const vb=labels?"-44 -8 208 136":"0 0 120 120",h=labels?Math.round(size*136/208):size;
+ const ring=k=>ang.map(a=>`${(c+Math.cos(a)*R*k).toFixed(1)},${(c+Math.sin(a)*R*k).toFixed(1)}`).join(" ");
+ let s=`<svg class="radar" width="${size}" height="${h}" viewBox="${vb}" role="img" aria-label="Созвездие навыков">`;
+ s+=[.33,.66,1].map(k=>`<polygon class="grid" points="${ring(k)}"/>`).join("");
+ s+=ang.map(a=>`<line class="grid" x1="${c}" y1="${c}" x2="${c+Math.cos(a)*R}" y2="${c+Math.sin(a)*R}"/>`).join("");
+ series.forEach((sk,i)=>{const col=series.length>1?SERIES[i]:"#b7a6ff";
+  const pts=SK.map(([k],j)=>[c+Math.cos(ang[j])*R*sk[k]/100,c+Math.sin(ang[j])*R*sk[k]/100]);
+  s+=`<polygon points="${pts.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="${col}" fill-opacity="${series.length>1?.1:.18}" stroke="${col}" stroke-width="1.3"/>`;
+  s+=pts.map(p=>`<circle class="pt" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${series.length>1?2.4:3}" fill="${series.length>1?col:"#fff"}"/>`).join("");
+ });
+ if(labels){const L=[["Скорость",60,2,"middle"],["Качество",111,63,"start"],["Пунктуальность",126,"middle"],["Общение",9,63,"end"]];
+  L[2]=["Пунктуальность",60,126,"middle"];
+  s+=L.map(([t,x,y,a])=>`<text class="ax" x="${x}" y="${y}" text-anchor="${a}" font-size="9">${t}</text>`).join("")}
+ return s+"</svg>";
+}
+const skl=sk=>`<ul class="skl">${SK.map(([k,n])=>`<li>${n}<b>${sk[k]}</b></li>`).join("")}</ul>`;
+const xpbar=h=>`<div class="xp"><div class="row"><span>До ${h.lv+1} уровня</span><span>${h.xp} / ${xpNext(h.lv)} XP</span></div><div class="bar"><i style="width:${h.xp/xpNext(h.lv)*100}%"></i></div></div>`;
+const status=q=>q.st==="open"?(q.mine&&q.resp.length?`<span class="pill open"><i></i>Выбери героя · ${q.resp.length}</span>`:`<span class="pill open"><i></i>Ищет героя</span>`):q.st==="work"?`<span class="pill work"><i></i>В работе</span>`:`<span class="pill done"><i></i>Выполнен${q.score?" · ★"+q.score:""}</span>`;
+const IC={
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+ board:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg>',
+ heroes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.3 4.8 5.2.7-3.8 3.6.9 5.2L12 14.8 7.4 17.3l.9-5.2L4.5 8.5l5.2-.7z"/></svg>',
+ plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+ mine:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg>',
+ sky:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="6" cy="7" r="1.6"/><circle cx="17" cy="5" r="1.6"/><circle cx="12" cy="13" r="1.6"/><circle cx="19" cy="17" r="1.6"/><path d="M7.4 8l3.4 3.8M13.3 12l3-5.3M13.3 14l4.4 2.2"/></svg>',
+ logo:'<svg width="34" height="34" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="16" stroke="url(#lg)" stroke-opacity=".5"/><path d="M9 12l8-4 8 6-3 9-9 2z" stroke="url(#lg)" stroke-width="1.4" fill="rgba(183,166,255,.12)"/><g fill="#fff"><circle cx="9" cy="12" r="1.8"/><circle cx="17" cy="8" r="1.8"/><circle cx="25" cy="14" r="1.8"/><circle cx="22" cy="23" r="1.8"/><circle cx="13" cy="25" r="1.8"/></g><defs><linearGradient id="lg" x1="0" x2="34" y1="0" y2="34"><stop stop-color="#b7a6ff"/><stop offset="1" stop-color="#7fe0ff"/></linearGradient></defs></svg>'
+};
+
+/* ============ VIEWS ============ */
+function qcard(q){
+ const hs=q.resp.map(r=>hero(r.h)).filter(Boolean);
+ return `<button class="card" data-act="quest" data-id="${q.id}">
+  <div class="row"><span class="mu sm">${CATS[q.c]} · ${esc(q.dist)} · ${ago(q.at)}</span>${q.mine?'<span class="pill mine">Мой</span>':""}</div>
+  <div class="ttl">${esc(q.t)}</div>
+  <div class="tags"><span class="tag">Сложность ${q.df} из 5</span><span class="tag c">${esc(q.dl)}</span></div>
+  <div class="row"><span class="price">${rub(q.rw)}</span>
+   <span class="row l" style="gap:8px">${hs.length?`<span class="who">${hs.slice(0,3).map(h=>ava(h,"s")).join("")}</span>`:""}<span class="mu xs">${q.st==="open"?plural(hs.length,"отклик","отклика","откликов"):q.st==="work"?"в работе":"выполнен"}</span></span></div>
+ </button>`;
+}
+function vBoard(){
+ const list=DB.Q.filter(q=>q.st!=="done"&&(ui.cat==="all"||q.c===ui.cat)).sort((a,b)=>b.at-a.at);
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Созвездие</b><small>Доска квестов · твой город</small></div></div><span class="sp"></span></header>
+ <div class="stack">
+  <div class="chips">${[["all","Все"],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${ui.cat===k?"on":""}" data-act="cat" data-id="${k}">${v}</button>`).join("")}</div>
+  <div class="h2">Свежие квесты <small>${plural(list.length,"квест","квеста","квестов")}</small></div>
+  ${list.map(qcard).join("")||`<div class="empty"><b>Здесь пока тихо</b>В этой категории нет квестов. Создай первый.</div>`}
+ </div>`;
+}
+function hcard(h){
+ return `<button class="card" data-act="hero" data-id="${h.id}">
+  <div class="row l" style="gap:12px">${ava(h)}<div style="min-width:0;flex:1"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="mu sm">${CLS[h.c]} · ${plural(h.o,"квест","квеста","квестов")}</div><div class="sm"><span class="rate">★ ${h.r}</span></div></div>
+   <div style="text-align:right"><div class="mu xs">от</div><div class="price" style="font-size:16px">${rub(h.pr)}</div></div></div>
+  <div class="row l" style="gap:14px">${radar([h.sk],88)}${skl(h.sk)}</div>
+  <div class="tags">${h.b.slice(0,3).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
+ </button>`;
+}
+function vHeroes(){
+ let list=DB.H.filter(h=>ui.hcat==="all"||h.c===ui.hcat);
+ list.sort(ui.sort==="r"?(a,b)=>b.r-a.r||b.o-a.o:ui.sort==="lv"?(a,b)=>b.lv-a.lv:(a,b)=>a.pr-b.pr);
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Герои</b><small>${plural(DB.H.length,"исполнитель","исполнителя","исполнителей")} рядом</small></div></div></header>
+ <div class="stack">
+  <div class="chips">${[["all","Все"],...Object.entries(CLS)].map(([k,v])=>`<button class="chip ${ui.hcat===k?"on":""}" data-act="hcat" data-id="${k}">${v}</button>`).join("")}</div>
+  <div class="seg">${[["r","Рейтинг"],["lv","Уровень"],["pr","Цена"]].map(([k,v])=>`<button class="${ui.sort===k?"on":""}" data-act="sort" data-id="${k}">${v}</button>`).join("")}</div>
+  ${list.map(hcard).join("")}
+ </div>`;
+}
+function vMine(){
+ const my=DB.Q.filter(q=>q.mine).sort((a,b)=>({open:0,work:1,done:2}[a.st]-{open:0,work:1,done:2}[b.st])||b.at-a.at);
+ const n=st=>my.filter(q=>q.st===st).length;
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Мои квесты</b><small>Заказы, которые ты создал</small></div></div></header>
+ <div class="stack">
+  <div class="summary"><div><b>${n("open")}</b><span>ждут героя</span></div><div><b>${n("work")}</b><span>в работе</span></div><div><b>${n("done")}</b><span>выполнено</span></div></div>
+  ${my.map(q=>{const h=q.hired&&hero(q.hired);return `<button class="card" data-act="quest" data-id="${q.id}">
+   <div class="row">${status(q)}<span class="mu xs">${ago(q.at)}</span></div>
+   <div class="ttl">${esc(q.t)}</div>
+   ${h?`<div class="row l" style="gap:10px">${ava(h,"s")}<span class="sm">${esc(h.n)} · <span class="rate">★ ${h.r}</span></span></div>`:q.resp.length?`<div class="row l" style="gap:8px"><span class="who">${q.resp.slice(0,4).map(r=>ava(hero(r.h),"s")).join("")}</span><span class="sm mu">${plural(q.resp.length,"герой откликнулся","героя откликнулись","героев откликнулись")}</span></div>`:`<div class="sm mu">Ждём первые отклики…</div>`}
+   <div class="row"><span class="price" style="font-size:17px">${rub(q.price||q.rw)}</span><span class="mu sm">${CATS[q.c]}</span></div>
+  </button>`}).join("")||`<div class="empty"><b>Пока нет квестов</b>Нажми «+», чтобы создать первый.</div>`}
+  <button class="link" data-act="reset" style="align-self:center;margin-top:10px;color:var(--mu2)">Сбросить демо-данные</button>
+ </div>`;
+}
+function subhdr(title,extra=""){return `<header class="hdr"><button class="iconbtn" data-act="back" aria-label="Назад">${IC.back}</button><h1>${esc(title)}</h1><span class="sp"></span>${extra}</header>`}
+
+function vQuest(id){
+ const q=quest(id);if(!q)return subhdr("Квест не найден");
+ const head=`<div class="card">
+  <div class="row"><span class="mu sm">${CATS[q.c]} · ${esc(q.dist)}</span>${status(q)}</div>
+  <div class="ttl" style="font-size:20px">${esc(q.t)}</div>
+  ${q.d?`<div class="mu">${esc(q.d)}</div>`:""}
+  <div class="tags"><span class="tag">Сложность ${"★".repeat(q.df)}${"☆".repeat(5-q.df)}</span><span class="tag c">Срок: ${esc(q.dl)}</span></div>
+  <div class="row"><span class="price">${rub(q.price||q.rw)}</span><span class="mu xs">${ago(q.at)}</span></div></div>`;
+ let body="",bar="";
+ if(!q.mine){
+  const hs=q.resp.map(r=>hero(r.h));
+  body=`<div class="h2">Откликнулись <small>${hs.length}</small></div>${hs.map(h=>`<button class="card" data-act="hero" data-id="${h.id}"><div class="row l" style="gap:12px">${ava(h)}<div><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div></div></button>`).join("")}
+  <div class="card sm mu">Это квест другого заказчика. Свой квест можно создать кнопкой ниже.</div>`;
+  bar=`<button class="btn" data-act="create" data-cat="${q.c}">${IC.plus.replace('<svg','<svg width="20" height="20"')} Создать похожий квест</button>`;
+ } else if(q.st==="open"){
+  const sel=ui.cmp[q.id]||[];
+  body=`<div class="h2">Отклики героев <small>${q.resp.length?"выбери лучшего":""}</small></div>`+
+  (q.resp.length?q.resp.map(r=>{const h=hero(r.h),on=sel.includes(h.id);return `<div class="card resp">
+   <div class="row l" style="gap:12px"><button style="all:unset;cursor:pointer;display:flex;gap:12px;align-items:center;flex:1;min-width:0" data-act="hero" data-id="${h.id}">${ava(h)}<span style="min-width:0"><span class="ttl" style="font-size:16px;display:block">${esc(h.n)}</span><span class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span> · ${h.o} квестов</span></span></button>
+    <div style="text-align:right"><div class="price" style="font-size:17px">${rub(r.p)}</div><div class="xs mu">предлагает</div></div></div>
+   <div class="row l" style="gap:14px">${radar([h.sk],92)}${skl(h.sk)}</div>
+   ${r.m?`<div class="msg">«${esc(r.m)}»</div>`:""}
+   <div class="tags">${h.b.slice(0,3).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
+   <div class="row"><button class="check ${on?"on":""}" data-act="tcmp" data-id="${h.id}" data-q="${q.id}" aria-pressed="${on}"><i></i>Сравнить</button>
+    <button class="btn sm" data-act="hire" data-id="${h.id}" data-q="${q.id}">Нанять</button></div>
+  </div>`}).join(""):`<div class="card empty"><b>Герои уже смотрят твой квест</b>Первые отклики обычно приходят за несколько минут.</div>`);
+  if(sel.length>=2)bar=`<button class="btn" data-act="compare" data-id="${q.id}">${IC.sky.replace('<svg','<svg width="20" height="20"')} Сравнить созвездия (${sel.length})</button>`;
+ } else {
+  const h=hero(q.hired);
+  body=`<div class="h2">${q.st==="work"?"Твой герой":"Квест выполнил"}</div>
+  <button class="card" data-act="hero" data-id="${h.id}"><div class="row l" style="gap:12px">${ava(h)}<div style="flex:1"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div>${radar([h.sk],64)}</div></button>`;
+  if(q.st==="work"){
+   body+=`<div class="card"><ul class="tl"><li class="ok">Герой нанят<br><span class="xs mu">${ago(q.at)}</span></li><li class="ok">Герой подтвердил квест</li><li class="now">Работа идёт</li><li>Готово, осталось оценить</li></ul></div>`;
+   bar=`<button class="btn ghost" data-act="chat" style="flex:0 0 auto;width:auto">Написать</button><button class="btn" data-act="rate" data-id="${q.id}">Квест выполнен</button>`;
+  } else {
+   body+=`<div class="card"><div class="row"><span>Твоя оценка</span><span class="rate" style="font-size:18px">${"★".repeat(q.score||5)}</span></div>${q.note?`<div class="mu">«${esc(q.note)}»</div>`:""}</div>`;
+   bar=`<button class="btn" data-act="create" data-hero="${h.id}" data-cat="${q.c}">Нанять снова</button>`;
+  }
+ }
+ return {html:subhdr(q.mine?"Мой квест":"Квест")+`<div class="stack">${head}${body}</div>`,bar};
+}
+
+function vCompare(qid){
+ const q=quest(qid),ids=ui.cmp[qid]||[],hs=ids.map(hero),offers=ids.map(id=>q.resp.find(r=>r.h===id));
+ const rows=[...SK.map(([k,n])=>[n,hs.map(h=>h.sk[k]),"max"]),["Рейтинг",hs.map(h=>h.r),"max"],["Уровень",hs.map(h=>h.lv),"max"],["Квестов",hs.map(h=>h.o),"max"],["Цена",offers.map(o=>o.p),"min"]];
+ return {html:subhdr("Сравнение героев")+`<div class="stack">
+  <div class="card" style="align-items:center">${radar(hs.map(h=>h.sk),320,true)}
+   <div class="legend">${hs.map((h,i)=>`<span><i style="background:${SERIES[i]}"></i>${esc(h.n.split(" ")[0])}</span>`).join("")}</div>
+   <div class="mu sm" style="text-align:center">Чем шире созвездие, тем сильнее герой. Сразу видно, кто в чём лучше.</div></div>
+  <div class="card tblwrap"><table class="cmp"><thead><tr><th></th>${hs.map((h,i)=>`<th><span style="color:${SERIES[i]}">${esc(h.n.split(" ")[0])}</span></th>`).join("")}</tr></thead><tbody>
+   ${rows.map(([n,vals,m])=>{const best=m==="max"?Math.max(...vals):Math.min(...vals);return `<tr><td>${n}</td>${vals.map(v=>`<td class="${v===best?"best":""}">${n==="Цена"?rub(v):v}</td>`).join("")}</tr>`}).join("")}
+  </tbody></table></div>
+  <div class="stack">${hs.map((h,i)=>`<button class="btn ${i?"ghost":""}" data-act="hire" data-id="${h.id}" data-q="${q.id}">${esc(fn(h))} · нанять за ${rub(offers[i].p)}</button>`).join("")}</div>
+ </div>`,bar:""};
+}
+
+function vHero(id){
+ const h=hero(id);
+ return {html:subhdr(CLS[h.c])+`<div class="stack">
+  <div class="hero-top">${ava(h,"xl")}<h2>${esc(h.n)}</h2><div class="mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div>
+  <div class="stats"><div><b>${h.lv}</b><span>уровень</span></div><div><b>${h.o}</b><span>квестов</span></div><div><b>${rub(h.pr).replace(" ₽","")}</b><span>₽, от</span></div></div>
+  <div class="card">${xpbar(h)}</div>
+  <div class="card" style="align-items:center"><div class="h2" style="align-self:stretch;margin:0">Созвездие навыков</div>${radar([h.sk],300,true)}<div style="align-self:stretch">${skl(h.sk)}</div></div>
+  <div class="card"><div class="mu">${esc(h.bio)}</div></div>
+  <div class="h2">Достижения <small>${h.b.length}</small></div>
+  <div class="ach">${h.b.map(b=>`<div><b>${ACH[b][0]}</b><strong>${ACH[b][1]}</strong>${ACH[b][2]}</div>`).join("")}</div>
+  <div class="h2">Отзывы <small>${h.rv.length}</small></div>
+  <div class="card">${h.rv.map(([a,t,s],i)=>`<div class="${i?"review":""}"><div class="row"><b style="font-weight:500">${esc(a)}</b><span class="rate">${"★".repeat(s)}</span></div><div class="mu">${esc(t)}</div></div>`).join("")}</div>
+ </div>`,bar:`<button class="btn" data-act="create" data-hero="${h.id}" data-cat="${h.c}">Предложить квест</button>`};
+}
+
+function vCreate(s){
+ const h=s.hero&&hero(s.hero);const f=s.f||(s.f={t:"",c:s.cat||"plumb",d:"",rw:"",dl:"2 дня",df:2,dist:"Центральный"});
+ return {html:subhdr("Новый квест")+`<form class="stack" id="cf" novalidate>
+  ${h?`<div class="card row l" style="gap:12px;flex-direction:row">${ava(h,"s")}<span class="sm">Квест сразу увидит <b>${esc(h.n)}</b></span></div>`:""}
+  <div class="fld"><label for="f-t">Что нужно сделать</label><input class="inp" id="f-t" name="t" maxlength="80" placeholder="Например: починить кран на кухне" value="${esc(f.t)}" required></div>
+  <div class="fld"><label>Категория</label><div class="chips">${Object.entries(CATS).map(([k,v])=>`<button type="button" class="chip ${f.c===k?"on":""}" data-act="fcat" data-id="${k}">${v}</button>`).join("")}</div></div>
+  <div class="fld"><label for="f-d">Подробности</label><textarea class="inp" id="f-d" name="d" maxlength="400" placeholder="Опиши задачу, когда удобно, что уже есть">${esc(f.d)}</textarea></div>
+  <div class="row" style="align-items:flex-start">
+   <div class="fld" style="flex:1"><label for="f-rw">Награда, ₽</label><input class="inp" id="f-rw" name="rw" inputmode="numeric" placeholder="2000" value="${esc(f.rw)}"></div>
+   <div class="fld" style="flex:1"><label for="f-dl">Срок</label><select class="inp" id="f-dl" name="dl">${["Сегодня","Завтра","2 дня","Неделя","Не спешу"].map(o=>`<option ${f.dl===o?"selected":""}>${o}</option>`).join("")}</select></div>
+  </div>
+  <div class="fld"><label for="f-dist">Район</label><input class="inp" id="f-dist" name="dist" maxlength="40" value="${esc(f.dist)}"></div>
+  <div class="fld"><label>Сложность</label><div class="starsel" role="radiogroup" aria-label="Сложность">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=f.df?"on":""}" data-act="fdf" data-id="${i}" aria-label="${i} из 5">★</button>`).join("")}</div></div>
+  <div class="mu sm" id="ferr" role="alert"></div>
+ </form>`,bar:`<button class="btn" data-act="publish">Опубликовать квест</button>`};
+}
+
+function vRate(qid){
+ const q=quest(qid),h=hero(q.hired),s=cur();s.v=s.v||{s:5,q:5,p:5,c:5};
+ return {html:subhdr("Оценка квеста")+`<div class="stack">
+  <div class="hero-top">${ava(h,"xl")}<h2>Как ${gv(h,"справился","справилась")} ${esc(fn(h))}?</h2><div class="mu sm">Оценка изменит созвездие героя и даст ему опыт</div></div>
+  <div class="card">${SK.map(([k,n])=>`<div class="row"><span>${n}</span><div class="starsel">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=s.v[k]?"on":""}" data-act="rstar" data-k="${k}" data-id="${i}" aria-label="${n}: ${i} из 5">★</button>`).join("")}</div></div>`).join("")}</div>
+  <div class="fld"><label for="r-note">Отзыв (по желанию)</label><textarea class="inp" id="r-note" maxlength="300" placeholder="Что понравилось?">${esc(s.note||"")}</textarea></div>
+ </div>`,bar:`<button class="btn" data-act="sendrate" data-id="${q.id}">Отправить оценку</button>`};
+}
+
+/* ============ RENDER ============ */
+const appEl=document.getElementById("app"),navEl=document.getElementById("nav");
+function render(scrollTop){
+ const s=cur();let html,bar="";
+ if(!s){html=tab==="board"?vBoard():tab==="heroes"?vHeroes():vMine();}
+ else{const r=s.type==="quest"?vQuest(s.id):s.type==="hero"?vHero(s.id):s.type==="compare"?vCompare(s.id):s.type==="create"?vCreate(s):vRate(s.id);html=r.html??r;bar=r.bar||"";}
+ appEl.className="app"+(s?" sub":"");
+ appEl.innerHTML=`<div class="${scrollTop?"screen":""}">${html}</div>`;
+ const waiting=DB.Q.filter(q=>q.mine&&q.st==="open"&&q.resp.length).length;
+ navEl.innerHTML=s?(bar?`<div class="actbar"><div class="in">${bar}</div></div>`:""):`<nav class="tabs" aria-label="Разделы"><div class="in">
+  <button class="tab ${tab==="board"?"on":""}" data-act="tab" data-id="board">${IC.board}Доска</button>
+  <button class="tab ${tab==="heroes"?"on":""}" data-act="tab" data-id="heroes">${IC.heroes}Герои</button>
+  <button class="tab plus" data-act="create" aria-label="Создать квест"><span>${IC.plus}</span></button>
+  <button class="tab ${tab==="mine"?"on":""}" data-act="tab" data-id="mine">${IC.mine}Мои${waiting?`<span class="dot">${waiting}</span>`:""}</button>
+  <button class="tab" data-act="about">${IC.sky}О сервисе</button>
+ </div></nav>`;
+ if(scrollTop)window.scrollTo(0,0);
+}
+
+/* ============ ACTIONS ============ */
+function toast(html){const t=document.createElement("div");t.className="toast";t.innerHTML=html;document.getElementById("toasts").appendChild(t);setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3200)}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function burst(x,y,n=34){if(reduce)return;const cols=["#b7a6ff","#7fe0ff","#ffd88a","#ffffff"];
+ for(let i=0;i<n;i++){const p=document.createElement("span");p.className="spark";const c=cols[i%4];p.style.cssText=`left:${x}px;top:${y}px;background:${c};box-shadow:0 0 10px ${c}`;document.body.appendChild(p);
+  const a=Math.random()*Math.PI*2,d=60+Math.random()*150;
+  p.animate([{transform:"translate(-50%,-50%) scale(1)",opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*d}px),calc(-50% + ${Math.sin(a)*d}px)) scale(.2)`,opacity:0}],{duration:800+Math.random()*600,easing:"cubic-bezier(.2,.7,.3,1)"}).onfinish=()=>p.remove()}}
+function modal(html){const m=document.getElementById("modal");m.innerHTML=`<div class="ovl" role="dialog" aria-modal="true"><div class="box">${html}</div></div>`;const b=m.querySelector(".box").getBoundingClientRect();setTimeout(()=>burst(b.left+b.width/2,b.top+70),120);m.querySelector("[data-act]")?.focus()}
+function closeModal(){document.getElementById("modal").innerHTML=""}
+
+function hire(qid,hid){
+ const q=quest(qid),h=hero(hid),r=q.resp.find(x=>x.h===hid);
+ q.st="work";q.hired=hid;q.price=r.p;q.at=Date.now();delete ui.cmp[qid];save();
+ stack=[{type:"quest",id:qid}];tab="mine";render(true);
+ modal(`${ava(h,"xl")}<h3>${esc(fn(h))} ${gv(h,"принял","приняла")} квест!</h3><p>«${esc(q.t)}»</p><p class="sm">${gv(h,"Он","Она")} свяжется с тобой в течение 15 минут. Оплата ${rub(r.p)} — после выполнения.</p><button class="btn" data-act="close" style="margin-top:6px">Отлично</button>`);
+}
+function sendRate(qid){
+ const q=quest(qid),h=hero(q.hired),v=cur().v,note=document.getElementById("r-note")?.value.trim()||"";
+ const avg=(v.s+v.q+v.p+v.c)/4;
+ SK.forEach(([k])=>{h.sk[k]=Math.max(10,Math.min(100,Math.round(h.sk[k]*.85+v[k]*20*.15)))});
+ h.r=Math.round(((h.r*h.o)+avg)/(h.o+1)*100)/100;h.o++;
+ const gain=100+q.df*20+(avg===5?50:0),oldXp=h.xp,oldLv=h.lv;h.xp+=gain;let up=false;
+ while(h.xp>=xpNext(h.lv)){h.xp-=xpNext(h.lv);h.lv++;up=true}
+ q.st="done";q.score=Math.round(avg);q.note=note;if(note)h.rv.unshift(["Вы",note,Math.round(avg)]);save();
+ stack=[{type:"quest",id:qid}];render(true);
+ modal(`${ava(h,"xl")}<h3>${up?`Новый уровень: ${h.lv}!`:`${esc(fn(h))}: +${gain} XP`}</h3><p>${up?`Благодаря тебе ${esc(fn(h))} ${gv(h,"поднялся","поднялась")} на новый уровень.`:"Спасибо за оценку! Она помогает другим выбрать героя."}</p>
+  <div class="xp" style="align-self:stretch;text-align:left"><div class="row"><span>Уровень ${h.lv}</span><span>${h.xp} / ${xpNext(h.lv)} XP</span></div><div class="bar"><i id="xpb" style="width:${up?0:oldXp/xpNext(oldLv)*100}%"></i></div></div>
+  <button class="btn" data-act="close" style="margin-top:6px">Готово</button>`);
+ requestAnimationFrame(()=>setTimeout(()=>{const b=document.getElementById("xpb");if(b)b.style.width=h.xp/xpNext(h.lv)*100+"%"},200));
+}
+function publish(){
+ const s=cur(),f=s.f,form=document.getElementById("cf");
+ f.t=form.t.value.trim();f.d=form.d.value.trim();f.rw=form.rw.value.replace(/\D/g,"");f.dl=form.dl.value;f.dist=form.dist.value.trim()||"Центральный";
+ const err=document.getElementById("ferr");
+ if(f.t.length<3){err.textContent="Напиши, что нужно сделать: хотя бы пару слов.";form.t.focus();return}
+ if(!f.rw||+f.rw<100){err.textContent="Укажи награду: от 100 ₽.";form.rw.focus();return}
+ const q={id:DB.nextId++,mine:true,t:f.t,c:f.c,d:f.d,rw:+f.rw,dl:f.dl,df:f.df,dist:f.dist,at:Date.now(),st:"open",resp:[]};
+ DB.Q.push(q);save();
+ const invited=s.hero;tab="mine";stack=[{type:"quest",id:q.id}];render(true);
+ toast(`${IC.sky.replace('<svg','<svg width="22" height="22" style="color:var(--acc2);flex:none"')}<span>Квест опубликован. Герои уже смотрят!</span>`);
+ // simulated responders
+ let pool=DB.H.filter(h=>h.c===q.c&&h.id!==invited);if(pool.length<3)pool=pool.concat(DB.H.filter(h=>h.c!==q.c&&h.id!==invited).sort(()=>Math.random()-.5)).slice(0,3);
+ const order=(invited?[hero(invited)]:[]).concat(pool.sort(()=>Math.random()-.5)).slice(0,3);
+ const msgs=["Готов взяться, могу сегодня.","Сделаю быстро и аккуратно.","Есть опыт в похожих задачах, приеду со своим инструментом.","Могу завтра утром, займёт пару часов."];
+ order.forEach((h,i)=>setTimeout(()=>{const cq=quest(q.id);if(!cq||cq.st!=="open")return;
+  const p=Math.max(100,Math.round(q.rw*(.85+Math.random()*.35)/50)*50);
+  cq.resp.push({h:h.id,p,m:msgs[(i+h.id)%msgs.length]});save();
+  toast(`${ava(h,"s")}<span><b style="font-weight:500">${esc(h.n)}</b> ${gv(h,"откликнулся","откликнулась")} на «${esc(q.t)}» · ${rub(p)}</span>`);
+  const t=cur();if(!t&&tab==="mine"||t&&t.type==="quest"&&t.id===q.id)render(false);else if(!t)render(false);
+ },1600+i*2600));
+}
+
+document.addEventListener("click",e=>{
+ const el=e.target.closest("[data-act]");if(!el)return;
+ const a=el.dataset.act,id=el.dataset.id;
+ switch(a){
+  case"tab":setTab(id);break;
+  case"back":back();break;
+  case"cat":ui.cat=id;render(false);break;
+  case"hcat":ui.hcat=id;render(false);break;
+  case"sort":ui.sort=id;render(false);break;
+  case"quest":go({type:"quest",id:+id});break;
+  case"hero":go({type:"hero",id:+id});break;
+  case"create":go({type:"create",hero:el.dataset.hero?+el.dataset.hero:null,cat:el.dataset.cat||null});break;
+  case"tcmp":{const q=+el.dataset.q,l=ui.cmp[q]||(ui.cmp[q]=[]),h=+id;const i=l.indexOf(h);if(i>=0)l.splice(i,1);else{if(l.length>=4){toast("Сравнить можно до 4 героев");break}l.push(h)}render(false);break}
+  case"compare":go({type:"compare",id:+id});break;
+  case"hire":{const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,16);setTimeout(()=>hire(+el.dataset.q,+id),180);break}
+  case"close":closeModal();break;
+  case"chat":toast("Чат с героем появится в полной версии");break;
+  case"rate":go({type:"rate",id:+id});break;
+  case"rstar":{const s=cur();s.note=document.getElementById("r-note")?.value;s.v[el.dataset.k]=+id;render(false);break}
+  case"sendrate":sendRate(+id);break;
+  case"fcat":case"fdf":{const s=cur(),form=document.getElementById("cf");Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});if(a==="fcat")s.f.c=id;else s.f.df=+id;render(false);break}
+  case"publish":publish();break;
+  case"reset":DB=seed();save();ui.cmp={};render(true);toast("Демо-данные восстановлены");break;
+  case"about":modal(`<span style="display:block">${IC.logo.replace('width="34" height="34"','width="64" height="64"')}</span><h3>Созвездие</h3><p>Доска квестов, где ты выбираешь исполнителя как героя в игре. У каждого героя есть уровень, рейтинг, достижения и созвездие навыков.</p><p class="sm">Это прототип: данные хранятся только в твоём браузере.</p><button class="btn" data-act="close" style="margin-top:6px">Понятно</button>`);break;
+ }
+});
+document.addEventListener("submit",e=>{e.preventDefault();publish()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+
+/* ============ STARFIELD ============ */
+(function(){const c=document.getElementById("stars"),x=c.getContext("2d");let W,H,S=[];
+ function size(){const d=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;c.style.width=W+"px";c.style.height=H+"px";x.setTransform(d,0,0,d,0,0);
+  S=Array.from({length:Math.round(W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+.2,p:Math.random()*6.28,s:.4+Math.random()*1.2}));draw(0)}
+ function draw(t){x.clearRect(0,0,W,H);for(const s of S){const a=.25+.45*(.5+.5*Math.sin(s.p+t/1000*s.s));x.globalAlpha=a;x.fillStyle="#dcd8ff";x.beginPath();x.arc(s.x,s.y,s.r,0,6.28);x.fill()}}
+ function loop(t){draw(t);requestAnimationFrame(loop)}
+ addEventListener("resize",size);size();if(!reduce)requestAnimationFrame(loop);
+})();
+
+render(false);
+</script>
+</body>
+</html>
