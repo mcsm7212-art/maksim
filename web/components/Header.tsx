@@ -17,7 +17,9 @@ export default async function Header() {
           <nav className="nav" aria-label="Main">
             <Link href="/search">Find a pro</Link>
             <Link href="/companies">Companies</Link>
+            {me?.role === 'admin' && <Link href="/admin">Admin</Link>}
             {me?.companies.some((c) => c.role !== 'technician') && <Link href="/business">Business</Link>}
+            {me && <Link href="/messages">Messages</Link>}
             {me ? <Link href="/account">My account</Link> : <Link href="/login">Sign in</Link>}
             {!me?.pro && !me?.companies.length && <Link href="/join">For pros</Link>}
           </nav>

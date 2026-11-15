@@ -5,6 +5,7 @@ import Icon from '@/components/Icon';
 import ProCard from '@/components/ProCard';
 import { TRADES } from '@/lib/catalog';
 import { getCompany, listPros } from '@/lib/data';
+import { startChat } from '@/app/messages/actions';
 
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
@@ -39,6 +40,7 @@ export default async function CompanyPage({ params }: Props) {
           <div className="cta2" style={{ maxWidth: 520 }}>
             <Link className="btn" href={`/book?company=${c.slug}`}>Request a visit <Icon name="arrow" /></Link>
             <Link className="btn ghost" href={`/book?company=${c.slug}&estimate=1`}>Get an estimate</Link>
+            <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="company" value={c.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> Chat with the office</button></form>
           </div>
           <p className="mu xs" style={{ marginBottom: 0 }}>“Request a visit”: the office picks a technician and you see who is coming in your account. Or choose a technician below.</p>
         </div>

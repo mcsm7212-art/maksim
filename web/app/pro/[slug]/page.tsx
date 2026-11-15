@@ -5,6 +5,7 @@ import Icon from '@/components/Icon';
 import { priceFor } from '@/components/ProCard';
 import SkillPassport, { type SkillRow } from '@/components/SkillPassport';
 import WorkPhotos from '@/components/WorkPhotos';
+import { startChat } from '@/app/messages/actions';
 import { serviceById, TIERS, TRADES, usd, type Tier } from '@/lib/catalog';
 import { getPro, openSlots } from '@/lib/data';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
@@ -67,7 +68,9 @@ export default async function ProPage({ params, searchParams }: Props) {
           <div className="cta2 lcta">
             <Link className="btn" href={bookHref()}>Book {first} <Icon name="arrow" /></Link>
             <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>Ask for estimate</Link>
+            <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> Message {first}</button></form>
           </div>
+          {sp.chat === 'demo' && <p className="note" style={{ gridColumn: '1/-1' }}>Demo mode: chat turns on when the database is connected.</p>}
         </div>
 
         {(pro.bio || pro.experience) && <div className="blk">

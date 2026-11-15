@@ -18,8 +18,10 @@ export async function assign(f: FormData) {
   if (error) redirect(`/business?error=${encodeURIComponent(error.message)}`);
   revalidatePath('/business');
 }
-export async function createInvite(f: FormData) {
+async function createInvite(f: FormData, role: 'technician' | 'manager') {
   const sb = await need();
-  await sb.from('company_invites').insert({ company_id: s(f, 'company'), role: s(f, 'role') === 'manager' ? 'manager' : 'technician' });
+  await sb.from('company_invites').insert({ company_id: s(f, 'company'), role });
   revalidatePath('/business');
 }
+export async function inviteTechnician(f: FormData) { await createInvite(f, 'technician'); }
+export async function inviteManager(f: FormData) { await createInvite(f, 'manager'); }

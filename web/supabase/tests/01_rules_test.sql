@@ -145,4 +145,38 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
 do $$ begin delete from public.pro_photos; end $$;
 reset role;
 select pg_temp.ok((select count(*) from public.pro_photos) = 2, 'other pro cannot delete photos');
+-- 6) low rating cool-off, double-blind publishing
+reset role;
+update public.bookings set status = 'done' where id = '20000000-0000-0000-0000-000000000001';
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+insert into public.reviews (id, booking_id, client_id, pro_id, punctuality, workmanship, cleanliness, communication, pricing, body)
+  values ('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', auth.uid(), '00000000-0000-0000-0000-0000000000a2', 1, 2, 2, 1, 2, 'Late and messy');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+do $$ begin insert into public.review_replies (review_id, author_id, body) values ('30000000-0000-0000-0000-000000000002', auth.uid(), 'That is not true!'); raise exception 'FAIL: no cool-off';
+  exception when others then if sqlerrm not like 'cool-off%' then raise; end if; end $$;
+select pg_temp.ok(true, 'pro waits 1 hour before replying to a low rating');
+select pg_temp.ok((select count(*) from public.reviews where id = '30000000-0000-0000-0000-000000000002') = 0, 'pro does not see the review before rating the client');
+insert into public.client_ratings (booking_id, pro_id, client_id, agreements, access, payment) values ('20000000-0000-0000-0000-000000000001', auth.uid(), '00000000-0000-0000-0000-0000000000c1', 4, 5, 5);
+select pg_temp.ok((select count(*) from public.reviews where id = '30000000-0000-0000-0000-000000000002') = 1, 'review published once both sides rated');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.client_ratings) = 0, 'client cannot see how pro rated them');
+-- 7) chat
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+insert into public.conversations (id, client_id, pro_id) values ('40000000-0000-0000-0000-000000000001', auth.uid(), '00000000-0000-0000-0000-0000000000a1');
+insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-000000000001', auth.uid(), 'Hi, can you fix a leak? call me 650-555-1234');
+select pg_temp.ok((select flagged from public.messages limit 1), 'phone number before booking is flagged');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok((select count(*) from public.messages) = 1, 'pro sees the message');
+select pg_temp.ok((select count(*) from public.profiles where id = '00000000-0000-0000-0000-0000000000c2') = 1, 'pro sees name of client who wrote');
+select pg_temp.ok((select count(*) from public.notifications where link like '/messages/%') = 1, 'pro notified about the message');
+insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-000000000001', auth.uid(), 'Sure, tomorrow at 10?');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.ok((select count(*) from public.messages) = 0, 'other pro cannot read the chat');
+do $$ begin insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-000000000001', auth.uid(), 'spam'); raise exception 'FAIL: outsider wrote';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'outsider cannot write into the chat');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+do $$ begin insert into public.conversations (client_id, pro_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000a1'); raise exception 'FAIL: dup';
+  exception when unique_violation then null; end $$;
+select pg_temp.ok(true, 'one conversation per client and pro');
 \echo ALL RULE TESTS PASSED

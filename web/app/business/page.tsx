@@ -7,7 +7,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { slotLabel } from '@/lib/time';
 import { setStatus } from '../account/actions';
-import { assign, createInvite } from './actions';
+import { assign, inviteManager, inviteTechnician } from './actions';
 
 export const metadata = { title: 'Business' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,7 +34,7 @@ export default async function Business({ searchParams }: { searchParams: Promise
   return (
     <section className="sec pad"><div className="in">
       <div className="eyebrow">Business office</div><h2 style={{ marginBottom: 4 }}>{co.name}</h2>
-      <p className="mu sm" style={{ marginTop: 0 }}>{co.status === 'verified' ? <>Public page: <Link href={`/company/${co.slug}`}>/company/{co.slug}</Link></> : 'Waiting for license verification. Your page goes public after the check.'}</p>
+      <p className="mu sm" style={{ marginTop: 0 }}>{co.status === 'verified' ? <>Public page: <Link href={`/company/${co.slug}`}>/company/{co.slug}</Link></> : 'Waiting for license verification. Your page goes public after the check.'} · <Link href="/business/profile">Edit company page</Link></p>
       {sp.error && <div className="err" role="alert">{sp.error}</div>}
 
       <h3>Open jobs</h3>
@@ -69,10 +69,10 @@ export default async function Business({ searchParams }: { searchParams: Promise
       <div className="list">
         {(team ?? []).map((t) => <div key={t.id} className="card bk"><span><b>{t.display_name}</b> <span className="mu sm">· {t.status === 'verified' ? 'verified' : 'waiting for verification'}</span></span><Link className="btn ghost sm" href={`/pro/${t.slug}`}>Profile</Link></div>)}
         {(invites ?? []).map((i) => <div key={i.code} className="card bk"><span className="sm">Invite link ({i.role}):<br /><code style={{ wordBreak: 'break-all' }}>{origin}/invite/{i.code}</code></span><span className="mu xs">Send by text or email</span></div>)}
-        <form action={createInvite} className="chips">
+        <form action={inviteTechnician} className="chips">
           <input type="hidden" name="company" value={co.id} />
-          <button className="btn sm" name="role" value="technician">New technician invite</button>
-          <button className="btn ghost sm" name="role" value="manager">New manager invite</button>
+          <button className="btn sm">New technician invite</button>
+          <button className="btn ghost sm" formAction={inviteManager}>New manager invite</button>
         </form>
       </div>
     </div></section>

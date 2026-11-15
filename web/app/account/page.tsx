@@ -6,6 +6,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
 import PhotoPicker from '@/components/PhotoPicker';
+import { rateClient } from './reviews/actions';
 import { addPhotos, answerSwap, deletePhoto, markRead, setOnline, setStatus, submitReview } from './actions';
 
 export const metadata = { title: 'My account' };
@@ -34,6 +35,8 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     me.pro ? sb.from('pro_photos').select('id, url, caption').eq('pro_id', me.id).eq('kind', 'portfolio').order('created_at', { ascending: false }) : Promise.resolve({ data: [] as any[] }),
     bookingIds.length ? sb.from('pro_photos').select('id, url, kind, booking_id').in('booking_id', bookingIds) : Promise.resolve({ data: [] as any[] }),
   ]);
+  const { data: myRatings } = me.pro ? await sb.from('client_ratings').select('booking_id').eq('pro_id', me.id) : { data: [] as any[] };
+  const rated = new Set((myRatings ?? []).map((r: any) => r.booking_id));
   const photosOf = (id: string) => (jobPhotos ?? []).filter((p: any) => p.booking_id === id);
   const done = new Set((reviewed ?? []).map((r) => r.booking_id));
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
@@ -58,7 +61,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <h3>My pro profile</h3>
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>Status: {me.pro.status === 'verified' ? 'Public' : 'Waiting for verification'}</b><br />
-            <span className="mu sm">License check: {proRow?.license_status ?? 'none'} · <Link href={`/pro/${me.pro.slug}`}>View my page</Link></span></span>
+            <span className="mu sm">License check: {proRow?.license_status ?? "none"} · <Link href={`/pro/${me.pro.slug}`}>View my page</Link> · <Link href="/account/profile">Edit profile</Link> · <Link href="/account/reviews">My reviews</Link></span></span>
           <form action={setOnline}><input type="hidden" name="hours" value={online ? 0 : 4} /><button className={online ? 'btn ghost sm' : 'btn sm'}>{online ? '● Online · go offline' : 'Go online for 4 h'}</button></form>
         </div>
         <h3>My work photos <span className="mu sm">({(portfolio ?? []).length})</span></h3>
@@ -84,6 +87,13 @@ export default async function Account({ searchParams }: { searchParams: Promise<
                 {['confirmed', 'on_the_way'].includes(b.status) && <StatusBtn id={b.id} s="in_progress" l="Start" />}
                 {b.status === 'in_progress' && <StatusBtn id={b.id} s="done" l="Done" />}
               </span>
+              {b.status === 'done' && !rated.has(b.id) && <form action={rateClient} className="list" style={{ gridColumn: '1/-1', gap: 8 }}>
+                <input type="hidden" name="booking" value={b.id} /><input type="hidden" name="client" value={b.client_id} />
+                <b className="sm">Rate this client (private, only pros see it)</b>
+                <div className="row2">{[['agreements', 'Kept agreements'], ['access', 'Access to the job'], ['payment', 'Paid on time']].map(([k, l]) => <label key={k} className="f">{l}<select className="inp" name={k} defaultValue="5">{[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n}</option>)}</select></label>)}</div>
+                <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }}>Save rating</button>
+                <span className="mu xs">The client&apos;s review of you is published once you both have rated.</span>
+              </form>}
               {['confirmed', 'on_the_way', 'in_progress', 'done'].includes(b.status) && <div style={{ gridColumn: '1/-1' }} className="list">
                 <JobPhotos photos={photosOf(b.id)} />
                 <form action={addPhotos} className="list">

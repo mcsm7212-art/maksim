@@ -20,7 +20,7 @@ function mapCompany(c: Row): Company {
   };
 }
 
-const PRO_SELECT = `*, company:companies(*), pro_photos(id, url, caption, kind, created_at), pro_services(service_id, price, jobs_count), availability_rules(weekday, start_time, end_time),
+const PRO_SELECT = `*, company:companies(*), pro_photos(id, url, caption, kind, created_at), pro_services(service_id, price, jobs_count, active), availability_rules(weekday, start_time, end_time),
   reviews(id, author_name, created_at, service_id, tier, punctuality, workmanship, cleanliness, communication, pricing, body, resolved, review_replies(body))`;
 
 function mapPro(p: Row, stats?: Row): Pro {
@@ -43,7 +43,7 @@ function mapPro(p: Row, stats?: Row): Pro {
     skills: s?.rating != null ? {
       punctuality: s.punctuality / 20, workmanship: s.workmanship / 20, cleanliness: s.cleanliness / 20, communication: s.communication / 20, pricing: s.pricing / 20,
     } : null,
-    services: (p.pro_services ?? []).map((x: Row) => ({ id: x.service_id, jobs: x.jobs_count, price: x.price != null ? Number(x.price) : null }))
+    services: (p.pro_services ?? []).filter((x: Row) => x.active !== false).map((x: Row) => ({ id: x.service_id, jobs: x.jobs_count, price: x.price != null ? Number(x.price) : null }))
       .sort((a: { jobs: number }, b: { jobs: number }) => b.jobs - a.jobs),
     reviews,
     availability: (p.availability_rules ?? []).map((a: Row) => ({ weekday: a.weekday, start: a.start_time.slice(0, 5), end: a.end_time.slice(0, 5) })),

@@ -1,7 +1,9 @@
 'use client';
 import { useActionState, useState } from 'react';
 import { TRADES, type Trade } from '@/lib/catalog';
-import { registerCompany } from '../actions';
+import { registerCompany, updateCompany } from '../actions';
+
+export interface CompanyInitial { name: string; trade: string; license: string; city: string; since: number | null; warranty: number; about: string; accent: string; base: string; logo: string | null }
 import { uploadPhotos } from '@/lib/upload';
 
 const BASES = [['dark', 'Dark'], ['graphite', 'Graphite'], ['light', 'Light'], ['teal', 'Deep teal']] as const;
@@ -21,11 +23,12 @@ async function logoColor(file: File): Promise<string | null> {
   return '#' + [r, g, b].map((v) => Math.round(v / n).toString(16).padStart(2, '0')).join('');
 }
 
-export default function CompanyForm() {
-  const [state, action, pending] = useActionState(registerCompany, undefined);
-  const [accent, setAccent] = useState('#2F7FE0');
-  const [base, setBase] = useState('graphite');
-  const [name, setName] = useState('');
+export default function CompanyForm({ initial: I }: { initial?: CompanyInitial }) {
+  const edit = Boolean(I);
+  const [state, action, pending] = useActionState(edit ? updateCompany : registerCompany, undefined);
+  const [accent, setAccent] = useState(I?.accent ?? '#2F7FE0');
+  const [base, setBase] = useState(I?.base ?? 'graphite');
+  const [name, setName] = useState(I?.name ?? '');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoErr, setLogoErr] = useState<string | null>(null);
   return (
@@ -34,13 +37,13 @@ export default function CompanyForm() {
         <h3 style={{ margin: 0 }}>Company</h3>
         <div className="row2">
           <label className="f">Company name<input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} /></label>
-          <label className="f">Main trade<select className="inp" name="trade" defaultValue="plumbing">{(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{TRADES[t].name}</option>)}</select></label>
-          <label className="f">CSLB license #<input className="inp" name="license" inputMode="numeric" required placeholder="1045872" /></label>
-          <label className="f">City<input className="inp" name="city" placeholder="San Mateo" /></label>
-          <label className="f">In business since<input className="inp" name="since" type="number" min={1950} max={2030} placeholder="2011" /></label>
-          <label className="f">Labor warranty, months<input className="inp" name="warranty" type="number" min={0} max={120} defaultValue={12} /></label>
+          <label className="f">Main trade<select className="inp" name="trade" defaultValue={I?.trade ?? "plumbing"} disabled={edit}>{(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{TRADES[t].name}</option>)}</select></label>
+          <label className="f">CSLB license #<input className="inp" name="license" inputMode="numeric" required={!edit} disabled={edit} defaultValue={I?.license} placeholder="1045872" /></label>
+          <label className="f">City<input className="inp" name="city" defaultValue={I?.city} placeholder="San Mateo" /></label>
+          <label className="f">In business since<input className="inp" name="since" defaultValue={I?.since ?? undefined} type="number" min={1950} max={2030} placeholder="2011" /></label>
+          <label className="f">Labor warranty, months<input className="inp" name="warranty" type="number" min={0} max={120} defaultValue={I?.warranty ?? 12} /></label>
         </div>
-        <label className="f">About the company<textarea className="inp" name="about" maxLength={800} /></label>
+        <label className="f">About the company<textarea className="inp" name="about" defaultValue={I?.about} maxLength={800} /></label>
       </div>
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>Brand</h3>
@@ -64,8 +67,9 @@ export default function CompanyForm() {
         <span className="mu xs">License, rating, prices and the Book button keep the NovaFides look on every page so clients can trust them.</span>
       </div>
       {state?.error && <div className="err" role="alert">{state.error}</div>}
+      {state?.saved && <div className="okmsg" role="status">Saved.</div>}
       {state?.demo && <div className="note">Demo mode: nothing was saved. Connect the database to accept real sign-ups.</div>}
-      <button className="btn" disabled={pending}>{pending ? 'Saving…' : 'Register company'}</button>
+      <button className="btn" disabled={pending}>{pending ? 'Saving…' : edit ? 'Save changes' : 'Register company'}</button>
       <span className="mu xs">After we verify your license, invite your technicians from the Business page.</span>
     </form>
   );

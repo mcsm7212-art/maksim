@@ -15,7 +15,9 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const o=await user(b,'owner@test.local','Dana Owner');step('owner signed in by email code');
  await o.goto(B+'/join/company');await o.fill('input[name=name]','Peninsula Pipe Co');await o.fill('input[name=license]','1045001');await o.fill('input[name=city]','Redwood City');await o.fill('textarea[name=about]','Plumbing company for test.');
  await o.click('button:has-text("Register company")');await o.waitForURL(/business/);step('company registered → business page');
- sql("update companies set status='verified'");
+ const a=await user(b,'admin@test.local','Ada Admin');sql("update profiles set role='admin' where id=(select id from auth.users where email='admin@test.local')");
+ await a.goto(B+'/admin');await a.click('form:has-text("Peninsula Pipe Co") button:has-text("Approve")');await a.waitForTimeout(800);
+ if(sql("select status from companies")!=='verified')throw new Error('admin approve company failed');step('admin approved the company with a button');
  await o.reload();await o.click('button:has-text("New technician invite")');await o.waitForSelector('code');const inv=(await o.textContent('code')).trim();step('invite link '+inv);
  // technician
  const t=await user(b,'tech@test.local','Tom Tech',true);await t.goto(inv);await t.waitForURL(/join\/pro\?invite/);
@@ -26,7 +28,11 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.setInputFiles('.drop input >> nth=1',[IMG('w1'),IMG('w2')]);await s.waitForFunction(()=>document.querySelectorAll('input[name=work_url]').length===2);
  await s.check('input[name=tier_premium]');await s.check('input[name=svc_faucet-replacement]');await s.fill('input[name=price_faucet-replacement]','400');await s.check('input[name=day_0]',{force:true});await s.check('input[name=day_6]',{force:true});
  await s.click('button:has-text("Create my profile")');await s.waitForURL(/account/);step('solo pro registered');
- sql("update pros set status='verified', license_status='verified', id_verified=true");
+ for(const n of ['Tom Tech','Max Solo']){await a.goto(B+'/admin');const f=a.locator(`form:has-text("${n}")`);await f.locator('input[name=id_ok]').check();await f.locator('input[name=license_ok]').check();await f.locator('button:has-text("Approve")').click();await a.waitForTimeout(800)}
+ if(sql("select count(*) from pros where status='verified' and id_verified")!=='2')throw new Error('admin approve pros failed');step('admin approved both pros (license + ID)');
+ await s.goto(B+'/account/profile');await s.fill('textarea[name=experience]','Ten years now. Tankless heaters are my favorite.');await s.click('button:has-text("Save changes")');await s.waitForSelector('text=Saved');
+ if(!sql("select experience from pros where display_name='Max Solo'").startsWith('Ten years'))throw new Error('profile edit not saved');step('pro edited profile');
+ if(sql("select count(*) from pro_services p join pros x on x.id=p.pro_id where x.display_name='Max Solo' and active")!=='1')throw new Error('services lost on edit');
  console.log('  techs in company:',sql("select count(*) from pros where company_id is not null"));
  // client: request a visit
  const c=await user(b,'client@test.local','Anna Client',true);step('client signed in');
@@ -39,7 +45,10 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.screenshot({path:D+'e_client.png',fullPage:true});
  // client books solo pro by slot
  await c.goto(B+'/search?svc=faucet-replacement');await c.click('text=Max Solo');await c.waitForURL(/pro\//);if((await c.locator('.works img').count())!==2)throw new Error('work photos not on public page');step('public page shows real photo + 2 work photos');await c.screenshot({path:D+'e_pro.png',fullPage:true});
- await c.click('.slots a >> nth=0');await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Send booking request")');await c.waitForURL(/account\?booked/);step('client booked solo pro for a slot');
+ await c.click('button:has-text("Message Max")');await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);
+ await s.goto(B+'/messages');await s.click('text=Anna Client');await s.waitForSelector('text=kitchen faucet');await s.fill('textarea[name=body]','Yes, pick any open time on my page.');await s.click('button:has-text("Send")');await s.waitForTimeout(800);
+ await c.reload();await c.waitForSelector('text=pick any open time');step('client and pro chatted');await c.screenshot({path:D+'e_chat.png',fullPage:true});
+ await c.goto(B+'/pro/max-solo?svc=faucet-replacement');await c.click('.slots a >> nth=0');await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Send booking request")');await c.waitForURL(/account\?booked/);step('client booked solo pro for a slot');
  // pro flows job to done
  await s.goto(B+'/account');await s.click('button:has-text("Confirm")');await s.waitForTimeout(700);
  await s.setInputFiles('text=Add BEFORE photos >> xpath=ancestor::label//input',IMG('w1'));await s.waitForSelector('form:has(input[name=kind][value=before]) input[name=work_url]',{state:'attached'});await s.click('button:has-text("Save job photos")');await s.waitForTimeout(700);
@@ -51,5 +60,9 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/account');if((await c.locator('img[alt="before photo"]').count())!==1||(await c.locator('img[alt="after photo"]').count())!==1)throw new Error('client does not see before/after');step('client sees before/after photos of the job');
  await c.screenshot({path:D+'e_client2.png',fullPage:true});await c.selectOption('select[name=cleanliness]','4');await c.fill('textarea[name=body]','On time, clean, fair price.');await c.click('button:has-text("Post review")');await c.waitForTimeout(800);
  console.log('  review:',sql("select author_name||' '||cleanliness||' '||service_id from reviews"));step('client posted review');
+ await s.goto(B+'/account');await s.click('button:has-text("Save rating")');await s.waitForTimeout(800);
+ if(sql("select publish_at<=now() from reviews")!=='t')throw new Error('review not published after both rated');step('pro rated client → review published');
+ await s.goto(B+'/account/reviews');await s.fill('textarea[name=body]','Thank you Anna! Glad the new faucet works well.');await s.click('button:has-text("Post reply")');await s.waitForTimeout(1500);await s.screenshot({path:D+'e_reply.png',fullPage:true});await s.waitForSelector('.reply:has-text("Glad the new faucet")',{timeout:5000});
+ await c.goto(B+'/pro/max-solo');await c.waitForSelector('text=Glad the new faucet');step('reply shows on the public page');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
  await o.goto(B+'/business');await o.screenshot({path:D+'e_business.png',fullPage:true});
 }catch(e){console.log('FAIL',e.message)}console.log(errs.length?errs.join('\n'):'no page errors');await b.close()})();
