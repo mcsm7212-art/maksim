@@ -67,9 +67,9 @@ footer{color:var(--mu);font-size:13px}
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">NovaFides Marketplace · варианты логотипа</div>
-    <h1>Четыре простых значка</h1>
-    <p class="lead">Каждый значок проверен так, как он будет жить в реальности: крошечная иконка во вкладке браузера, белый фон, один цвет для вышивки, иконка приложения, метка на карте «Мастер онлайн», форма мастера и дверь рабочей машины. Хороший знак узнаётся везде.</p>
+    <div class="eyebrow">NovaFides Marketplace · логотип, второй круг</div>
+    <h1>Пять необычных идей</h1>
+    <p class="lead">Без щитов, домиков и рукопожатий, которые есть у всех. Каждая идея взята из нашего мира: доверие к человеку, которого впускаешь в дом, инструмент мастера, обещание, Bay Area и «Nova» — новая звезда. Каждый значок проверен так, как он будет жить в реальности: крошечная иконка во вкладке браузера, белый фон, один цвет для вышивки, иконка приложения, метка на карте «Мастер онлайн», форма мастера и дверь рабочей машины. Хороший знак узнаётся везде.</p>
   </header>
 
   <section>
@@ -80,49 +80,59 @@ footer{color:var(--mu);font-size:13px}
   <div id="concepts" style="display:flex;flex-direction:column;gap:44px"></div>
 
   <section class="pick">
-    <h2>Мой выбор: «Щит с галочкой»</h2>
-    <p>Он лучше всех проходит проверку маленьким размером и одним цветом, а его смысл понятен любому американцу без объяснений: проверено, лицензия, гарантия. Именно это мы и продаём.</p>
+    <h2>Мой выбор: «Приоткрытая дверь»</h2>
+    <p>Это единственный знак, который рассказывает историю: ты открываешь дверь мастеру, которому доверяешь, и в дом приходит свет. В нём нет банальных символов, он тёплый и запоминается. Золотой свет даёт «игровое» сияние, а синий — надёжность.</p>
     <ul>
-      <li>Запасной вариант: «Созвездие‑N». Он самый «игровой» и необычный, но в размере 16 px становится россыпью точек.</li>
-      <li>Финальную версию стоит отдать дизайнеру на доработку: выровнять линии и сделать свой шрифт для названия.</li>
+      <li>Второй вариант: «Гайка-звезда». Самая практичная: подходит всем профессиям и идеально читается в маленьком размере.</li>
+      <li>Самая смелая идея: «Мизинцы-обещание». Если хочется человечности, её стоит отдать сильному дизайнеру.</li>
+      <li>Можно соединить: дверь внутри шестигранника или звезда-скважина в гайке.</li>
     </ul>
   </section>
   <footer>Шрифт названия: Sora. Номер лицензии, сайт и подписи на машине и форме условные, для примера.</footer>
 </div>
 
 <script>
-const C={navy:"#0B1220",blue:"#2F80ED",green:"#22C55E",aqua:"#2DD4BF",gold:"#F5B942",white:"#FFFFFF"};
+const C={navy:"#0B1220",blue:"#2F80ED",green:"#22C55E",aqua:"#2DD4BF",gold:"#F5B942",white:"#FFFFFF",ink2:"#9FB4D6"};
 let uid=0;
 const sparkle=(x,y,r,fill)=>`<path d="M${x} ${y-r}L${x+r*.32} ${y-r*.32}L${x+r} ${y}L${x+r*.32} ${y+r*.32}L${x} ${y+r}L${x-r*.32} ${y+r*.32}L${x-r} ${y}L${x-r*.32} ${y-r*.32}Z" fill="${fill}"/>`;
 /* mode: "color" (on dark), "light" (colour on white), or a solid colour string for one-colour use; bg = colour used for knock-outs */
+const OR="#F2552C";
+const grad=(id,a,b,dir="0 0 1 1")=>{const [x1,y1,x2,y2]=dir.split(" ");return `<defs><linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>`};
 const MARKS={
- shield:{name:"Щит с галочкой",idea:"Проверено, лицензия, гарантия. Звёздочка — рейтинг и наш игровой штрих.",pros:["Читается даже в 16 px","Понятен без слов: «надёжно и проверено»","Отлично вышивается и печатается в один цвет"],cons:["Щиты часто используют страховые и охранные компании, поэтому важна наша звёздочка и цвета"],tag:"Мой выбор",
-  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const f=mono?mode:`url(#${id})`;
-   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
-   <path d="M32 5L53 12.5V30C53 43.5 44 53.5 32 59C20 53.5 11 43.5 11 30V12.5Z" fill="${f}"/>
-   <path d="M21.5 32.5L29 40L43.5 25" fill="none" stroke="${mono?bg:C.white}" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
-   <circle cx="51" cy="10" r="8.2" fill="${bg}"/>${sparkle(51,10,6.2,mono?mode:C.gold)}`}},
- pipe:{name:"Буква N из трубы",idea:"N, собранная из трубы с муфтами, и капля воды. Сразу про сантехнику и про имя.",pros:["Уникальная форма, легко запомнить","Связь с названием NovaFides"],cons:["Слишком «сантехнический»: электрикам и хендименам подходит хуже","Капля в 16 px почти исчезает"],tag:"",
-  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;
-   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
-   <path d="M18 47V17L46 45V13" fill="none" stroke="${s}" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
-   <rect x="11.5" y="44" width="13" height="7" rx="2.5" fill="${mono?mode:C.blue}"/><rect x="39.5" y="9" width="13" height="7" rx="2.5" fill="${mono?mode:C.aqua}"/>
-   <path d="M46 50.5C44 54 41.5 56.6 41.5 58.8a4.5 4.5 0 0 0 9 0C50.5 56.6 48 54 46 50.5Z" fill="${mono?mode:C.green}"/>`}},
- house:{name:"Дом с галочкой",idea:"Крыша и галочка внутри: «твой дом в надёжных руках».",pros:["Сразу понятно: услуги для дома","Хорошо смотрится на машине и форме"],cons:["Похожие знаки у многих риелторов и ремонтных компаний","Меньше индивидуальности"],tag:"",
-  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;
-   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
-   <path d="M8 31L32 10L56 31" fill="none" stroke="${s}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-   <path d="M15 33V53H49V33" fill="none" stroke="${s}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="${mono?1:.75}"/>
-   <path d="M22.5 41L29.5 48L43 34" fill="none" stroke="${mono?mode:C.green}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`}},
- stars:{name:"Созвездие‑N",idea:"Четыре звезды, соединённые в букву N, верхняя — золотая. Рейтинг и наш игровой стиль.",pros:["Самый необычный и «игровой»","Красиво светится на тёмном фоне"],cons:["В 16 px превращается в россыпь точек","Не говорит сразу, что это про мастеров"],tag:"",
-  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;const dot=mono?mode:(mode==="light"?C.blue:C.white);
-   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
-   <path d="M15 49V17L47 47V18" fill="none" stroke="${s}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-   <circle cx="15" cy="49" r="5.5" fill="${dot}"/><circle cx="15" cy="17" r="5.5" fill="${dot}"/><circle cx="47" cy="47" r="5.5" fill="${dot}"/>
-   ${sparkle(47,15,11,mono?mode:C.gold)}`}}
+ door:{acc:"linear-gradient(90deg,#FFD27A,#F5B942)",name:"Приоткрытая дверь",idea:"Дверь открыта, и из неё льётся тёплый свет со звездой. Ты впускаешь в дом человека, которому доверяешь. Такого знака нет ни у одного сервиса мастеров.",pros:["Эмоция и смысл: доверие, тепло, дом","Ни на кого не похож","Свет из двери легко анимировать на сайте"],cons:["Нужно аккуратно доработать перспективу двери у дизайнера"],tag:"Мой выбор",
+  svg(mode,bg){const id="g"+(++uid),mono=mode!=="color"&&mode!=="light";const blue=mono?mode:`url(#${id}b)`,gold=mono?mode:`url(#${id}g)`;
+   return `${mono?"":grad(id+"b",C.blue,"#1B4FA8","0 0 0 1")+grad(id+"g","#FFE3A3",C.gold,"0 0 1 1")}
+   <path d="M30 13.5L47 9V55L30 51.5Z" fill="${gold}"/>
+   <path d="M30 51.5L47 55L60 61H18Z" fill="${mono?mode:C.gold}" opacity="${mono?1:.35}"/>
+   <path d="M17 56V8H49V56" fill="none" stroke="${mono?mode:C.ink2}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+   <path d="M17 8L30 13.5V51.5L17 56Z" fill="${blue}"/>
+   <circle cx="26" cy="33" r="1.8" fill="${mono?bg:C.white}"/>
+   ${sparkle(39,28,7,mono?bg:C.white)}`}},
+ nut:{name:"Гайка-звезда",idea:"Шестигранная гайка — общий символ всех рабочих профессий: сантехника, электрика, хендимена. Внутри вместо резьбы горит новая звезда (Nova). Шестигранник — ещё и «игровая» форма.",pros:["Подходит всем профессиям, не только сантехникам","Отлично читается в 16 px и вышивается","Звезда = рейтинг и имя Nova"],cons:["Гайки встречаются в логотипах автосервисов, поэтому важна звезда внутри"],tag:"",
+  svg(mode,bg){const id="g"+(++uid),mono=mode!=="color"&&mode!=="light";const f=mono?mode:`url(#${id})`;
+   const pts=[0,1,2,3,4,5].map(k=>{const a=(-90+60*k)*Math.PI/180;return `${(32+27*Math.cos(a)).toFixed(1)},${(32+27*Math.sin(a)).toFixed(1)}`}).join(" ");
+   return `${mono?"":grad(id,C.blue,C.aqua)}<polygon points="${pts}" fill="${f}" stroke="${f}" stroke-width="5" stroke-linejoin="round"/>
+   <circle cx="32" cy="32" r="15" fill="${mono?bg:C.navy}"/>${sparkle(32,32,12,mono?mode:C.gold)}`}},
+ key:{acc:"linear-gradient(90deg,#FFD27A,#F5B942)",name:"Скважина-звезда",idea:"Замочная скважина, в которой сияет новая звезда. Мы доверяем мастеру ключи от дома, а «Nova» — это новая звезда.",pros:["Сильный смысл: «ключи от дома в надёжных руках»","Простая и узнаваемая форма"],cons:["Скважину используют слесари и охранные фирмы, поэтому звезда обязательна","Чуть «тяжёлый» силуэт на белом фоне"],tag:"",
+  svg(mode,bg){const id="g"+(++uid),mono=mode!=="color"&&mode!=="light";const f=mono?mode:`url(#${id})`;
+   return `${mono?"":grad(id,"#3B8DF5","#1B3F8F","0 0 0 1")}<path d="M32 6a17 17 0 0 1 9.6 31L46 58H18L22.4 37A17 17 0 0 1 32 6Z" fill="${f}"/>
+   ${sparkle(32,23,10,mono?bg:C.gold)}<circle cx="32" cy="23" r="2.2" fill="${mono?bg:C.white}"/>`}},
+ promise:{name:"Мизинцы-обещание",idea:"Два сцепленных мизинца — жест «даю слово» (pinky promise), понятный каждому американцу. Fides по-латыни и есть «верность слову». Клиент и мастер держат обещание.",pros:["Очень человечный и тёплый, ни у кого в отрасли такого нет","Американцы узнают жест мгновенно"],cons:["Пока это набросок формы: в маленьком размере руки читаются плохо","Нужен сильный дизайнер, чтобы жест узнавался с первого взгляда"],tag:"",
+  svg(mode,bg){const mono=mode!=="color"&&mode!=="light";const a=mono?mode:C.blue,b=mono?mode:C.gold;
+   return `<path d="M10 52C10 40 14 30 25 28.5C33.5 27.4 37 34 32.5 37.5" fill="none" stroke="${a}" stroke-width="8.5" stroke-linecap="round"/>
+   <path d="M54 12C54 24 50 34 39 35.5C30.5 36.6 27 30 31.5 26.5" fill="none" stroke="${mono?bg:C.navy}" stroke-width="14" stroke-linecap="round"/>
+   <path d="M54 12C54 24 50 34 39 35.5C30.5 36.6 27 30 31.5 26.5" fill="none" stroke="${b}" stroke-width="8.5" stroke-linecap="round"/>
+   <path d="M25 28.5C33.5 27.4 37 34 32.5 37.5" fill="none" stroke="${a}" stroke-width="8.5" stroke-linecap="round"/>`}},
+ bridge:{acc:"linear-gradient(90deg,#FF7A50,#F2552C)",name:"Мост-N (Bay Area)",idea:"Буква N из башен и троса Golden Gate, цвет International Orange, как у настоящего моста. Сразу говорит: мы свои, местные, из Bay Area.",pros:["Мгновенная местная узнаваемость","Яркий оранжевый выделяется среди синих конкурентов"],cons:["Привязка к Bay Area, при выходе в другие штаты знак придётся менять","Мост как символ используют многие местные фирмы"],tag:"",
+  svg(mode,bg){const mono=mode!=="color"&&mode!=="light";const o=mono?mode:OR;
+   return `<path d="M17 58V8M47 58V8" stroke="${o}" stroke-width="6" stroke-linecap="round"/>
+   <path d="M13 16H21M13 26H21M43 16H51M43 26H51" stroke="${o}" stroke-width="3.5" stroke-linecap="round"/>
+   <path d="M17 9C24 30 36 44 47 47" fill="none" stroke="${o}" stroke-width="3.5" stroke-linecap="round"/>
+   <path d="M24 26V42M31 36V45M38 42V46" stroke="${o}" stroke-width="2" opacity=".8"/>
+   <path d="M5 46H59" stroke="${mono?mode:(mode==="light"?"#0B1220":C.white)}" stroke-width="3.5" stroke-linecap="round"/>`}}
 };
 const mark=(k,size,mode="color",bg=C.navy)=>`<svg width="${size}" height="${size}" viewBox="0 0 64 64" role="img" aria-label="${MARKS[k].name}">${MARKS[k].svg(mode,bg)}</svg>`;
-const lock=(k,size,cls="",mode="color",bg=C.navy)=>`<div class="lock ${cls}">${mark(k,size,mode,bg)}<div class="t"><div class="nm" style="font-size:${size*.62}px">Nova<span>Fides</span></div><div class="sub" style="font-size:${Math.max(7,size*.13)}px">MARKETPLACE</div></div></div>`;
+const lock=(k,size,cls="",mode="color",bg=C.navy)=>`<div class="lock ${cls}">${mark(k,size,mode,bg)}<div class="t"><div class="nm" style="font-size:${size*.62}px">Nova<span style="${MARKS[k].acc&&cls!=="mono"?`background-image:${MARKS[k].acc}`:""}">Fides</span></div><div class="sub" style="font-size:${Math.max(7,size*.13)}px">MARKETPLACE</div></div></div>`;
 
 document.getElementById("pal").innerHTML=[["Ночной синий","#0B1220","фон, игровая тьма"],["Синий доверия","#2F80ED","главный цвет"],["Зелёный «проверено»","#22C55E","галочки, «Book»"],["Бирюзовый неон","#2DD4BF","свечение, акценты"],["Золото Премиум","#F5B942","уровень Премиум, награды"],["Белый","#FFFFFF","текст, светлые версии"]]
  .map(([n,h,d])=>`<div class="sw"><i style="background:${h}"></i><div><b>${n}</b><code>${h}</code><br>${d}</div></div>`).join("");
