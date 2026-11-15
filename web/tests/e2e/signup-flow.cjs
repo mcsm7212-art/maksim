@@ -45,6 +45,15 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await o.goto(B+'/business');await o.selectOption('select[name=pro]',{label:'Tom Tech'});await o.fill('input[name=time]','2030-03-04T10:00');await o.click('button:has-text("Save")');await o.waitForTimeout(800);
  await c.reload();const ct=await c.content();if(!ct.includes('Tom Tech')||!ct.includes('assigned by the office'))throw new Error('assigned tech not visible to client');step('office assigned Tom → client sees him + notification');
  await c.screenshot({path:D+'e_client.png',fullPage:true});
+ // day board: second visit request assigned for today, then moved through statuses from the board
+ await c.goto(B+'/company/peninsula-pipe-co');await c.click('text=Request a visit');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Request a visit")');await c.waitForURL(/account\?booked/);
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date());
+ await o.goto(B+'/business/board');await o.waitForSelector('text=Waiting for a technician (1)');
+ await o.selectOption('.formcard select[name=pro]',{label:'Tom Tech'});await o.fill('.formcard input[name=time]',today+'T23:00');await o.click('button:has-text("Assign")');await o.waitForTimeout(900);
+ await o.reload();const col=o.locator('.bcol:has-text("Tom Tech")');if(!(await col.textContent()).includes('200 Elm St'))throw new Error('job not in Tom column');
+ await col.locator('button:has-text("On the way")').click();await o.waitForTimeout(800);await o.reload();
+ if(!(await o.locator('.bcol:has-text("Tom Tech")').textContent()).includes('Start'))throw new Error('status not updated on board');
+ await o.screenshot({path:D+'e_board.png',fullPage:true});step('day board: office assigned today job to Tom, marked him on the way');
  // client books solo pro by slot
  await c.goto(B+'/search?svc=faucet-replacement');await c.click('text=Max Solo');await c.waitForURL(/pro\//);if((await c.locator('.works img').count())!==2)throw new Error('work photos not on public page');step('public page shows real photo + 2 work photos');await c.screenshot({path:D+'e_pro.png',fullPage:true});
  await c.click('button:has-text("Message Max")');await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);

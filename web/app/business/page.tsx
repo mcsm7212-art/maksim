@@ -7,6 +7,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { slotLabel } from '@/lib/time';
 import { setStatus } from '../account/actions';
+import AutoRefresh from '@/components/AutoRefresh';
 import { assign, inviteManager, inviteTechnician } from './actions';
 
 export const metadata = { title: 'Business' };
@@ -33,8 +34,10 @@ export default async function Business({ searchParams }: { searchParams: Promise
 
   return (
     <section className="sec pad"><div className="in">
+      <AutoRefresh seconds={30} />
       <div className="eyebrow">Business office</div><h2 style={{ marginBottom: 4 }}>{co.name}</h2>
       <p className="mu sm" style={{ marginTop: 0 }}>{co.status === 'verified' ? <>Public page: <Link href={`/company/${co.slug}`}>/company/{co.slug}</Link></> : 'Waiting for license verification. Your page goes public after the check.'} · <Link href="/business/profile">Edit company page</Link></p>
+      <Link href="/business/board" className="btn" style={{ marginBottom: 18 }}>Open day board</Link>
       {sp.error && <div className="err" role="alert">{sp.error}</div>}
 
       <h3>Open jobs</h3>

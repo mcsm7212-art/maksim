@@ -15,7 +15,7 @@ export async function answerSwap(f: FormData) {
 export async function setStatus(f: FormData) {
   const { sb } = await need();
   await sb.rpc('set_booking_status', { b_id: s(f, 'id'), new_status: s(f, 'status') });
-  revalidatePath('/account'); revalidatePath('/business');
+  revalidatePath('/account'); revalidatePath('/business'); revalidatePath('/business/board');
 }
 export async function setOnline(f: FormData) {
   const { sb } = await need();

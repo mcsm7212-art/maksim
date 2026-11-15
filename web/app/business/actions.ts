@@ -16,7 +16,7 @@ export async function assign(f: FormData) {
   const t = s(f, 'time');
   const { error } = await sb.rpc('office_assign', { b_id: s(f, 'id'), new_pro: s(f, 'pro'), new_start: t ? fromLocal(t) : null });
   if (error) redirect(`/business?error=${encodeURIComponent(error.message)}`);
-  revalidatePath('/business');
+  revalidatePath('/business'); revalidatePath('/business/board');
 }
 async function createInvite(f: FormData, role: 'technician' | 'manager') {
   const sb = await need();

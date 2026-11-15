@@ -311,3 +311,5 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 @media (max-width:620px){.lhead .lcta{grid-column:1/-1;max-width:none}}
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pulse 2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes pulse{50%{opacity:.35;transform:scale(1.15)}}}
 .map a text{pointer-events:none}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.bcol{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:12px;min-height:200px}
