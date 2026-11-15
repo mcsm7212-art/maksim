@@ -218,6 +218,9 @@ create table public.reviews (
   client_id uuid not null references public.profiles (id),
   pro_id uuid not null references public.pros (id),
   company_id uuid references public.companies (id),
+  author_name text not null default 'Client',   -- first name + last initial, shown publicly
+  service_id text references public.services (id),
+  tier text not null default 'standard',
   punctuality smallint not null check (punctuality between 1 and 5),
   workmanship smallint not null check (workmanship between 1 and 5),
   cleanliness smallint not null check (cleanliness between 1 and 5),
@@ -325,6 +328,14 @@ create policy profiles_self_select on public.profiles for select using (id = aut
 create policy profiles_self_update on public.profiles for update using (id = auth.uid())
   with check (id = auth.uid() and role = (select role from public.profiles where id = auth.uid()));
 
+-- pros and offices see the name and phone of clients they have bookings with
+create or replace function public.shares_booking(other uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.bookings b
+    where b.client_id = other and (b.pro_id = auth.uid() or (b.company_id is not null and public.is_company_staff(b.company_id))));
+$$;
+create policy profiles_booking_contacts on public.profiles for select using (public.shares_booking(id));
+
 -- catalog: everyone reads; admins write
 create policy services_read on public.services for select using (true);
 create policy services_admin on public.services for all using (public.is_admin()) with check (public.is_admin());
@@ -361,9 +372,22 @@ create policy pros_update_self on public.pros for update using (id = auth.uid() 
     ));
 
 create policy pro_services_read on public.pro_services for select using (true);
-create policy pro_services_write on public.pro_services for all
-  using (pro_id = auth.uid() or public.is_admin())
-  with check ((pro_id = auth.uid() and jobs_count = coalesce((select s.jobs_count from public.pro_services s where s.pro_id = pro_services.pro_id and s.service_id = pro_services.service_id), 0)) or public.is_admin());
+create policy pro_services_insert on public.pro_services for insert with check (pro_id = auth.uid() or public.is_admin());
+create policy pro_services_update on public.pro_services for update using (pro_id = auth.uid() or public.is_admin()) with check (pro_id = auth.uid() or public.is_admin());
+create policy pro_services_delete on public.pro_services for delete using (pro_id = auth.uid() or public.is_admin());
+
+-- Job counters change only when a booking is marked done (set_booking_status sets nf.trusted).
+create or replace function public.protect_jobs_count() returns trigger
+language plpgsql as $$
+begin
+  if coalesce(current_setting('nf.trusted', true), '') <> '1' then
+    new.jobs_count := case when tg_op = 'UPDATE' then old.jobs_count else 0 end;
+  end if;
+  return new;
+end;
+$$;
+create trigger pro_services_protect before insert or update on public.pro_services
+  for each row execute function public.protect_jobs_count();
 
 create policy availability_read on public.availability_rules for select using (true);
 create policy availability_write on public.availability_rules for all
@@ -420,6 +444,14 @@ create policy subscriptions_read on public.subscriptions for select
   using (pro_id = auth.uid() or (company_id is not null and public.is_company_staff(company_id)) or public.is_admin());
 
 -- ───────────────────────── functions (business rules) ─────────────────────────
+-- Booked start times for a pro (no client details), used to hide taken slots.
+create or replace function public.pro_busy_times(p_id uuid) returns table (starts_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select b.starts_at from public.bookings b
+  where b.pro_id = p_id and b.starts_at > now() and b.status not in ('cancelled', 'done');
+$$;
+grant execute on function public.pro_busy_times(uuid) to anon, authenticated;
+
 create or replace function public.notify(uid uuid, msg text, url text default null) returns void
 language sql security definer set search_path = public as $$
   insert into public.notifications (user_id, body, link) values (uid, msg, url);
@@ -502,8 +534,10 @@ begin
   update public.bookings set status = new_status where id = b_id;
   insert into public.booking_events (booking_id, actor_id, type, payload) values (b_id, auth.uid(), 'status', jsonb_build_object('status', new_status));
   if new_status = 'done' and b.service_id is not null and b.pro_id is not null then
+    perform set_config('nf.trusted', '1', true);
     insert into public.pro_services (pro_id, service_id, jobs_count) values (b.pro_id, b.service_id, 1)
       on conflict (pro_id, service_id) do update set jobs_count = public.pro_services.jobs_count + 1;
+    perform set_config('nf.trusted', '', true);
   end if;
   if new_status in ('on_the_way', 'done') then
     perform public.notify(b.client_id, case new_status when 'on_the_way' then 'Your pro is on the way.' else 'Job marked done. Please rate your pro.' end, '/account');
@@ -526,7 +560,70 @@ begin
 end;
 $$;
 
+-- New booking: fill company from the chosen pro, block double-booking, notify the pro or the office.
+create unique index bookings_no_double on public.bookings (pro_id, starts_at)
+  where status not in ('cancelled') and pro_id is not null and starts_at is not null;
+
+create or replace function public.booking_before_insert() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.pro_id is not null then
+    select company_id into new.company_id from public.pros where id = new.pro_id and status = 'verified';
+    if not found then raise exception 'this pro is not available'; end if;
+  elsif not exists (select 1 from public.companies where id = new.company_id and status = 'verified') then
+    raise exception 'this company is not available';
+  end if;
+  return new;
+end;
+$$;
+create trigger bookings_before_insert before insert on public.bookings
+  for each row execute function public.booking_before_insert();
+
+create or replace function public.booking_after_insert() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.booking_events (booking_id, actor_id, type) values (new.id, new.client_id, 'created');
+  if new.pro_id is not null then
+    perform public.notify(new.pro_id, 'New booking request.', '/account');
+  end if;
+  if new.company_id is not null then
+    perform public.notify(m.profile_id, case when new.pro_id is null then 'New visit request: assign a technician.' else 'New booking for your technician.' end, '/business')
+      from public.company_members m where m.company_id = new.company_id and m.role in ('owner', 'manager');
+  end if;
+  return new;
+end;
+$$;
+create trigger bookings_after_insert after insert on public.bookings
+  for each row execute function public.booking_after_insert();
+
+-- Sign-up step: a client account becomes a pro or company account (once).
+create or replace function public.become(new_role text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if new_role not in ('pro', 'company') then raise exception 'bad role'; end if;
+  update public.profiles set role = new_role where id = auth.uid() and role in ('client', new_role);
+  if not found then raise exception 'role already set'; end if;
+end;
+$$;
+grant execute on function public.become(text) to authenticated;
+
+-- Pro switches "Online now" on for a few hours, or off.
+create or replace function public.set_online(hours int) returns void
+language sql security definer set search_path = public as $$
+  update public.pros set online_until = case when hours > 0 then now() + make_interval(hours => least(hours, 12)) else null end
+  where id = auth.uid();
+$$;
+grant execute on function public.set_online(int) to authenticated;
+
 grant execute on function public.office_assign(uuid, uuid, timestamptz) to authenticated;
 grant execute on function public.answer_swap(uuid, boolean) to authenticated;
 grant execute on function public.set_booking_status(uuid, text) to authenticated;
+-- Shows the company name on an invite link before the technician accepts it.
+create or replace function public.invite_info(invite_code text) returns table (company_name text, valid boolean)
+language sql stable security definer set search_path = public as $$
+  select c.name, (i.used_by is null and i.expires_at > now())
+  from public.company_invites i join public.companies c on c.id = i.company_id where i.code = invite_code;
+$$;
+grant execute on function public.invite_info(text) to authenticated;
+
 grant execute on function public.accept_invite(text) to authenticated;

@@ -85,7 +85,9 @@ select pg_temp.ok((select pro_id from public.bookings where id = '20000000-0000-
 select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
 select public.set_booking_status('20000000-0000-0000-0000-000000000002', 'done');
 select pg_temp.ok((select jobs_count from public.pro_services where pro_id = auth.uid() and service_id = 'faucet-replacement') = 1, 'job counter +1 on done');
-do $$ begin update public.pro_services set jobs_count = 500 where pro_id = auth.uid(); exception when others then null; end $$;
+update public.pro_services set jobs_count = 500, price = 300 where pro_id = auth.uid();
+insert into public.pro_services (pro_id, service_id, price, jobs_count) values (auth.uid(), 'running-toilet-repair', 200, 99);
+select pg_temp.ok((select jobs_count from public.pro_services where pro_id = auth.uid() and service_id = 'running-toilet-repair') = 0, 'new service starts at 0 jobs');
 select pg_temp.ok((select jobs_count from public.pro_services where pro_id = auth.uid() and service_id = 'faucet-replacement') = 1, 'pro cannot inflate job counter');
 select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
 do $$ begin insert into public.reviews (booking_id, client_id, pro_id, punctuality, workmanship, cleanliness, communication, pricing)
@@ -109,4 +111,23 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
 do $$ begin update public.reviews set workmanship = 5; delete from public.reviews; end $$;
 reset role;
 select pg_temp.ok((select count(*) from public.reviews where cleanliness = 4) = 1, 'pro cannot edit or delete reviews');
+-- 4) double booking, company fill-in, contacts, roles, online toggle
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+insert into public.bookings (client_id, pro_id, company_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000a2', null, '2030-01-01 10:00-08');
+select pg_temp.ok((select company_id from public.bookings where starts_at = '2030-01-01 10:00-08') = '10000000-0000-0000-0000-000000000001', 'company filled from the chosen technician');
+do $$ begin insert into public.bookings (client_id, pro_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000a2', '2030-01-01 10:00-08'); raise exception 'FAIL: double';
+  exception when unique_violation then null; end $$;
+select pg_temp.ok(true, 'same time cannot be booked twice');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_busy_times('00000000-0000-0000-0000-0000000000a2')) >= 1, 'public sees busy times without client details');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.ok((select count(*) from public.profiles where id = '00000000-0000-0000-0000-0000000000c2') = 1, 'technician sees own client contact');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok((select count(*) from public.profiles where id = '00000000-0000-0000-0000-0000000000c2') = 0, 'other pro does not see that client');
+select public.set_online(4);
+select pg_temp.ok((select online_until > now() from public.pros where id = auth.uid()), 'pro goes online');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select public.become('pro');
+do $$ begin perform public.become('company'); raise exception 'FAIL: role twice'; exception when others then if sqlerrm like 'FAIL%' then raise; end if; end $$;
+select pg_temp.ok((select role from public.profiles where id = auth.uid()) = 'pro', 'client becomes pro once');
 \echo ALL RULE TESTS PASSED

@@ -1,0 +1,78 @@
+import type { Tier, Trade } from './catalog';
+
+export type Base = 'dark' | 'graphite' | 'light' | 'teal';
+
+export interface Company {
+  id: string;
+  slug: string;
+  name: string;
+  trade: Trade;
+  accent: string;
+  base: Base;
+  city: string;
+  license: string | null;
+  since: number | null;
+  warrantyMonths: number;
+  about: string;
+  logoUrl: string | null;
+  rating: number | null;
+  reviewCount: number;
+}
+
+export interface SkillScores {
+  punctuality: number;
+  workmanship: number;
+  cleanliness: number;
+  communication: number;
+  pricing: number;
+}
+
+export interface ProService {
+  id: string;
+  jobs: number;
+  /** Pro's Standard price; null = use market average */
+  price: number | null;
+}
+
+export interface Review {
+  id: string;
+  who: string;
+  date: string; // ISO
+  service: string;
+  tier: Tier;
+  scores: SkillScores;
+  text: string;
+  reply?: string | null;
+  resolved?: boolean;
+}
+
+export interface Pro {
+  id: string;
+  slug: string;
+  name: string;
+  company: Company | null;
+  trade: Trade;
+  tiers: Tier[];
+  years: number;
+  area: string;
+  bio: string;
+  languages: string[];
+  license: string | null;
+  verified: { license: boolean; id: boolean; insured: boolean };
+  photoUrl: string | null;
+  uniform: string | null;
+  accent: string;
+  base: Base;
+  online: boolean;
+  responseMin: number | null;
+  tripFee: number;
+  rating: number | null;
+  reviewCount: number;
+  jobs: number;
+  skills: SkillScores | null; // averages 1..5
+  services: ProService[];
+  reviews: Review[];
+  /** weekday 0..6, hours "08:00" */
+  availability: { weekday: number; start: string; end: string }[];
+  busy: string[]; // ISO start times already booked
+}
