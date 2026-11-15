@@ -47,7 +47,9 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/search?svc=faucet-replacement');await c.click('text=Max Solo');await c.waitForURL(/pro\//);if((await c.locator('.works img').count())!==2)throw new Error('work photos not on public page');step('public page shows real photo + 2 work photos');await c.screenshot({path:D+'e_pro.png',fullPage:true});
  await c.click('button:has-text("Message Max")');await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);
  await s.goto(B+'/messages');await s.click('text=Anna Client');await s.waitForSelector('text=kitchen faucet');await s.fill('textarea[name=body]','Yes, pick any open time on my page.');await s.click('button:has-text("Send")');await s.waitForTimeout(800);
- await c.reload();await c.waitForSelector('text=pick any open time');step('client and pro chatted');await c.screenshot({path:D+'e_chat.png',fullPage:true});
+ await c.reload();await c.waitForSelector('text=pick any open time');
+ await c.setInputFiles('label[aria-label="Attach photos"] input',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});await c.fill('textarea[name=body]','This is the faucet.');await c.click('button:has-text("Send")');await c.waitForTimeout(1000);
+ await s.reload();await s.waitForSelector('img[alt=Photo]');step('client and pro chatted, photo sent in chat');await c.screenshot({path:D+'e_chat.png',fullPage:true});
  await c.goto(B+'/pro/max-solo?svc=faucet-replacement');await c.click('.slots a >> nth=0');await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Send booking request")');await c.waitForURL(/account\?booked/);step('client booked solo pro for a slot');
  // pro flows job to done
  await s.goto(B+'/account');await s.click('button:has-text("Confirm")');await s.waitForTimeout(700);

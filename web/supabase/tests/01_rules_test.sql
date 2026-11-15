@@ -179,4 +179,11 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
 do $$ begin insert into public.conversations (client_id, pro_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000a1'); raise exception 'FAIL: dup';
   exception when unique_violation then null; end $$;
 select pg_temp.ok(true, 'one conversation per client and pro');
+-- 8) photo messages
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+insert into public.messages (conversation_id, sender_id, body, photo_url) values ('40000000-0000-0000-0000-000000000001', auth.uid(), '', 'https://x/leak.jpg');
+select pg_temp.ok(true, 'photo message without text is allowed');
+do $$ begin insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-000000000001', auth.uid(), ''); raise exception 'FAIL: empty';
+  exception when check_violation then null; end $$;
+select pg_temp.ok(true, 'empty message without photo is rejected');
 \echo ALL RULE TESTS PASSED

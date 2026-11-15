@@ -32,8 +32,12 @@ export async function startChat(f: FormData) {
 export async function sendMessage(f: FormData) {
   const me = await getMe(); if (!me) redirect('/login?next=/messages');
   const id = String(f.get('id') ?? ''), body = String(f.get('body') ?? '').trim().slice(0, 4000);
-  if (!body) return;
+  const { ownPhotoUrl } = await import('@/lib/photos');
+  const photos = f.getAll('photo_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 6);
+  if (!body && !photos.length) return;
   const sb = await supabaseServer();
-  await sb.from('messages').insert({ conversation_id: id, sender_id: me.id, body });
+  // Each photo is its own message; the text goes with the first one.
+  const rows = photos.length ? photos.map((photo_url, i) => ({ conversation_id: id, sender_id: me.id, body: i === 0 ? body : '', photo_url })) : [{ conversation_id: id, sender_id: me.id, body }];
+  await sb.from('messages').insert(rows);
   revalidatePath(`/messages/${id}`);
 }
