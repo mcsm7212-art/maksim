@@ -19,7 +19,7 @@ export async function setStatus(f: FormData) {
 }
 export async function setOnline(f: FormData) {
   const { sb } = await need();
-  await sb.rpc('set_online', { hours: Number(s(f, 'hours')) || 0 });
+  await sb.rpc('set_online', { hours: Number(s(f, 'hours')) || 0, area: s(f, 'area').slice(0, 60) || null });
   revalidatePath('/account');
 }
 export async function markRead() {

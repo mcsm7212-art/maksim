@@ -186,4 +186,10 @@ select pg_temp.ok(true, 'photo message without text is allowed');
 do $$ begin insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-000000000001', auth.uid(), ''); raise exception 'FAIL: empty';
   exception when check_violation then null; end $$;
 select pg_temp.ok(true, 'empty message without photo is rejected');
+-- 9) online area
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select public.set_online(4, 'Redwood City');
+select pg_temp.ok((select online_area = 'Redwood City' and online_until > now() from public.pros where id = auth.uid()), 'pro goes online in a chosen city');
+select public.set_online(0);
+select pg_temp.ok((select online_until is null from public.pros where id = auth.uid()), 'pro goes offline');
 \echo ALL RULE TESTS PASSED

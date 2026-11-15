@@ -6,6 +6,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
 import PhotoPicker from '@/components/PhotoPicker';
+import { CITIES } from '@/lib/areas';
 import { rateClient } from './reviews/actions';
 import { addPhotos, answerSwap, deletePhoto, markRead, setOnline, setStatus, submitReview } from './actions';
 
@@ -27,7 +28,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, status, license_status').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -62,7 +63,11 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>Status: {me.pro.status === 'verified' ? 'Public' : 'Waiting for verification'}</b><br />
             <span className="mu sm">License check: {proRow?.license_status ?? "none"} · <Link href={`/pro/${me.pro.slug}`}>View my page</Link> · <Link href="/account/profile">Edit profile</Link> · <Link href="/account/reviews">My reviews</Link></span></span>
-          <form action={setOnline}><input type="hidden" name="hours" value={online ? 0 : 4} /><button className={online ? 'btn ghost sm' : 'btn sm'}>{online ? '● Online · go offline' : 'Go online for 4 h'}</button></form>
+          {online
+            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● Online{proRow?.online_area ? ` in ${proRow.online_area}` : ''} · go offline</button></form>
+            : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={proRow?.online_area ?? proRow?.area ?? ''} aria-label="City you are in now" style={{ width: 'auto', padding: '7px 10px' }}>
+                {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
+                <input type="hidden" name="hours" value={4} /><button className="btn sm">Go online for 4 h</button></form>}
         </div>
         <h3>My work photos <span className="mu sm">({(portfolio ?? []).length})</span></h3>
         <div className="card formcard" style={{ marginBottom: 18 }}>

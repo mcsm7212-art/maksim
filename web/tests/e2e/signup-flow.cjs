@@ -33,6 +33,8 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/account/profile');await s.fill('textarea[name=experience]','Ten years now. Tankless heaters are my favorite.');await s.click('button:has-text("Save changes")');await s.waitForSelector('text=Saved');
  if(!sql("select experience from pros where display_name='Max Solo'").startsWith('Ten years'))throw new Error('profile edit not saved');step('pro edited profile');
  if(sql("select count(*) from pro_services p join pros x on x.id=p.pro_id where x.display_name='Max Solo' and active")!=='1')throw new Error('services lost on edit');
+ await s.goto(B+'/account');await s.selectOption('select[name=area]','Redwood City');await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=Online in Redwood City');
+ const v=await b.newPage();await v.goto(B+'/online?city=Redwood%20City');await v.waitForSelector('text=Max Solo');if(!(await v.textContent('main')).includes('now in Redwood City'))throw new Error('map city missing');await v.screenshot({path:D+'e_online.png',fullPage:true});await v.close();step('pro went online in Redwood City → shown on the map');
  console.log('  techs in company:',sql("select count(*) from pros where company_id is not null"));
  // client: request a visit
  const c=await user(b,'client@test.local','Anna Client',true);step('client signed in');

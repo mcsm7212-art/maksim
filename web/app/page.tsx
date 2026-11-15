@@ -30,8 +30,8 @@ export default async function Home() {
 
       <section className="pad" style={{ marginTop: 16 }}><div className="in">
         <div className="card emerg">
-          <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Icon name="siren" size={26} /><span><b>Emergency? Burst pipe, no power, gas smell?</b><br /><span className="mu sm">See pros who are online right now near you.</span></span></span>
-          <Link href="/search?online=1" className="btn red">Online now</Link>
+          <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Icon name="siren" size={26} /><span><b>Emergency? Burst pipe, no power, gas smell?</b><br /><span className="mu sm">See on the map which pros are online right now and in which city.</span></span></span>
+          <Link href="/online" className="btn red">See who is online</Link>
         </div>
       </div></section>
 
