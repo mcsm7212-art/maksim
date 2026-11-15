@@ -403,7 +403,7 @@ function vHeroes(){
 function vMine(){
  const my=DB.Q.filter(q=>q.mine).sort((a,b)=>({open:0,work:1,done:2}[a.st]-{open:0,work:1,done:2}[b.st])||b.at-a.at);
  const n=st=>my.filter(q=>q.st===st).length;
- return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Мои квесты</b><small>Заказы, которые ты создал</small></div></div></header>
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Мои квесты</b><small>Заказы, которые ты создал</small></div></div><span class="sp"></span><button class="iconbtn" data-act="mineview" data-id="room" aria-label="Открыть кабинет">${IC.sky}</button></header>
  <div class="stack">
   <div class="summary"><div><b>${n("open")}</b><span>ждут героя</span></div><div><b>${n("work")}</b><span>в работе</span></div><div><b>${n("done")}</b><span>выполнено</span></div></div>
   ${my.map(q=>{const h=q.hired&&hero(q.hired);return `<button class="card" data-act="quest" data-id="${q.id}">
@@ -644,11 +644,11 @@ function vRoom(h){
 let roomH=null;
 function initRoom(h){
  roomH=h;const wrap=document.getElementById("wrapR"),sc=document.getElementById("scene");
- const vbw=sc.viewBox.baseVal.width,vbh=sc.viewBox.baseVal.height,isHall=sc.dataset.kind==="hall";
+ const vbw=sc.viewBox.baseVal.width,vbh=sc.viewBox.baseVal.height,kind=sc.dataset.kind||"hero",isHall=kind!=="hero";ui.scroll=ui.scroll||{};
  const fit=()=>{const wh=wrap.clientHeight,ww=wrap.clientWidth,w=Math.max(ww,wh*vbw/vbh);sc.setAttribute("width",w);sc.setAttribute("height",wh);sc.style.width=w+"px";sc.style.height=wh+"px"};
- fit();wrap.scrollLeft=isHall&&ui.hallScroll!=null?ui.hallScroll:isHall?(wrap.scrollWidth-wrap.clientWidth)*.33:(wrap.scrollWidth-wrap.clientWidth)/2;if(isHall)ui.hallSeen=true;
+ fit();wrap.scrollLeft=isHall&&ui.scroll[kind]!=null?ui.scroll[kind]:isHall?(wrap.scrollWidth-wrap.clientWidth)*.33:(wrap.scrollWidth-wrap.clientWidth)/2;if(isHall)ui.hallSeen=true;
  const sky=document.getElementById("skyp"),hint=document.getElementById("hint");
- wrap.addEventListener("scroll",()=>{const c=(wrap.scrollLeft-(wrap.scrollWidth-wrap.clientWidth)/2);if(sky)sky.setAttribute("transform",`translate(${(-c*.06).toFixed(1)} 0)`);if(hint&&ready)hint.style.opacity=0;if(isHall&&ready)ui.hallScroll=wrap.scrollLeft},{passive:true});let ready=false;setTimeout(()=>ready=true,400);
+ wrap.addEventListener("scroll",()=>{const c=(wrap.scrollLeft-(wrap.scrollWidth-wrap.clientWidth)/2);if(sky)sky.setAttribute("transform",`translate(${(-c*.06).toFixed(1)} 0)`);if(hint&&ready)hint.style.opacity=0;if(isHall&&ready)ui.scroll[kind]=wrap.scrollLeft},{passive:true});let ready=false;setTimeout(()=>ready=true,400);
  setTimeout(()=>{if(hint)hint.style.opacity=0},3500);
  window.onresize=()=>{if(document.getElementById("scene"))fit()};
 }
@@ -800,6 +800,120 @@ function openHall(obj){
  },reduce?0:320);
 }
 
+/* ============ CLIENT CABINET ============ */
+const myQ=()=>DB.Q.filter(q=>q.mine);
+function clientStats(){
+ const m=myQ(),done=m.filter(q=>q.st==="done"),hired=m.filter(q=>q.hired),saved=(DB.saved||[]).length;
+ const xp=m.length*60+hired.length*90+done.length*150+done.filter(q=>q.note).length*40+saved*20;
+ const lv=Math.floor(xp/400)+1,cur=xp%400;
+ const ach=[["✦","Первый квест","Создать квест",m.length>=1],["⚑","Наниматель","Нанять героя",hired.length>=1],["★","Справедливый судья","Оценить работу",done.length>=1],["❖","Три квеста","Создать 3 квеста",m.length>=3],["◈","Щедрый заказчик","Квест от 5 000 ₽",m.some(q=>q.rw>=5000)],["✧","Коллекционер","Сохранить 2 купона",saved>=2],["☾","Летописец","Оставить отзыв",done.some(q=>q.note)],["✸","Пять квестов","Создать 5 квестов",m.length>=5],["⚒","Своя команда","Нанять 3 разных героев",new Set(hired.map(q=>q.hired)).size>=3]];
+ return {xp,lv,cur,next:400,ach,m,done,hired};
+}
+function mailItems(){
+ const out=[];myQ().forEach(q=>{
+  if(q.st==="open")q.resp.forEach((r,i)=>{const h=hero(r.h);out.push({q,h,t:`${h.n} ${gv(h,"откликнулся","откликнулась")} на «${q.t}» · ${rub(r.p)}`,new:true,at:q.at+i})});
+  if(q.st==="work"){const h=hero(q.hired);out.push({q,h,t:`${h.n} ${gv(h,"работает","работает")} над «${q.t}»`,at:q.at})}
+  if(q.st==="done"){const h=hero(q.hired);out.push({q,h,t:`«${q.t}» выполнен. Спасибо за оценку!`,at:q.at})}
+ });return out.sort((a,b)=>b.at-a.at);
+}
+function kanbanCard(q,x,y){
+ const w=205,h=96,col=CATCOL[q.c],lines=wrapText(q.t,17,2),hh=q.hired&&hero(q.hired),n=q.resp.length;
+ let s=`<g class="note" data-q="${q.id}" role="button" tabindex="0" aria-label="${esc(q.t)}"><rect class="paper" x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#ecebff"/><rect x="${x}" y="${y}" width="6" height="${h}" rx="3" fill="${col}"/>
+  ${lines.map((l,k)=>`<text x="${x+16}" y="${y+26+k*20}" font-size="17" font-weight="600" fill="#15143a">${esc(l)}</text>`).join("")}
+  <text x="${x+16}" y="${y+h-13}" font-family="Unbounded,sans-serif" font-size="15" fill="#15143a">${rub(q.price||q.rw)}</text>`;
+ if(hh)s+=`<circle cx="${x+w-24}" cy="${y+h-22}" r="15" fill="${hh.a[0]}"/><text x="${x+w-24}" y="${y+h-17}" text-anchor="middle" font-size="12" font-weight="700" fill="#0b0c22">${ini(hh.n)}</text>`;
+ else if(n)s+=`<circle cx="${x+w-22}" cy="${y+h-21}" r="14" fill="#7fe0ff"/><text x="${x+w-22}" y="${y+h-16}" text-anchor="middle" font-size="13" font-weight="700" fill="#0b0c22">${n}</text>`;
+ if(q.st==="done")s+=`<text x="${x+w-14}" y="${y+24}" text-anchor="end" font-size="15" fill="#c8953f">${"★".repeat(q.score||5)}</text>`;
+ return s+"</g>";
+}
+function mineSVG(){
+ const W=1800,H=860,R=rng(7),st=clientStats(),mail=mailItems(),newMail=mail.filter(m=>m.new).length,saved=DB.saved||[];
+ const hiredHeroes=[...new Set(st.hired.map(q=>q.hired))].map(hero);
+ let s=`<defs>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121338"/><stop offset="1" stop-color="#0b0d26"/></linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0f2a"/><stop offset="1" stop-color="#07081a"/></linearGradient>
+  <radialGradient id="lampg"><stop offset="0" stop-color="#ffd88a" stop-opacity=".4"/><stop offset="1" stop-color="#ffd88a" stop-opacity="0"/></radialGradient>
+  <radialGradient id="cyang"><stop offset="0" stop-color="#7fe0ff" stop-opacity=".45"/><stop offset="1" stop-color="#7fe0ff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="violg"><stop offset="0" stop-color="#b7a6ff" stop-opacity=".45"/><stop offset="1" stop-color="#b7a6ff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1c4"/><stop offset=".5" stop-color="#ffd88a"/><stop offset="1" stop-color="#c8953f"/></linearGradient>
+  <linearGradient id="grd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b7a6ff"/><stop offset="1" stop-color="#7fe0ff"/></linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+ </defs>`;
+ s+=`<rect width="${W}" height="640" fill="url(#wall)"/>`;
+ for(let x=150;x<W;x+=150)s+=`<line x1="${x}" y1="110" x2="${x}" y2="640" stroke="rgba(183,166,255,.05)"/>`;
+ s+=`<path d="M0 0H${W}V120Q${W/2} -40 0 120z" fill="#080922"/><path d="M0 120Q${W/2} -40 ${W} 120" fill="none" stroke="rgba(183,166,255,.25)" stroke-width="3"/>`;
+ s+=`<rect y="640" width="${W}" height="${H-640}" fill="url(#floor)"/><line x1="0" y1="640" x2="${W}" y2="640" stroke="rgba(183,166,255,.3)" stroke-width="2"/>`;
+ for(let x=-1800;x<=3600;x+=130){const xt=W/2+(x-W/2)*(640-300)/(H-300);s+=`<line x1="${xt.toFixed(0)}" y1="640" x2="${x}" y2="${H}" stroke="rgba(183,166,255,.06)"/>`}
+ [340,1110,1440].forEach(x=>{s+=`<rect x="${x-16}" y="110" width="32" height="530" fill="#15143a" stroke="rgba(183,166,255,.18)"/><rect x="${x-26}" y="110" width="52" height="18" rx="3" fill="#1d1b48"/><rect x="${x-26}" y="622" width="52" height="18" rx="3" fill="#1d1b48"/>`});
+ // mailbox on a stand
+ s+=`<g class="hs" data-obj="mail" role="button" tabindex="0" aria-label="Почта: ${newMail} новых"><ellipse cx="180" cy="640" rx="150" ry="90" fill="url(#lampg)"/><g class="glowable">
+  <rect x="172" y="470" width="16" height="170" fill="#2a2350"/><path d="M100 380h160v100H100z" fill="#2a2350" stroke="rgba(183,166,255,.4)" stroke-width="2"/><path d="M100 380q80 -70 160 0" fill="#332b63" stroke="rgba(183,166,255,.4)" stroke-width="2"/>
+  <rect x="122" y="420" width="116" height="10" rx="5" fill="#0b0c22"/>
+  ${[0,1,2].map(k=>`<g transform="rotate(${-10+k*9} 180 ${380-k*16})"><rect x="140" y="${336-k*16}" width="80" height="52" rx="4" fill="#ecebff"/><path d="M140 ${336-k*16}l40 28 40 -28" fill="none" stroke="#9a98c8" stroke-width="2"/></g>`).join("")}
+  <path d="M260 395v-50h34v22h-34" fill="${newMail?"#ff9ecf":"#6f6d9c"}"/>
+  ${newMail?`<circle cx="262" cy="330" r="22" fill="#7fe0ff"/><text x="262" y="338" text-anchor="middle" font-size="22" font-weight="700" fill="#0b0c22">${newMail}</text>`:""}
+ </g>${chip(180,288,newMail?"Почта · "+newMail+" новых":"Почта")}</g>`;
+ // kanban wall
+ const cols=[["open","Ждут героя","#7fe0ff"],["work","В работе","#ffc27a"],["done","Выполнено","#7fe8b0"]];
+ s+=`<g><rect x="380" y="130" width="710" height="490" rx="14" fill="#1a1840" stroke="url(#gold)" stroke-width="3"/><rect x="392" y="142" width="686" height="466" rx="8" fill="#211e4a"/>
+  <rect x="595" y="112" width="280" height="40" rx="8" fill="url(#gold)"/><text x="735" y="139" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="16" fill="#3a2706" letter-spacing=".08em">МОИ КВЕСТЫ</text>`;
+ cols.forEach(([k,t,c],i)=>{const x=404+i*227,l=st.m.filter(q=>q.st===k).sort((a,b)=>b.at-a.at);
+  s+=`<circle cx="${x+12}" cy="178" r="6" fill="${c}"/><text x="${x+26}" y="184" font-size="17" font-weight="600" fill="#ecebff">${t}</text><text x="${x+205}" y="184" text-anchor="end" font-size="16" fill="#9a98c8">${l.length}</text>`;
+  if(i)s+=`<line x1="${x-8}" y1="165" x2="${x-8}" y2="595" stroke="rgba(183,166,255,.15)"/>`;
+  const show=l.length>4?3:4;l.slice(0,show).forEach((q,j)=>{s+=kanbanCard(q,x,200+j*100)});
+  if(l.length>4)s+=`<g class="note" data-more="mine" role="button" tabindex="0" aria-label="Все мои квесты списком"><rect class="paper" x="${x}" y="${500}" width="205" height="90" rx="8" fill="rgba(255,255,255,.05)" stroke="#b7a6ff" stroke-dasharray="6 5"/><text x="${x+102}" y="552" text-anchor="middle" font-size="16" fill="#ecebff">Ещё ${l.length-3} →</text></g>`;
+  if(!l.length)s+=`<rect x="${x}" y="200" width="205" height="96" rx="8" fill="none" stroke="rgba(255,255,255,.12)" stroke-dasharray="6 6"/><text x="${x+102}" y="254" text-anchor="middle" font-size="14" fill="#6f6d9c">пока пусто</text>`;
+ });
+ s+=`</g>`;
+ // client rank emblem
+ const C=2*Math.PI*96;
+ s+=`<g class="hs" data-obj="rank" role="button" tabindex="0" aria-label="Мой ранг: уровень ${st.lv}"><circle cx="1275" cy="290" r="150" fill="url(#violg)"/><g class="glowable holo">
+  <circle cx="1275" cy="290" r="110" fill="#16153a" stroke="url(#gold)" stroke-width="4"/>
+  <circle cx="1275" cy="290" r="96" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/>
+  <circle cx="1275" cy="290" r="96" fill="none" stroke="url(#grd)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(C*st.cur/st.next).toFixed(0)} ${C.toFixed(0)}" transform="rotate(-90 1275 290)"/>
+  <path d="M1275 222l14 30 33 4-24 23 6 33-29-16-29 16 6-33-24-23 33-4z" fill="url(#gold)"/>
+  <text x="1275" y="345" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="30" fill="#ecebff">${st.lv}</text>
+  <text x="1275" y="372" text-anchor="middle" font-size="14" fill="#9a98c8" letter-spacing=".1em">УРОВЕНЬ</text>
+ </g>${chip(1275,438,"Мой ранг · "+st.ach.filter(a=>a[3]).length+" наград")}</g>`;
+ // chest with coupons
+ const open=saved.length>0;
+ s+=`<g class="hs" data-obj="chest" role="button" tabindex="0" aria-label="Сундук с купонами: ${saved.length}">${open?`<ellipse cx="1275" cy="590" rx="110" ry="70" fill="url(#lampg)"/>`:""}<g class="glowable">
+  <rect x="1180" y="560" width="190" height="100" rx="10" fill="#4a2f6e" stroke="url(#gold)" stroke-width="3"/>
+  ${open?`<path d="M1180 560l14 -70h162l14 70z" fill="#5a3a82" stroke="url(#gold)" stroke-width="3"/>${[0,1,2].map(k=>`<circle cx="${1230+k*45}" cy="${548-k%2*10}" r="13" fill="url(#gold)"/>`).join("")}<rect x="1238" y="508" width="70" height="40" rx="4" fill="url(#gold)" transform="rotate(-10 1273 528)"/><text x="1273" y="534" text-anchor="middle" font-size="15" font-weight="700" fill="#3a2706" transform="rotate(-10 1273 528)">−%</text>`
+   :`<path d="M1180 560q95 -60 190 0z" fill="#5a3a82" stroke="url(#gold)" stroke-width="3"/>`}
+  <rect x="1262" y="582" width="26" height="30" rx="4" fill="url(#gold)"/><rect x="1180" y="600" width="190" height="8" fill="url(#gold)" opacity=".7"/>
+ </g>${chip(1275,700,"Купоны · "+saved.length)}</g>`;
+ // album of hired heroes
+ s+=`<g class="hs" data-obj="album" role="button" tabindex="0" aria-label="Мои герои"><g class="glowable"><rect x="1490" y="160" width="270" height="420" rx="14" fill="#16153a" stroke="rgba(183,166,255,.35)"/>
+  <rect x="1540" y="140" width="170" height="38" rx="8" fill="url(#grd)"/><text x="1625" y="165" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="14" fill="#0b0c22" letter-spacing=".06em">МОИ ГЕРОИ</text>`;
+ const slots=6;for(let i=0;i<slots;i++){const x=1560+(i%2)*130,y=240+Math.floor(i/2)*120,h=hiredHeroes[i];
+  if(h)s+=`<rect x="${x-45}" y="${y-45}" width="90" height="90" rx="10" fill="#ecebff" transform="rotate(${(i%3-1)*4} ${x} ${y})"/><circle cx="${x}" cy="${y-6}" r="30" fill="${h.a[0]}"/><circle cx="${x}" cy="${y-6}" r="30" fill="${h.a[1]}" opacity=".5"/><text x="${x}" y="${y+1}" text-anchor="middle" font-size="19" font-weight="600" fill="#0b0c22">${ini(h.n)}</text><text x="${x}" y="${y+38}" text-anchor="middle" font-size="14" fill="#15143a">${esc(fn(h))}</text>`;
+  else s+=`<rect x="${x-45}" y="${y-45}" width="90" height="90" rx="10" fill="none" stroke="rgba(255,255,255,.15)" stroke-dasharray="5 5"/><text x="${x}" y="${y+7}" text-anchor="middle" font-size="22" fill="rgba(255,255,255,.18)">?</text>`}
+ s+=`</g>${chip(1625,610,"Нанятые · "+hiredHeroes.length)}</g>`;
+ for(let k=0;k<26;k++){const x=100+R()*1600,y=500+R()*300;s+=`<circle class="dust" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(1+R()*1.6).toFixed(1)}" fill="#cfe9ff" style="--d:${(9+R()*10).toFixed(1)}s;--x:${(R()*80-40).toFixed(0)}px;animation-delay:-${(R()*15).toFixed(1)}s" opacity="0"/>`}
+ return s;
+}
+const MINEOBJ=[["mail","Почта",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>'],["rank","Мой ранг",IC.heroes],["chest","Купоны",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.5"/></svg>'],["album","Мои герои",IC.mine]];
+function vMineRoom(){
+ const m=myQ(),n=st=>m.filter(q=>q.st===st).length;
+ return `<header class="room-hdr"><div class="logo">${IC.logo}</div><div class="nm"><b>Мой кабинет</b><span>${n("open")} ждут · ${n("work")} в работе · ${n("done")} выполнено</span></div><button class="iconbtn" data-act="mineview" data-id="list" aria-label="Показать списком"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></header>
+ <div class="wrapR hall" id="wrapR"><svg class="scene" id="scene" data-kind="mine" viewBox="0 95 1800 650" preserveAspectRatio="xMidYMid slice">${mineSVG()}</svg></div>
+ <div class="room-bar hall"><div class="chips">${MINEOBJ.map(([k,t,ic])=>`<button class="chip" data-act="mobj" data-id="${k}">${ic}${t}</button>`).join("")}</div></div>`;
+}
+function openMine(obj){
+ zoomTo(obj);
+ setTimeout(()=>{
+  const ic=(MINEOBJ.find(o=>o[0]===obj)||MINEOBJ[0])[2];
+  if(obj==="mail"){const l=mailItems();sheetRaw("Почта",ic,l.length?`<div class="stack">${l.map(it=>`<button class="card" data-act="quest" data-id="${it.q.id}" style="padding:12px 14px"><div class="row l" style="gap:12px">${ava(it.h,"s")}<span class="sm" style="flex:1">${esc(it.t)}</span>${it.new?'<span class="pill open"><i></i>новое</span>':""}</div></button>`).join("")}</div>`:`<div class="empty"><b>Писем пока нет</b>Здесь появятся отклики героев на твои квесты.</div>`)}
+  if(obj==="rank"){const st=clientStats();sheetRaw("Мой ранг",ic,`<div class="hero-top" style="padding-top:0"><div class="price" style="font-size:40px;color:var(--gold)">${st.lv}</div><div class="mu">уровень заказчика</div></div>
+   <div class="card" style="margin:12px 0"><div class="xp"><div class="row"><span>До ${st.lv+1} уровня</span><span>${st.cur} / ${st.next} XP</span></div><div class="bar"><i style="width:${st.cur/st.next*100}%"></i></div></div></div>
+   <div class="ach">${st.ach.map(([i,t,d,on])=>`<div class="${on?"":"lock"}"><b>${i}</b><strong>${t}</strong>${on?"Получено":d}</div>`).join("")}</div>
+   <p class="mu sm" style="margin-top:12px">Опыт даётся за созданные квесты, наём героев, оценки и отзывы. С ростом уровня герои охотнее откликаются, а в полной версии откроются скидки для постоянных заказчиков.</p>`)}
+  if(obj==="chest"){const sv=DB.saved||[];sheetRaw("Сундук с купонами",ic,sv.length?`<div class="stack">${sv.map(k=>{const [hid,cid]=k.split(":"),h=hero(+hid),c=h&&coupons(h).find(x=>x.id===cid);if(!c)return"";return `<div class="coupon"><div class="pc">${c.pc}</div><div class="tx">${c.t}<small>${esc(h.n)} · ${CLS[h.c]}</small></div><button class="btn sm" data-act="hero" data-id="${h.id}">К герою</button></div>`}).join("")}</div><p class="mu sm" style="margin-top:12px">Скидка применится, когда ты наймёшь этого героя.</p>`:`<div class="empty"><b>Сундук пока пуст</b>Купоны можно сохранить в комнате любого героя: на доске «Цены и скидки».</div><button class="btn ghost" data-act="tab" data-id="heroes">Найти героя</button>`)}
+  if(obj==="album"){const st=clientStats(),hs=[...new Set(st.hired.map(q=>q.hired))].map(hero);sheetRaw("Мои герои",ic,hs.length?`<div class="stack">${hs.map(h=>{const qs=st.hired.filter(q=>q.hired===h.id);return `<div class="card"><button style="all:unset;cursor:pointer;display:flex;gap:12px;align-items:center" data-act="hero" data-id="${h.id}">${ava(h)}<span><span class="ttl" style="font-size:16px;display:block">${esc(h.n)}</span><span class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></span></span></button><div class="sm mu">${qs.map(q=>esc(q.t)).join(" · ")}</div><button class="btn sm ghost" data-act="create" data-hero="${h.id}" data-cat="${h.c}" style="width:100%">Нанять снова</button></div>`}).join("")}</div>`:`<div class="empty"><b>Альбом пока пуст</b>Здесь появятся герои, которых ты нанял.</div>`)}
+ },reduce?0:320);
+}
+
 function closeSheet(){document.getElementById("modal").innerHTML="";unzoom()}
 document.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const n=e.target.closest&&e.target.closest(".scene .note,.scene .hs");if(n){e.preventDefault();n.dispatchEvent(new MouseEvent("click",{bubbles:true}))}});
 setInterval(()=>{const hh=document.getElementById("hh"),mh=document.getElementById("mh");if(!hh)return;const d=new Date(),h=d.getHours()%12,m=d.getMinutes();
@@ -811,10 +925,11 @@ const appEl=document.getElementById("app"),navEl=document.getElementById("nav");
 function render(scrollTop){
  const s=cur();let html,bar="";
  if(!s&&tab==="board"&&ui.boardView!=="list"){html=null}
+ else if(!s&&tab==="mine"&&ui.mineView!=="list"){html=false}
  else if(!s){html=tab==="board"?vBoard():tab==="heroes"?vHeroes():vMine();}
  else if(s.type==="hero"){const h=hero(s.id);appEl.className="app roomv";appEl.innerHTML=vRoom(h);navEl.innerHTML="";initRoom(h);return}
  else{const r=s.type==="quest"?vQuest(s.id):s.type==="herolist"?vHero(s.id):s.type==="compare"?vCompare(s.id):s.type==="create"?vCreate(s):vRate(s.id);html=r.html??r;bar=r.bar||"";}
- if(html===null){appEl.className="app roomv";appEl.innerHTML=vHall()}
+ if(html===null||html===false){appEl.className="app roomv";appEl.innerHTML=html===null?vHall():vMineRoom()}
  else{appEl.className="app"+(s?" sub":"");appEl.innerHTML=`<div class="${scrollTop?"screen":""}">${html}</div>`}
  const waiting=DB.Q.filter(q=>q.mine&&q.st==="open"&&q.resp.length).length;
  navEl.innerHTML=s?(bar?`<div class="actbar"><div class="in">${bar}</div></div>`:""):`<nav class="tabs" aria-label="Разделы"><div class="in">
@@ -824,7 +939,7 @@ function render(scrollTop){
   <button class="tab ${tab==="mine"?"on":""}" data-act="tab" data-id="mine">${IC.mine}Мои${waiting?`<span class="dot">${waiting}</span>`:""}</button>
   <button class="tab" data-act="about">${IC.sky}О сервисе</button>
  </div></nav>`;
- if(html===null)initRoom(null);
+ if(html===null||html===false)initRoom(null);
  else if(scrollTop)window.scrollTo(0,0);
 }
 
@@ -881,8 +996,8 @@ function publish(){
 }
 
 document.addEventListener("click",e=>{
- const nt=e.target.closest(".scene .note");if(nt){if(nt.dataset.more){ui.boardView="list";render(true)}else go({type:"quest",id:+nt.dataset.q});return}
- const hs=e.target.closest(".scene .hs");if(hs){if(document.getElementById("scene").dataset.kind==="hall")openHall(hs.dataset.obj);else openObj(hs.dataset.obj);return}
+ const nt=e.target.closest(".scene .note");if(nt){if(nt.dataset.more){if(nt.dataset.more==="mine")ui.mineView="list";else ui.boardView="list";render(true)}else go({type:"quest",id:+nt.dataset.q});return}
+ const hs=e.target.closest(".scene .hs");if(hs){const kd=document.getElementById("scene").dataset.kind;if(kd==="hall")openHall(hs.dataset.obj);else if(kd==="mine")openMine(hs.dataset.obj);else openObj(hs.dataset.obj);return}
  const el=e.target.closest("[data-act]");if(!el)return;
  const a=el.dataset.act,id=el.dataset.id;
  switch(a){
@@ -904,7 +1019,9 @@ document.addEventListener("click",e=>{
   case"sendrate":sendRate(+id);break;
   case"fcat":case"fdf":{const s=cur(),form=document.getElementById("cf");Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});if(a==="fcat")s.f.c=id;else s.f.df=+id;render(false);break}
   case"publish":publish();break;
-  case"boardview":ui.boardView=id;if(id==="room")ui.hallScroll=null;render(true);break;
+  case"boardview":ui.boardView=id;render(true);break;
+  case"mineview":ui.mineView=id;render(true);break;
+  case"mobj":clearModal();unzoom();openMine(id);break;
   case"obj":if(document.querySelector(".sheet"))sheet(id,roomH);else openObj(id);break;
   case"work":sheet("work",roomH,+id);break;
   case"shclose":closeSheet();break;
