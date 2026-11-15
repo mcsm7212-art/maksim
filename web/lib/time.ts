@@ -14,10 +14,10 @@ export function atPacific(y: number, m: number, d: number, h: number, min = 0): 
   const shown = Date.UTC(p.y, p.m - 1, p.d, p.h, p.min);
   return new Date(guess + (guess - shown));
 }
-export function slotLabel(iso: string): [string, string] {
+export function slotLabel(iso: string, tr: (s: string) => string = (s) => s): [string, string] {
   const t = new Date(iso); const p = pacificParts(t); const n = pacificParts(new Date());
   const dd = Math.round((Date.UTC(p.y, p.m - 1, p.d) - Date.UTC(n.y, n.m - 1, n.d)) / 864e5);
-  const day = dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : `${WD[p.weekday]} ${p.m}/${p.d}`;
+  const day = dd === 0 ? tr('Today') : dd === 1 ? tr('Tomorrow') : `${tr(WD[p.weekday])} ${p.m}/${p.d}`;
   return [day, `${p.h % 12 || 12}:${String(p.min).padStart(2, '0')} ${p.h < 12 ? 'AM' : 'PM'}`];
 }
-export const dateLabel = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: TZ, month: 'short', day: 'numeric', year: 'numeric' });
+export const dateLabel = (iso: string, lang: string = 'en') => new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : lang === 'es' ? 'es-US' : 'en-US', { timeZone: TZ, month: 'short', day: 'numeric', year: 'numeric' });

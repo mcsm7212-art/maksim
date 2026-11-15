@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { I18nProvider } from '@/components/I18n';
+import { getLang, getT } from '@/lib/i18n';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,9 +12,10 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: '#0C0C0E', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang(); const t = await getT();
   return (
-    <html lang="en">
+    <html lang={lang}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -20,12 +23,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <I18nProvider lang={lang}>
         <Header />
         <main className="wrap">{children}</main>
         <footer className="ft pad"><div className="in" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <span>© {new Date().getFullYear()} NovaFides Marketplace · Bay Area</span>
-          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">For pros &amp; companies</Link><Link href="/rules">Rules &amp; reviews policy</Link></span>
+          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link></span>
         </div></footer>
+        </I18nProvider>
       </body>
     </html>
   );

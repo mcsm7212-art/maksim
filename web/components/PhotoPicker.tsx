@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { isLive } from '@/lib/supabase/config';
 import { uploadPhotos } from '@/lib/upload';
+import { useT } from './I18n';
 
 /** Picks photos, uploads them right away, and puts their URLs into hidden inputs named `name`. */
 export default function PhotoPicker({ name, max = 1, prefix, label, onChange, required }: {
   name: string; max?: number; prefix: string; label: string; onChange?: (previews: string[]) => void; required?: boolean;
 }) {
   const [items, setItems] = useState<{ url: string; preview: string }[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(false); const t = useT();
   const [err, setErr] = useState<string | null>(null);
   const set = (next: typeof items) => { setItems(next); onChange?.(next.map((i) => i.preview)); };
 
@@ -28,13 +29,13 @@ export default function PhotoPicker({ name, max = 1, prefix, label, onChange, re
     <div className="list" style={{ gap: 8 }}>
       <label className="drop">
         <input type="file" accept="image/*" multiple={max > 1} onChange={(e) => { pick(e.target.files); e.target.value = ''; }} required={required && !items.length} />
-        <span><b>{busy ? 'Uploading…' : label}</b><br /><span className="mu xs">{max > 1 ? `${items.length} of up to ${max} photos` : items.length ? 'Tap to replace' : 'JPG or PNG from your phone'}</span></span>
+        <span><b>{busy ? t('Uploading…') : label}</b><br /><span className="mu xs">{max > 1 ? t('{n} of up to {max} photos', { n: items.length, max }) : items.length ? t('Tap to replace') : t('JPG or PNG from your phone')}</span></span>
       </label>
       {max > 1 && items.length > 0 && (
         <div className="works" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(84px,1fr))' }}>
           {items.map((it, i) => (
-            <button type="button" key={it.preview} className="work" onClick={() => set(items.filter((_, k) => k !== i))} title="Remove">
-              <img src={it.preview} alt="" style={{ aspectRatio: '1', objectFit: 'cover' }} /><span className="xs mu">Remove</span>
+            <button type="button" key={it.preview} className="work" onClick={() => set(items.filter((_, k) => k !== i))} title={t('Remove')}>
+              <img src={it.preview} alt="" style={{ aspectRatio: '1', objectFit: 'cover' }} /><span className="xs mu">{t('Remove')}</span>
             </button>
           ))}
         </div>

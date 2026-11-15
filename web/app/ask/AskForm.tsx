@@ -1,15 +1,16 @@
 'use client';
 import { useActionState, useState } from 'react';
 import { askEstimate } from './actions';
+import { useT } from '@/components/I18n';
 
 export default function AskForm({ pros }: { pros: { slug: string; name: string; sub: string }[] }) {
   const [state, action, pending] = useActionState(askEstimate, undefined);
-  const [picked, setPicked] = useState<string[]>([]);
+  const [picked, setPicked] = useState<string[]>([]); const t = useT();
   return (
     <form action={action} className="list">
-      <label className="f">What needs doing?<textarea className="inp" name="text" required placeholder="E.g. water stain on the ceiling under the upstairs bathroom, appeared last week." /></label>
-      <label className="f">Job address<input className="inp" name="address" required placeholder="Street, city" /></label>
-      <b>Send to up to 3 pros ({picked.length}/3)</b>
+      <label className="f">{t('What needs doing?')}<textarea className="inp" name="text" required placeholder={t('E.g. water stain on the ceiling under the upstairs bathroom, appeared last week.')} /></label>
+      <label className="f">{t('Job address')}<input className="inp" name="address" required placeholder={t('Street, city')} /></label>
+      <b>{t('Send to up to 3 pros')} ({picked.length}/3)</b>
       <div className="list">
         {pros.map((p) => (
           <label key={p.slug} className="card bk" style={{ cursor: 'pointer' }}>
@@ -19,10 +20,10 @@ export default function AskForm({ pros }: { pros: { slug: string; name: string; 
           </label>
         ))}
       </div>
-      {state?.error && <div className="err" role="alert">{state.error}</div>}
-      {state?.demo && <div className="note">Demo mode: nothing was sent.</div>}
-      <button className="btn" disabled={pending}>{pending ? 'Sending…' : 'Ask for estimates'}</button>
-      <span className="mu xs">Only the pros you choose see your request. You can add photos in chat after they reply.</span>
+      {state?.error && <div className="err" role="alert">{t(state.error)}</div>}
+      {state?.demo && <div className="note">{t('Demo mode: nothing was sent.')}</div>}
+      <button className="btn" disabled={pending}>{pending ? t('Sending…') : t('Ask for estimates')}</button>
+      <span className="mu xs">{t('Only the pros you choose see your request. You can add photos in chat after they reply.')}</span>
     </form>
   );
 }

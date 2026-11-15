@@ -313,3 +313,6 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .map a text{pointer-events:none}
 .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
 .bcol{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:12px;min-height:200px}
+.langs{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px;flex:none}
+.langs a{font-size:12px;text-decoration:none;color:var(--mu);padding:4px 7px;border-radius:7px}
+.langs a[aria-current="true"]{background:var(--card2);color:var(--ink)}
