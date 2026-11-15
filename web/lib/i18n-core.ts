@@ -15,5 +15,6 @@ export function makeT(lang: Lang): T {
     return r;
   };
 }
-/** Service name in the chosen language (Russian names come from the catalog). */
-export const svcName = (s: Pick<Service, 'name' | 'ru'> | undefined, lang: Lang) => (!s ? '' : lang === 'ru' && s.ru ? s.ru : s.name);
+/** Service name in the chosen language (Russian from the catalog, Spanish from data/services-es.json). */
+export const svcName = (s: Pick<Service, 'name' | 'ru' | 'es'> | undefined, lang: Lang) => (!s ? '' : lang === 'ru' && s.ru ? s.ru : lang === 'es' && s.es ? s.es : s.name);
+export const groupName = (s: Pick<Service, 'group' | 'groupRu' | 'groupEs'>, lang: Lang) => (lang === 'ru' ? s.groupRu : lang === 'es' ? s.groupEs : s.group);

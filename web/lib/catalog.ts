@@ -1,11 +1,12 @@
 // Service catalog, shared by the server and the browser. Source: data/services.json (copied by scripts/sync-catalog.mjs).
 import raw from './services.json';
+import esRaw from './services-es.json';
 
 export type Trade = 'plumbing' | 'electrical' | 'handyman';
 export type Tier = 'economy' | 'standard' | 'premium';
 
 export interface Service {
-  id: string; trade: Trade; group: string; name: string; ru: string;
+  id: string; trade: Trade; group: string; groupRu: string; groupEs: string; name: string; ru: string; es: string;
   lo: number; hi: number; unit: string; permit: boolean; emergency: boolean; handymanOk: boolean;
 }
 
@@ -15,6 +16,7 @@ interface Raw {
   trades: { id: Trade; name: string; ru: string; license: string; groups: { name: string; ru: string; items: Item[] }[] }[];
 }
 const CAT = raw as unknown as Raw;
+const ES = esRaw as { groups: Record<string, string>; services: Record<string, string> };
 
 // Must match scripts/gen-seed.mjs so ids line up with the database.
 export const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -24,7 +26,7 @@ export const SERVICES: Service[] = [];
   const seen = new Set<string>();
   for (const t of CAT.trades) for (const g of t.groups) for (const [name, ru, lo, hi, unit, flags = ''] of g.items) {
     let id = slugify(name); if (seen.has(id)) id = `${t.id}-${id}`; seen.add(id);
-    SERVICES.push({ id, trade: t.id, group: g.name, name, ru, lo, hi, unit: unit || 'job',
+    SERVICES.push({ id, trade: t.id, group: g.name, groupRu: g.ru, groupEs: ES.groups[g.name] ?? g.name, name, ru, es: ES.services[name] ?? name, lo, hi, unit: unit || 'job',
       permit: flags.includes('P'), emergency: flags.includes('E'), handymanOk: flags.includes('H') });
   }
 }
@@ -57,7 +59,7 @@ export function searchServices(query: string, trade?: Trade | null, limit = 8): 
   const toks = [...new Set(qs.join(' ').split(/\s+/).filter((w) => w.length >= 3))];
   return SERVICES.filter((s) => !trade || s.trade === trade)
     .map((s) => {
-      const nm = s.name.toLowerCase(); const hay = `${nm} ${s.group} ${s.ru}`.toLowerCase();
+      const nm = s.name.toLowerCase(); const hay = `${nm} ${s.group} ${s.ru} ${s.es} ${s.groupEs}`.toLowerCase();
       let sc = 0;
       qs.forEach((x, i) => { if (nm.includes(x)) sc += i ? 9 : 14; else if (hay.includes(x)) sc += 4; });
       toks.forEach((t) => { if (nm.includes(t)) sc += 3; });

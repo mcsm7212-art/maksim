@@ -1,3 +1,5 @@
+import { getLang, getT } from '@/lib/i18n';
+import { svcName } from '@/lib/i18n-core';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { setStatus } from '@/app/account/actions';
@@ -27,7 +29,9 @@ function dayRange(day: string | undefined) {
 }
 
 export default async function Board({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
-  if (!isLive()) return <section className="sec pad"><div className="in"><h2>Day board</h2><p className="mu">Demo mode.</p></div></section>;
+  const tr = await getT(); const lang = await getLang();
+  const svc = (id: string | null) => svcName(serviceById(id ?? ''), lang) || tr('Estimate visit');
+  if (!isLive()) return <section className="sec pad"><div className="in"><h2>{tr("Day board")}</h2><p className="mu">{tr("Demo mode.")}</p></div></section>;
   const me = await getMe();
   if (!me) redirect('/login?next=/business/board');
   const co = me.companies.find((c) => c.role !== 'technician');
@@ -49,10 +53,10 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
     const nx = NEXT[b.status];
     return (
       <div className="card" style={{ padding: 12, borderLeft: `4px solid ${color}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><b className="sm">{b.starts_at ? slotLabel(b.starts_at)[1] : 'No time yet'}</b><span className="xs" style={{ color }}>{label}</span></div>
-        <span className="sm">{serviceById(b.service_id)?.name ?? 'Estimate visit'}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><b className="sm">{b.starts_at ? slotLabel(b.starts_at, tr)[1] : tr('No time yet')}</b><span className="xs" style={{ color }}>{tr(label)}</span></div>
+        <span className="sm">{svc(b.service_id)}</span>
         <span className="mu xs">{b.address}{b.client?.full_name ? ` · ${b.client.full_name}` : ''}{b.client?.phone ? ` · ${b.client.phone}` : ''}</span>
-        {nx && b.pro_id && <form action={setStatus}><input type="hidden" name="id" value={b.id} /><input type="hidden" name="status" value={nx[0]} /><button className="btn ghost sm" style={{ padding: '5px 10px' }}>{nx[1]}</button></form>}
+        {nx && b.pro_id && <form action={setStatus}><input type="hidden" name="id" value={b.id} /><input type="hidden" name="status" value={nx[0]} /><button className="btn ghost sm" style={{ padding: '5px 10px' }}>{tr(nx[1])}</button></form>}
       </div>
     );
   };
@@ -60,23 +64,23 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 1200 }}>
       <AutoRefresh seconds={30} />
-      <div className="eyebrow"><Link href="/business">Business</Link> · {co.name}</div>
+      <div className="eyebrow"><Link href="/business">{tr("Business")}</Link> · {co.name}</div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <h2 style={{ margin: '6px 0' }}>{r.isToday ? 'Today' : new Date(r.start).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'short', day: 'numeric' })}</h2>
-        <div className="chips"><Link className="chip" href={`/business/board?day=${r.prev}`}>← Prev</Link>{!r.isToday && <Link className="chip" href="/business/board">Today</Link>}<Link className="chip" href={`/business/board?day=${r.next}`}>Next →</Link></div>
+        <h2 style={{ margin: '6px 0' }}>{r.isToday ? tr('Today') : new Date(r.start).toLocaleDateString(lang === 'ru' ? 'ru-RU' : lang === 'es' ? 'es-US' : 'en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'short', day: 'numeric' })}</h2>
+        <div className="chips"><Link className="chip" href={`/business/board?day=${r.prev}`}>{tr("← Prev")}</Link>{!r.isToday && <Link className="chip" href="/business/board">{tr("Today")}</Link>}<Link className="chip" href={`/business/board?day=${r.next}`}>{tr("Next →")}</Link></div>
       </div>
-      <p className="mu sm" style={{ marginTop: 0 }}>{(day ?? []).length} job{(day ?? []).length === 1 ? '' : 's'} · {(team ?? []).filter(online).length} of {(team ?? []).length} technicians online · updates every 30 seconds</p>
+      <p className="mu sm" style={{ marginTop: 0 }}>{tr((day ?? []).length === 1 ? '{n} job' : '{n} jobs', { n: (day ?? []).length })} · {tr('{a} of {b} technicians online', { a: (team ?? []).filter(online).length, b: (team ?? []).length })} · {tr('updates every 30 seconds')}</p>
 
       {unscheduled.length > 0 && <div className="card formcard" style={{ borderColor: '#F0A04B', marginBottom: 16 }}>
-        <b>Waiting for a technician ({unscheduled.length})</b>
+        <b>{tr('Waiting for a technician')} ({unscheduled.length})</b>
         {unscheduled.map((b: any) => (
           <form key={b.id} action={assign} className="row2" style={{ alignItems: 'end', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
             <input type="hidden" name="id" value={b.id} />
-            <span className="sm">{serviceById(b.service_id)?.name ?? 'Estimate visit'} · {b.address}<br /><span className="mu xs">{b.client?.full_name || 'Client'} · preferred {b.day_pref ?? 'any day'}</span></span>
+            <span className="sm">{svc(b.service_id)} · {b.address}<br /><span className="mu xs">{b.client?.full_name || tr('Client')} · {tr('Preferred')}: {tr(b.day_pref === 'week' ? 'this week' : b.day_pref ?? 'any day')}</span></span>
             <span className="chips">
-              <select className="inp" name="pro" required defaultValue="" style={{ width: 'auto' }}><option value="" disabled>Technician…</option>{(team ?? []).map((t: any) => <option key={t.id} value={t.id}>{t.display_name}{online(t) ? ' · online' : ''}</option>)}</select>
+              <select className="inp" name="pro" required defaultValue="" style={{ width: 'auto' }}><option value="" disabled>{tr("Technician…")}</option>{(team ?? []).map((t: any) => <option key={t.id} value={t.id}>{t.display_name}{online(t) ? ` · ${tr('online')}` : ''}</option>)}</select>
               <input className="inp" type="datetime-local" name="time" required style={{ width: 'auto' }} />
-              <button className="btn sm">Assign</button>
+              <button className="btn sm">{tr("Assign")}</button>
             </span>
           </form>
         ))}
@@ -87,12 +91,12 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
           <div key={t.id} className="bcol">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
               <Link href={`/pro/${t.slug}`}><b>{t.display_name}</b></Link>
-              <span className="xs" style={{ color: online(t) ? 'var(--ok)' : 'var(--mu2)' }}>{online(t) ? `● online${t.online_area ? ` · ${t.online_area}` : ''}` : 'offline'}</span>
+              <span className="xs" style={{ color: online(t) ? 'var(--ok)' : 'var(--mu2)' }}>{online(t) ? `● ${tr('online')}${t.online_area ? ` · ${t.online_area}` : ''}` : tr('offline')}</span>
             </div>
-            <div className="list" style={{ gap: 8 }}>{jobs.map((b: any) => <Job key={b.id} b={b} />)}{!jobs.length && <div className="mu xs" style={{ padding: 10, border: '1px dashed var(--line)', borderRadius: 12 }}>Free all day</div>}</div>
+            <div className="list" style={{ gap: 8 }}>{jobs.map((b: any) => <Job key={b.id} b={b} />)}{!jobs.length && <div className="mu xs" style={{ padding: 10, border: '1px dashed var(--line)', borderRadius: 12 }}>{tr("Free all day")}</div>}</div>
           </div>
         ))}
-        {!cols.length && <div className="card empty">No verified technicians yet. Invite them from the Business page.</div>}
+        {!cols.length && <div className="card empty">{tr("No verified technicians yet. Invite them from the Business page.")}</div>}
       </div>
     </div></section>
   );

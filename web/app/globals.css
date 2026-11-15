@@ -316,3 +316,6 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .langs{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:10px;padding:2px;flex:none}
 .langs a{font-size:12px;text-decoration:none;color:var(--mu);padding:4px 7px;border-radius:7px}
 .langs a[aria-current="true"]{background:var(--card2);color:var(--ink)}
+
+@media (max-width:620px){.bk{grid-template-columns:1fr}.bk .chips{justify-content:flex-start}}
+@media (max-width:700px){.nav{flex-wrap:wrap;overflow:visible}.nav a{padding:6px 9px}}

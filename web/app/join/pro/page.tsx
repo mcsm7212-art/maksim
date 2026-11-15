@@ -1,3 +1,4 @@
+import { getT } from '@/lib/i18n';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { isLive } from '@/lib/supabase/config';
@@ -6,6 +7,7 @@ import ProForm from './ProForm';
 
 export const metadata = { title: 'Create pro profile' };
 export default async function JoinPro({ searchParams }: { searchParams: Promise<{ invite?: string }> }) {
+  const tr = await getT();
   const { invite } = await searchParams;
   let companyName: string | undefined;
   if (isLive()) {
@@ -19,7 +21,7 @@ export default async function JoinPro({ searchParams }: { searchParams: Promise<
   }
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
-      <div className="eyebrow">{invite ? 'Technician' : 'Independent pro'}</div><h2>Create your pro profile</h2>
+      <div className="eyebrow">{invite ? 'Technician' : 'Independent pro'}</div><h2>{tr("Create your pro profile")}</h2>
       <ProForm invite={invite} companyName={companyName} />
     </div></section>
   );

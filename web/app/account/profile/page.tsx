@@ -1,3 +1,4 @@
+import { getT } from '@/lib/i18n';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ProForm, { type ProInitial } from '@/app/join/pro/ProForm';
@@ -7,7 +8,8 @@ import { supabaseServer } from '@/lib/supabase/server';
 
 export const metadata = { title: 'Edit profile' };
 export default async function EditProfile() {
-  if (!isLive()) return <section className="sec pad"><div className="in"><h2>Edit profile</h2><p className="mu">Demo mode.</p></div></section>;
+  const tr = await getT();
+  if (!isLive()) return <section className="sec pad"><div className="in"><h2>{tr("Edit profile")}</h2><p className="mu">{tr("Demo mode.")}</p></div></section>;
   const me = await getMe();
   if (!me) redirect('/login?next=/account/profile');
   if (!me.pro) redirect('/join/pro');
@@ -26,8 +28,8 @@ export default async function EditProfile() {
   };
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
-      <div className="eyebrow"><Link href="/account">My account</Link> · Profile</div><h2>Edit your profile</h2>
-      <p className="mu sm">Work photos are on the <Link href="/account">account page</Link>. <Link href={`/pro/${p.slug}`}>View my public page</Link></p>
+      <div className="eyebrow"><Link href="/account">{tr("My account")}</Link> {tr("· Profile")}</div><h2>{tr("Edit your profile")}</h2>
+      <p className="mu sm">{tr("Work photos are on the")} <Link href="/account">{tr("account page")}</Link>. <Link href={`/pro/${p.slug}`}>{tr("View my public page")}</Link></p>
       <ProForm initial={initial} />
     </div></section>
   );

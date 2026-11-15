@@ -7,6 +7,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
 import PhotoPicker from '@/components/PhotoPicker';
 import { CITIES } from '@/lib/areas';
+import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName, type T } from '@/lib/i18n-core';
 import { rateClient } from './reviews/actions';
@@ -59,7 +60,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
       {(notes ?? []).length > 0 && <div className="card formcard" style={{ marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
           {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div>
-        {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{n.body} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
+        {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{noteText(n.body, tr)} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
       </div>}
 
       {me.pro && <>
