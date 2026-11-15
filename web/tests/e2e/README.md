@@ -10,6 +10,6 @@ What it checks, in a browser:
 5. Client posts a five-skill review.
 
 Setup used (Docker, host network): `supabase/postgres` on 5432, `supabase/gotrue` on 9999, `postgrest/postgrest` on 3001,
-`axllent/mailpit` (SMTP 54325, API 54324), and `node gateway.cjs` on 54321 (routes `/auth/v1` and `/rest/v1`, adds CORS).
-Then build the site with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the anon key, start it on port 3100 and run
-`node signup-flow.cjs`. The test wipes all users and data in that local database first. Never point it at the real project.
+`axllent/mailpit` (SMTP 54325, API 54324), `supabase/storage-api` on 5000 (file backend), and `node gateway.cjs` on 54321 (routes `/auth/v1`, `/rest/v1`, `/storage/v1`, adds CORS).
+Apply the migrations (0002 as `supabase_admin`). Then build the site with `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321` and the anon key, start it on port 3100 and run
+`IMG_DIR=<folder with face.jpg, w1.jpg, w2.jpg> node signup-flow.cjs`. It also uploads an avatar, work photos and before/after job photos. The test wipes all users and data in that local database first. Never point it at the real project.

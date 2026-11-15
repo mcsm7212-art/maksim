@@ -4,8 +4,10 @@ import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
 import { priceFor } from '@/components/ProCard';
 import SkillPassport, { type SkillRow } from '@/components/SkillPassport';
+import WorkPhotos from '@/components/WorkPhotos';
 import { serviceById, TIERS, TRADES, usd, type Tier } from '@/lib/catalog';
 import { getPro, openSlots } from '@/lib/data';
+import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
 import { dateLabel, slotLabel } from '@/lib/time';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
@@ -15,124 +17,125 @@ export async function generateMetadata({ params }: Props) {
   return { title: pro ? `${pro.name} · ${TRADES[pro.trade].name}` : 'Pro not found' };
 }
 
-function levelOf(jobs: number, rating: number | null) {
-  if (jobs >= 150 && (rating ?? 0) >= 4.8) return { n: 'Gold Specialist', rule: '150+ jobs on NovaFides, rating 4.8+' };
-  if (jobs >= 60 && (rating ?? 0) >= 4.6) return { n: 'Silver Pro', rule: '60+ jobs, rating 4.6+' };
-  return { n: 'Rising Pro', rule: 'New on NovaFides, fewer than 60 jobs' };
-}
+const stars = (n: number) => <span className="stars">{'★'.repeat(Math.round(n))}<span className="mu2">{'★'.repeat(5 - Math.round(n))}</span></span>;
 
 export default async function ProPage({ params, searchParams }: Props) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const pro = await getPro(slug);
   if (!pro) notFound();
-  const tier: Tier = sp.tier && pro.tiers.includes(sp.tier as Tier) ? (sp.tier as Tier) : pro.tiers[pro.tiers.length > 1 ? 1 : 0];
-  const svcId = sp.svc && pro.services.some((s) => s.id === sp.svc) ? sp.svc : pro.services[0]?.id;
+  const tier: Tier = sp.tier && pro.tiers.includes(sp.tier as Tier) ? (sp.tier as Tier) : pro.tiers.includes('standard') ? 'standard' : pro.tiers[0];
+  const svcId = sp.svc && pro.services.some((s) => s.id === sp.svc) ? sp.svc : undefined;
   const slots = openSlots(pro).slice(0, 14);
-  const lvl = levelOf(pro.jobs, pro.rating);
-  const [first, ...rest] = pro.name.split(' ');
-  const sk = pro.skills;
-  const rows: SkillRow[] = sk ? [
-    { key: 'p', name: 'Punctuality', icon: 'clock', score: sk.punctuality, desc: 'Arrives within the agreed time window and warns in advance about any change.', sample: `${Math.round(sk.punctuality * 20)}% of clients rated on-time arrival 5/5` },
-    { key: 'q', name: 'Workmanship', icon: 'tool', score: sk.workmanship, desc: 'Work done right the first time, to code, and explained clearly.', sample: `${pro.jobs} verified jobs on NovaFides` },
-    { key: 'c', name: 'Cleanliness', icon: 'spark', score: sk.cleanliness, desc: 'Protects floors and furniture and leaves the space cleaner than before.', sample: `Rated ${sk.cleanliness.toFixed(1)} of 5 for cleanliness` },
-    { key: 'r', name: 'Communication', icon: 'chat', score: sk.communication, desc: 'Clear updates before, during and after the visit. Explains options before starting.', sample: pro.responseMin ? `Replies in about ${pro.responseMin} minutes` : 'Response time not measured yet' },
-    { key: 't', name: 'Pricing transparency', icon: 'tag', score: sk.pricing, desc: 'The final bill matches the quote. No surprise fees.', sample: `Rated ${sk.pricing.toFixed(1)} of 5 for honest pricing` },
-  ] : [];
-  const fromPrice = svcId ? priceFor(pro, svcId, tier) : null;
+  const first = pro.name.split(' ')[0];
+  const stats = showStats(pro);
   const bookHref = (t?: string) => `/book?pro=${pro.slug}&tier=${tier}${svcId ? `&svc=${svcId}` : ''}${t ? `&t=${encodeURIComponent(t)}` : ''}`;
-  const tierLink = (t: Tier) => `/pro/${pro.slug}?tier=${t}${svcId ? `&svc=${svcId}` : ''}`;
+  const q = (patch: Record<string, string>) => `/pro/${pro.slug}?${new URLSearchParams({ tier, ...(svcId ? { svc: svcId } : {}), ...patch })}`;
+  const sk = pro.skills;
+  const rows: SkillRow[] = stats && sk ? [
+    { key: 'p', name: 'Punctuality', icon: 'clock', score: sk.punctuality, desc: 'Arrives within the agreed time window and warns in advance about any change.', sample: `${Math.round(sk.punctuality * 20)}% on-time score` },
+    { key: 'q', name: 'Workmanship', icon: 'tool', score: sk.workmanship, desc: 'Work done right the first time, to code, and explained clearly.', sample: `${pro.jobs} verified jobs on NovaFides` },
+    { key: 'c', name: 'Cleanliness', icon: 'spark', score: sk.cleanliness, desc: 'Protects floors and furniture and leaves the space cleaner than before.', sample: `Rated ${sk.cleanliness.toFixed(1)} of 5` },
+    { key: 'r', name: 'Communication', icon: 'chat', score: sk.communication, desc: 'Clear updates before, during and after the visit.', sample: pro.responseMin ? `Replies in about ${pro.responseMin} minutes` : '' },
+    { key: 't', name: 'Pricing transparency', icon: 'tag', score: sk.pricing, desc: 'The final bill matches the quote. No surprise fees.', sample: `Rated ${sk.pricing.toFixed(1)} of 5` },
+  ] : [];
 
   return (
     <div className={`themed ${pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
-      <div className="pad"><div className="in">
-        <div className="ph3">
+      <div className="pad"><div className="in" style={{ maxWidth: 860, paddingBottom: 40 }}>
+
+        <div className="lhead">
+          <span className="ava"><Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} /></span>
           <div>
-            <div className="eyerow"><i />{TRADES[pro.trade].name}{pro.license ? ` · CSLB ${TRADES[pro.trade].license}` : ''}</div>
-            <h1 className="pname">{first}<br />{rest.join(' ')}</h1>
-            {pro.company
-              ? <Link className="pco" href={`/company/${pro.company.slug}`} style={{ fontSize: 'clamp(30px,6vw,52px)' }}>{pro.company.name.split(' ')[0]} <b>{pro.company.name.split(' ').slice(1).join(' ')}</b></Link>
-              : <div className="pco" style={{ fontSize: 'clamp(30px,6vw,52px)' }}>Independent <b>Pro</b></div>}
-            <p className="ptag">{pro.bio}</p>
-            <div className="locline"><Icon name="pin" size={16} />{[pro.area, `${pro.years} years`, pro.languages.join(', ')].filter(Boolean).join(' · ')}</div>
-            {pro.online && <div className="onl"><span className="dot" />Online now <small>REPLIES ~{pro.responseMin ?? 15} MIN</small></div>}
-            <div className="hexlvl"><i /><span><small>Level</small><b>{lvl.n}</b></span></div>
+            <div className="eyerow"><i />{TRADES[pro.trade].name}</div>
+            <h1>{pro.name}</h1>
+            <div className="sm">{pro.company ? <>Technician at <Link href={`/company/${pro.company.slug}`}>{pro.company.name}</Link></> : 'Independent pro'}</div>
+            <div className="meta">
+              {pro.area && <span><Icon name="pin" size={14} /> {pro.area}</span>}
+              {pro.years > 0 && <span>{pro.years} years experience</span>}
+              {pro.languages.length > 0 && <span>{pro.languages.join(', ')}</span>}
+            </div>
+            <div className="trustrow">
+              {pro.reviewCount > 0 && pro.rating != null
+                ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {pro.reviewCount} review{pro.reviewCount > 1 ? 's' : ''}</span>
+                : <span className="newbadge">New on NovaFides</span>}
+              {pro.verified.license && pro.license && <span className="badge ok">CSLB #{pro.license}</span>}
+              {pro.verified.id && <span className="badge ok">ID checked</span>}
+              {pro.verified.insured && <span className="badge ok">Insured</span>}
+              {pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} /> Online now</span>}
+            </div>
           </div>
-          <div className="figcol"><span className="lbl">ID-VERIFIED PHOTO</span><Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} big /></div>
+          <div className="cta2 lcta">
+            <Link className="btn" href={bookHref()}>Book {first} <Icon name="arrow" /></Link>
+            <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>Ask for estimate</Link>
+          </div>
         </div>
 
-        <div className="kp3">
-          <div><span className="num">{pro.rating != null ? pro.rating.toFixed(2) : '—'}</span><small>Rating · {pro.reviewCount} reviews</small></div>
-          <div><span className="num">{pro.jobs}</span><small>Jobs on NovaFides</small></div>
-          <div><span className="num">{sk ? `${Math.round(sk.punctuality * 20)}%` : '—'}</span><small>On-time score</small></div>
+        {(pro.bio || pro.experience) && <div className="blk">
+          <h2>About {first}</h2>
+          {pro.bio && <p style={{ margin: '0 0 10px' }}>{pro.bio}</p>}
+          {pro.experience && <p className="mu" style={{ margin: 0 }}>{pro.experience}</p>}
+        </div>}
+
+        {pro.skillTags.length > 0 && <div className="blk">
+          <h2>Skills</h2>
+          <div className="tags">{pro.skillTags.map((t) => <span key={t}>{t}</span>)}</div>
+        </div>}
+
+        <div className="blk">
+          <h2>Work photos <small>{pro.photos.length} photo{pro.photos.length === 1 ? '' : 's'}</small></h2>
+          {pro.photos.length ? <WorkPhotos photos={pro.photos} /> : <p className="mu">No work photos yet.</p>}
         </div>
 
-        <div className="tchips">
-          {pro.verified.license && pro.license && <span className="tchip"><Icon name="shield" size={15} />License #{pro.license} verified</span>}
-          {pro.verified.id && <span className="tchip"><Icon name="shield" size={15} />ID checked</span>}
-          {pro.verified.insured && <span className="tchip"><Icon name="shield" size={15} />Insured</span>}
-          {pro.company && pro.company.warrantyMonths > 0 && <span className="tchip"><Icon name="shield" size={15} />{pro.company.warrantyMonths}-month warranty</span>}
-        </div>
-
-        <div className="seg" style={{ marginTop: 22 }} role="group" aria-label="Service level">
-          {pro.tiers.map((t) => <Link key={t} href={tierLink(t)} scroll={false} aria-pressed={t === tier}>{TIERS[t].name}</Link>)}
-        </div>
-        <p className="mu sm" style={{ margin: '8px 0 0' }}>{TIERS[tier].blurb}</p>
-        <div className="pricebox">
-          <div><div className="mu sm">{svcId ? serviceById(svcId)?.name : 'Visit'}</div><div className="big">{fromPrice != null ? usd(fromPrice) : usd(pro.tripFee)}</div></div>
-          <div className="mu xs" style={{ textAlign: 'right' }}>Trip fee {usd(pro.tripFee)}<br />credited if you hire</div>
-        </div>
-        <div className="cta2">
-          <Link className="btn" href={bookHref()}>Book {first} <Icon name="arrow" /></Link>
-          <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>Request estimate</Link>
-        </div>
-
-        <div className="passhead"><span>SKILL PASSPORT</span><span>5 SKILLS</span></div>
-        <h2 className="h2big">Rated by <b>real clients</b></h2>
-        {rows.length ? <SkillPassport rows={rows} /> : <p className="mu">No reviews yet. Skills appear after the first finished jobs.</p>}
-
-        <div className="passhead"><span>SERVICES</span><span>{pro.services.length}</span></div>
-        <h2 className="h2big">What {first} <b>does</b></h2>
-        <div className="svcgrid">
-          {pro.services.slice(0, 12).map((s, i) => {
+        <div className="blk">
+          <h2>Services and prices</h2>
+          {pro.tiers.length > 1 && <div className="seg" role="group" aria-label="Service level" style={{ marginBottom: 6 }}>
+            {pro.tiers.map((t) => <Link key={t} href={q({ tier: t })} scroll={false} aria-pressed={t === tier}>{TIERS[t].name}</Link>)}
+          </div>}
+          <p className="mu xs" style={{ margin: '4px 0 6px' }}>{TIERS[tier].name}: {TIERS[tier].blurb} Trip fee {usd(pro.tripFee)}, credited if you hire.</p>
+          {pro.services.map((s) => {
             const sv = serviceById(s.id); if (!sv) return null;
-            return (
-              <Link key={s.id} href={`/pro/${pro.slug}?tier=${tier}&svc=${s.id}`} scroll={false} style={{ all: 'unset', cursor: 'pointer', background: 'var(--pcard)', border: `1px solid ${s.id === svcId ? 'var(--acc)' : 'var(--pline)'}`, padding: 18, display: 'flex', flexDirection: 'column', gap: 10, minHeight: 130, position: 'relative' }}>
-                <span className="no">{String(i + 1).padStart(2, '0')}</span>
-                <span className="num" style={{ fontSize: 34, color: 'var(--acc)' }}>{s.jobs}</span>
-                <b style={{ fontWeight: 600, fontSize: 16, marginTop: 'auto' }}>{sv.name}</b>
-                <small className="mu">{s.jobs} done · {usd(priceFor(pro, s.id, tier) ?? 0)}</small>
-              </Link>
-            );
+            return <Link key={s.id} className="prow" href={q({ svc: s.id })} scroll={false} aria-current={s.id === svcId}><span>{sv.name}</span><b>{usd(priceFor(pro, s.id, tier) ?? 0)}</b></Link>;
           })}
         </div>
 
-        <div className="passhead"><span>SCHEDULE</span><span>NEXT 7 DAYS</span></div>
-        <h2 className="h2big">Pick a <b>time</b></h2>
-        <div className="slots">
-          {slots.map((t) => { const [d, h] = slotLabel(t); return <Link key={t} className="slot" href={bookHref(t)} style={{ textDecoration: 'none' }}><b>{h}</b>{d}</Link>; })}
-          {!slots.length && <span className="mu">No open times this week. Send a request and {first} will suggest a time.</span>}
+        <div className="blk">
+          <h2>Available times <small>next 7 days</small></h2>
+          <div className="slots">
+            {slots.map((t) => { const [d, h] = slotLabel(t); return <Link key={t} className="slot" href={bookHref(t)} style={{ textDecoration: 'none' }}><b>{h}</b>{d}</Link>; })}
+            {!slots.length && <span className="mu">No open times this week. Ask for an estimate and {first} will suggest a time.</span>}
+          </div>
         </div>
 
-        <div className="passhead"><span>REVIEWS</span><span>{pro.reviewCount}</span></div>
-        <h2 className="h2big">What clients <b>say</b></h2>
-        <div className="list" style={{ marginBottom: 40 }}>
-          {pro.reviews.map((r) => {
-            const avg = (r.scores.punctuality + r.scores.workmanship + r.scores.cleanliness + r.scores.communication + r.scores.pricing) / 5;
-            return (
-              <div key={r.id} className="card rv">
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                  <b>{r.who}</b><span className="stars">{'★'.repeat(Math.round(avg))}<span className="mu2">{'★'.repeat(5 - Math.round(avg))}</span></span>
+        {stats && <div className="blk">
+          <h2>NovaFides record</h2>
+          <div className="kp3" style={{ marginTop: 0 }}>
+            <div><span className="num">{pro.rating?.toFixed(2)}</span><small>Rating · {pro.reviewCount} reviews</small></div>
+            <div><span className="num">{pro.jobs}</span><small>Jobs on NovaFides</small></div>
+            <div><span className="num" style={{ fontSize: 'clamp(22px,5vw,32px)' }}>{levelOf(pro.jobs, pro.rating).n}</span><small>Level</small></div>
+          </div>
+          <SkillPassport rows={rows} />
+        </div>}
+
+        <div className="blk">
+          <h2>Reviews <small>{pro.reviewCount}</small></h2>
+          <div className="list">
+            {pro.reviews.map((r) => {
+              const avg = (r.scores.punctuality + r.scores.workmanship + r.scores.cleanliness + r.scores.communication + r.scores.pricing) / 5;
+              return (
+                <div key={r.id} className="card rv">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}><b>{r.who}</b>{stars(avg)}</div>
+                  <div className="mu xs">{r.service} · {TIERS[r.tier].name} · {dateLabel(r.date)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>Resolved with the pro</span>}</div>
+                  <div>{r.text}</div>
+                  {r.reply && <div className="reply"><b className="xs" style={{ display: 'block', color: 'var(--acc)' }}>Reply from {first}</b>{r.reply}</div>}
                 </div>
-                <div className="mu xs">{r.service} · {TIERS[r.tier].name} · {dateLabel(r.date)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>Resolved with the pro</span>}</div>
-                <div>{r.text}</div>
-                {r.reply && <div className="reply"><b className="xs" style={{ display: 'block', color: 'var(--acc)' }}>Reply from {first}</b>{r.reply}</div>}
-              </div>
-            );
-          })}
-          {!pro.reviews.length && <p className="mu">No reviews yet.</p>}
+              );
+            })}
+            {!pro.reviews.length && <p className="mu">No reviews yet. Reviews come only from clients who booked {first} here.</p>}
+          </div>
+          {!stats && <p className="mu xs" style={{ marginTop: 14 }}>Level and detailed skill scores appear after {STATS_MIN_JOBS} jobs and {STATS_MIN_REVIEWS} reviews on NovaFides.</p>}
         </div>
       </div></div>
-      <div className="stick3"><span><span className="mu xs" style={{ display: 'block' }}>{TIERS[tier].name}</span><span className="big">{fromPrice != null ? usd(fromPrice) : usd(pro.tripFee)}</span></span><Link className="btn" href={bookHref()}>Book {first}</Link></div>
+      <div className="stick3"><span><span className="mu xs" style={{ display: 'block' }}>{pro.name}</span>{pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">New</span>}</span><Link className="btn" href={bookHref()}>Book {first}</Link></div>
     </div>
   );
 }

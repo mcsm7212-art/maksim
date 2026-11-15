@@ -2,6 +2,7 @@
 import { useActionState, useState } from 'react';
 import { TRADES, type Trade } from '@/lib/catalog';
 import { registerCompany } from '../actions';
+import { uploadPhotos } from '@/lib/upload';
 
 const BASES = [['dark', 'Dark'], ['graphite', 'Graphite'], ['light', 'Light'], ['teal', 'Deep teal']] as const;
 const BG: Record<string, string> = { dark: '#0C0C0E', graphite: '#1F2024', light: '#F4F1EC', teal: '#101C21' };
@@ -25,6 +26,8 @@ export default function CompanyForm() {
   const [accent, setAccent] = useState('#2F7FE0');
   const [base, setBase] = useState('graphite');
   const [name, setName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoErr, setLogoErr] = useState<string | null>(null);
   return (
     <form action={action} className="list">
       <div className="card formcard">
@@ -42,7 +45,12 @@ export default function CompanyForm() {
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>Brand</h3>
         <label className="f">Logo (we pick your brand color from it)
-          <input className="inp" type="file" name="logo" accept="image/png,image/jpeg,image/webp" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const c = await logoColor(f); if (c) setAccent(c); } }} /></label>
+          <input className="inp" type="file" accept="image/png,image/jpeg,image/webp" onChange={async (e) => {
+            const f = e.target.files?.[0]; if (!f) return; const c = await logoColor(f); if (c) setAccent(c);
+            try { setLogoErr(null); setLogoUrl((await uploadPhotos([f], 'logo'))[0] ?? ''); } catch (er) { setLogoErr((er as Error).message); }
+          }} /></label>
+        <input type="hidden" name="logo_url" value={logoUrl} />
+        {logoErr && <span className="err">{logoErr}</span>}
         <label className="f">Brand color<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><input type="color" name="accent" value={accent} onChange={(e) => setAccent(e.target.value)} style={{ width: 52, height: 40, border: 0, background: 'none' }} /><span className="mu xs">{accent}</span></span></label>
         <div className="tbtn">{BASES.map(([v, l]) => <label key={v}><input type="radio" name="base" value={v} checked={base === v} onChange={() => setBase(v)} />{l}</label>)}</div>
         <div className="preview" style={{ background: BG[base], padding: 18, color: base === 'light' ? '#17171A' : '#F3EDE7' }}>

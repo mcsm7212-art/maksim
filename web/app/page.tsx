@@ -13,7 +13,7 @@ export default async function Home() {
       <section className="hero pad"><div className="in">
         <div className="eyebrow">Bay Area · San Francisco to San Jose</div>
         <h1>Pick your pro.<br /><span>Not a lead auction.</span></h1>
-        <p>Verified plumbers, electricians and handymen with real work photos, job counts and honest reviews. You choose one pro. Your request goes only to them.</p>
+        <p>Verified plumbers, electricians and handymen with real photos, their own work and honest reviews. You choose one pro. Your request goes only to them.</p>
         <SearchBox />
       </div></section>
 
@@ -45,7 +45,7 @@ export default async function Home() {
         <div className="trust">
           <div className="card"><b>One pro per request</b><span className="mu">Your job is never sold to five contractors.</span></div>
           <div className="card"><b>Verified licenses</b><span className="mu">CSLB license and ID checked. One person, one profile.</span></div>
-          <div className="card"><b>Real job counts</b><span className="mu">“Installed 48 faucets” counts only jobs finished here.</span></div>
+          <div className="card"><b>Real work photos</b><span className="mu">Pros show their own work, with before and after photos from every job.</span></div>
           <div className="card"><b>Honest reviews</b><span className="mu">Five skills rated after every job. Negative reviews are never deleted.</span></div>
         </div>
       </div></section>

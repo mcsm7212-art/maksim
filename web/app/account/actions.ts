@@ -42,3 +42,18 @@ export async function submitReview(f: FormData) {
   if (!error && r) await sb.from('review_private').insert({ review_id: r.id, would_hire_again: s(f, 'again') !== '0' });
   revalidatePath('/account');
 }
+
+export async function addPhotos(f: FormData) {
+  const { me, sb } = await need();
+  const { ownPhotoUrl } = await import('@/lib/photos');
+  const urls = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
+  const booking = s(f, 'booking') || null;
+  const kind = ['before', 'after'].includes(s(f, 'kind')) ? s(f, 'kind') : 'portfolio';
+  if (urls.length) await sb.from('pro_photos').insert(urls.map((url) => ({ pro_id: me.id, url, kind, booking_id: kind === 'portfolio' ? null : booking })));
+  revalidatePath('/account');
+}
+export async function deletePhoto(f: FormData) {
+  const { sb } = await need();
+  await sb.from('pro_photos').delete().eq('id', s(f, 'id'));
+  revalidatePath('/account');
+}

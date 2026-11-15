@@ -32,6 +32,20 @@ const SEEDS: Seed[] = [
   ['andre', 'Andre Johnson', null, 'handyman', ['economy'], 3, 4.6, 29, 47, 8, '#6E7A3A', true, 'Daly City', 0.9, null, ['English'], 'Affordable help with assembly, mounting and small fixes around the house.'],
 ];
 
+const EXTRA: Record<string, { exp: string; skills: string[]; photos: string[] }> = {
+  mike: { exp: 'Journeyman plumber since 2012, with Bayline since 2018. Before that, new construction in San Mateo County.', skills: ['Tank & tankless water heaters', 'Repipes (PEX & copper)', 'Leak detection', 'Fixture installs'], photos: ['Tankless heater install', 'Copper repipe', 'Vanity faucet', 'Water heater flue', 'Shut-off valves'] },
+  tom: { exp: 'Seven years of service plumbing on the Peninsula. Mostly fixtures, drains and toilets.', skills: ['Toilets', 'Drain cleaning', 'Faucets', 'Garbage disposals'], photos: ['Toilet replacement', 'Kitchen faucet', 'Disposal install'] },
+  jason: { exp: 'Licensed journeyman, two years in the field after trade school.', skills: ['Faucets', 'Toilet repair', 'Supply lines'], photos: ['Bathroom faucet', 'Angle stops'] },
+  carlos: { exp: 'Eleven years on drain and sewer trucks. Night and weekend emergencies.', skills: ['Main line clogs', 'Hydro jetting', 'Sewer camera', 'Emergency calls'], photos: ['Hydro jetting', 'Cleanout install', 'Camera inspection'] },
+  kevin: { exp: 'Sixteen years. Trenchless sewer repair and camera inspections for older homes.', skills: ['Trenchless sewer', 'Camera inspection', 'Sewer lateral replacement'], photos: ['Sewer lateral', 'Trenchless pipe burst', 'New cleanout'] },
+  priya: { exp: 'Master electrician (C-10). Twelve years in residential service and remodels.', skills: ['Panel upgrades', 'EV chargers', 'Knob-and-tube replacement', 'Permits'], photos: ['200A panel upgrade', 'Tesla wall charger', 'New subpanel', 'Recessed lighting'] },
+  sam: { exp: 'Five years of service calls: outlets, lighting, fans and troubleshooting.', skills: ['Outlets & GFCI', 'Ceiling fans', 'Light fixtures', 'Troubleshooting'], photos: ['Ceiling fan', 'GFCI outlets', 'Pendant lights'] },
+  maksim: { exp: 'Nine years as a plumber in the Bay Area, the last four on my own in Redwood City. Before that, service plumber for a Peninsula company.', skills: ['Water heaters', 'Sewer lines', 'Fixtures', 'Gas lines', 'Leak repair'], photos: ['Water heater install', 'Sewer cleanout', 'Kitchen sink', 'Gas line', 'Shower valve', 'Toilet install'] },
+  luis: { exp: 'Eight years of handyman work: mounting, assembly, drywall, doors.', skills: ['TV mounting', 'Furniture assembly', 'Drywall patch', 'Door repair'], photos: ['TV wall mount', 'Drywall patch', 'Closet shelves', 'Door install'] },
+  grace: { exp: 'Licensed electrician, ten years. Smart homes and lighting design.', skills: ['Smart switches', 'Lighting design', 'EV chargers'], photos: ['Smart switches', 'Under-cabinet lights', 'EV charger'] },
+  andre: { exp: 'Three years helping with small jobs around the house.', skills: ['Assembly', 'Mounting', 'Small repairs'], photos: ['IKEA wardrobe', 'Shelves', 'Curtain rods'] },
+};
+
 const RVT: Record<Tier, string[]> = {
   premium: ['Showed up exactly on time in a clean uniform, put down drop cloths and shoe covers, and left the bathroom spotless. Worth every dollar.', 'Explained every option before starting and sent photos when he finished. Most professional service I have had.', 'Careful, clean and fast. Gave me tips to avoid the same problem next year.'],
   standard: ['Good work, fair price. Arrived a few minutes late but texted ahead.', 'Fixed it in under an hour and cleaned up after. Would hire again.', 'Clear quote, no surprises on the bill. Recommended.'],
@@ -56,9 +70,9 @@ function build(s: Seed, i: number): Pro {
 
   const accent = company ? company.accent : accentFromUniform(uniform);
   const r2 = rng(i * 29 + 5);
-  const reviews: Review[] = Array.from({ length: 6 }, (_, k) => {
+  const reviews: Review[] = Array.from({ length: 2 + (i % 3) }, (_, k) => {
     const tier = tiers[Math.floor(r2() * tiers.length)];
-    const low = k === 4; const base = low ? 3 : r2() > 0.25 ? 5 : 4;
+    const low = k === 1 && i % 4 === 0; const base = low ? 3 : r2() > 0.25 ? 5 : 4;
     const svc = SERVICES.find((x) => x.id === services[k % services.length].id)!;
     return {
       id: `${slug}-${k}`, who: NAMES[(i * 3 + k) % NAMES.length],
@@ -71,14 +85,21 @@ function build(s: Seed, i: number): Pro {
     };
   });
   const sk = (d: number) => Math.min(5, Math.round((rating + d) * 100) / 100);
+  const ex = EXTRA[slug];
+  // Launch state: few NovaFides jobs yet, so the profile shows as a simple listing.
+  const launchJobs = reviews.length + (i % 3);
+  const avg = (r: Review) => (r.scores.punctuality + r.scores.workmanship + r.scores.cleanliness + r.scores.communication + r.scores.pricing) / 5;
+  const launchRating = Math.round((reviews.reduce((n, r) => n + avg(r), 0) / reviews.length) * 100) / 100;
+  void jobs; void reviewCount; void rating;
   return {
     id: `demo-${slug}`, slug, name, company, trade, tiers, years, area, bio, languages,
+    experience: ex.exp, skillTags: ex.skills, photos: ex.photos.map((c, k) => ({ id: `${slug}-p${k}`, url: `demo:${trade}`, caption: c })),
     license: company ? company.license : license,
     verified: { license: true, id: true, insured: true }, photoUrl: null, uniform, accent,
     base: company ? company.base : baseFor(accent), online, responseMin: resp, tripFee: 95,
-    rating, reviewCount, jobs,
+    rating: launchRating, reviewCount: reviews.length, jobs: launchJobs,
     skills: { punctuality: sk(0), workmanship: sk(0.04), cleanliness: sk(-0.03), communication: sk(0), pricing: sk(-0.02) },
-    services, reviews,
+    services: services.map((x) => ({ ...x, jobs: 0 })), reviews,
     availability: [1, 2, 3, 4, 5, 6].map((weekday) => ({ weekday, start: '08:00', end: '18:00' })),
     busy: [],
   };

@@ -5,6 +5,7 @@ import { serviceById, slugify, TIER_KEYS, TRADES, type Tier, type Trade } from '
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
+import { ownPhotoUrl } from '@/lib/photos';
 
 export type JoinState = { error?: string; demo?: boolean } | undefined;
 const str = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
@@ -18,16 +19,6 @@ async function uniqueSlug(table: 'pros' | 'companies', base: string) {
     if (!data) return s;
   }
   return `${root}-${Date.now().toString(36)}`;
-}
-
-async function uploadPhoto(uid: string, file: FormDataEntryValue | null, name: string) {
-  if (!(file instanceof File) || !file.size) return null;
-  if (file.size > 8 * 1024 * 1024 || !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Photo must be a JPG, PNG or WEBP under 8 MB.');
-  const sb = await supabaseServer();
-  const path = `${uid}/${name}-${Date.now()}.${file.type.split('/')[1]}`;
-  const { error } = await sb.storage.from('photos').upload(path, file, { contentType: file.type, upsert: true });
-  if (error) throw new Error(`Photo upload failed: ${error.message}`);
-  return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
 }
 
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
@@ -52,18 +43,22 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (!me) redirect('/login?next=/join/pro');
   if (me.pro) redirect('/account');
   const sb = await supabaseServer();
-  let photo: string | null = null;
-  try { photo = await uploadPhoto(me.id, f.get('photo'), 'pro'); } catch (e) { return { error: (e as Error).message }; }
+  const photo = str(f, 'photo_url', 500);
+  if (!photo || !ownPhotoUrl(photo, me.id)) return { error: 'Add a real photo of yourself. Clients choose pros by face.' };
+  const work = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').insert({
     id: me.id, slug: await uniqueSlug('pros', name), display_name: name, trade, tiers,
-    years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), bio: str(f, 'bio', 600),
+    years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), bio: str(f, 'bio', 300),
+    experience: str(f, 'experience', 2000) || null,
+    skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((s) => s.trim()).filter(Boolean),
     license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')),
     photo_url: photo, uniform_color: uniform, accent: accentFromUniform(uniform),
   });
   if (error) return { error: error.message };
   await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
+  if (work.length) await sb.from('pro_photos').insert(work.map((url) => ({ pro_id: me.id, url })));
   await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
   if (me.role === 'client') await sb.rpc('become', { new_role: 'pro' });
   if (invite) { const { error: e } = await sb.rpc('accept_invite', { invite_code: invite }); if (e) return { error: `Profile saved, but the invite failed: ${e.message}` }; }
@@ -83,8 +78,8 @@ export async function registerCompany(_p: JoinState, f: FormData): Promise<JoinS
   if (!me) redirect('/login?next=/join/company');
   if (me.companies.length) redirect('/business');
   const sb = await supabaseServer();
-  let logo: string | null = null;
-  try { logo = await uploadPhoto(me.id, f.get('logo'), 'logo'); } catch (e) { return { error: (e as Error).message }; }
+  const logoUrl = str(f, 'logo_url', 500);
+  const logo = logoUrl && ownPhotoUrl(logoUrl, me.id) ? logoUrl : null;
   const { data, error } = await sb.from('companies').insert({
     slug: await uniqueSlug('companies', name), name, trade, accent, base_theme: base, logo_url: logo,
     city: str(f, 'city', 60), license_no: license || null, since_year: Number(str(f, 'since')) || null,

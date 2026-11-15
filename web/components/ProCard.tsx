@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { marketMid, roundPrice, serviceById, TIERS, usd, type Tier } from '@/lib/catalog';
+import { marketMid, roundPrice, serviceById, TIERS, TRADES, usd, type Tier } from '@/lib/catalog';
 import type { Pro } from '@/lib/types';
 import Figure from './Figure';
 
@@ -10,9 +10,9 @@ export function priceFor(pro: Pro, serviceId: string, tier: Tier): number | null
 }
 
 export default function ProCard({ pro, serviceId, tier }: { pro: Pro; serviceId?: string | null; tier?: Tier | null }) {
-  const t = tier && pro.tiers.includes(tier) ? tier : pro.tiers[0];
+  const t = tier && pro.tiers.includes(tier) ? tier : pro.tiers.includes('standard') ? 'standard' : pro.tiers[0];
   const price = serviceId ? priceFor(pro, serviceId, t) : null;
-  const jobsHere = serviceId ? pro.services.find((s) => s.id === serviceId)?.jobs : null;
+  const from = pro.services.length ? Math.min(...pro.services.map((s) => priceFor(pro, s.id, pro.tiers[0]) ?? 1e9)) : null;
   const q = new URLSearchParams(); if (serviceId) q.set('svc', serviceId); if (tier) q.set('tier', t);
   return (
     <Link href={`/pro/${pro.slug}${q.size ? `?${q}` : ''}`} className="card pc" style={{ textDecoration: 'none', ['--acc' as string]: pro.accent }}>
@@ -21,16 +21,17 @@ export default function ProCard({ pro, serviceId, tier }: { pro: Pro; serviceId?
         <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <h3>{pro.name}</h3>{pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} />Online</span>}
         </span>
-        <span className="mu sm" style={{ display: 'block' }}>{pro.company ? pro.company.name : 'Independent pro'} · {pro.area} · {pro.years} yrs</span>
+        <span className="mu sm" style={{ display: 'block' }}>{TRADES[pro.trade].name} · {pro.company ? pro.company.name : 'Independent'}{pro.area ? ` · ${pro.area}` : ''}{pro.years ? ` · ${pro.years} yrs` : ''}</span>
+        {pro.bio && <span className="sm" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginTop: 4 }}>{pro.bio}</span>}
         <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-          {pro.rating != null ? <span className="badge cu">★ {pro.rating.toFixed(2)} · {pro.reviewCount} reviews</span> : <span className="badge n">New on NovaFides</span>}
-          {pro.verified.license && pro.license && <span className="badge ok">License #{pro.license}</span>}
-          {jobsHere ? <span className="badge n">{jobsHere} done here</span> : <span className="badge n">{pro.jobs} jobs</span>}
+          {pro.reviewCount > 0 && pro.rating != null ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {pro.reviewCount}</span> : <span className="badge n">New</span>}
+          {pro.verified.license && pro.license && <span className="badge ok">License ✓</span>}
+          {pro.photos.length > 0 && <span className="badge n">{pro.photos.length} work photos</span>}
         </span>
       </span>
       <span className="side">
-        <span className="lvl" style={{ color: 'var(--cu-l)' }}>{pro.tiers.map((x) => TIERS[x].name).join(' · ')}</span>
-        {price != null ? <span className="price">{usd(price)}</span> : <span className="mu sm">from {usd(Math.min(...pro.services.map((s) => priceFor(pro, s.id, pro.tiers[0]) ?? 1e9)))}</span>}
+        {price != null ? <><span className="mu xs">{TIERS[t].name}</span><span className="price">{usd(price)}</span></>
+          : from != null && from < 1e9 ? <span className="mu sm">from <b className="price" style={{ fontSize: 17 }}>{usd(from)}</b></span> : null}
       </span>
     </Link>
   );

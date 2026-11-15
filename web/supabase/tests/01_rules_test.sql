@@ -130,4 +130,19 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
 select public.become('pro');
 do $$ begin perform public.become('company'); raise exception 'FAIL: role twice'; exception when others then if sqlerrm like 'FAIL%' then raise; end if; end $$;
 select pg_temp.ok((select role from public.profiles where id = auth.uid()) = 'pro', 'client becomes pro once');
+-- 5) work photos
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+insert into public.pro_photos (pro_id, url, caption) values (auth.uid(), 'https://x/p1.jpg', 'Water heater install');
+insert into public.pro_photos (pro_id, url, kind, booking_id) values (auth.uid(), 'https://x/b1.jpg', 'before', '20000000-0000-0000-0000-000000000002');
+do $$ begin insert into public.pro_photos (pro_id, url, kind, booking_id) values (auth.uid(), 'https://x/b2.jpg', 'before', '20000000-0000-0000-0000-000000000001'); raise exception 'FAIL: photo on other job';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'pro cannot attach photos to someone else''s job');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_photos) = 1, 'public sees portfolio only, not job photos');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.pro_photos where kind = 'before') = 1, 'client sees before photo of own job');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+do $$ begin delete from public.pro_photos; end $$;
+reset role;
+select pg_temp.ok((select count(*) from public.pro_photos) = 2, 'other pro cannot delete photos');
 \echo ALL RULE TESTS PASSED

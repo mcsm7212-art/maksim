@@ -56,6 +56,12 @@ export interface Pro {
   years: number;
   area: string;
   bio: string;
+  /** Free text: where the pro worked, what they are best at */
+  experience: string;
+  /** Short skill tags, e.g. "Tankless water heaters" */
+  skillTags: string[];
+  /** Work photos uploaded by the pro (portfolio) */
+  photos: { id: string; url: string; caption: string | null }[];
   languages: string[];
   license: string | null;
   verified: { license: boolean; id: boolean; insured: boolean };

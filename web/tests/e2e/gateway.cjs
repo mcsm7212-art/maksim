@@ -3,7 +3,7 @@ const http=require('http');
 http.createServer((req,res)=>{
   const cors={'access-control-allow-origin':req.headers.origin||'*','access-control-allow-credentials':'true','access-control-allow-headers':req.headers['access-control-request-headers']||'*','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS','access-control-expose-headers':'*'};
   if(req.method==='OPTIONS'){res.writeHead(204,cors);return res.end()}
-  const routes=[['/auth/v1',9999],['/rest/v1',3001]];
+  const routes=[['/auth/v1',9999],['/rest/v1',3001],['/storage/v1',5000]];
   const r=routes.find(([p])=>req.url.startsWith(p));
   if(!r){res.writeHead(404);return res.end('no route')}
   const h={...req.headers};delete h.host;

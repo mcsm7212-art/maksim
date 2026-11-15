@@ -3,6 +3,7 @@ import { useActionState, useMemo, useState } from 'react';
 import { marketMid, roundPrice, SERVICES, TIER_KEYS, TIERS, TRADES, usd, type Trade } from '@/lib/catalog';
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
+import PhotoPicker from '@/components/PhotoPicker';
 import { registerPro } from '../actions';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -35,7 +36,9 @@ export default function ProForm({ invite, companyName }: { invite?: string; comp
           <label className="f">Area you serve<input className="inp" name="area" placeholder="Redwood City" /></label>
           <label className="f">Languages<input className="inp" name="languages" defaultValue="English" placeholder="English, Spanish" /></label>
         </div>
-        <label className="f">Short bio<textarea className="inp" name="bio" maxLength={600} placeholder="What you are best at and how you work." /></label>
+        <label className="f">Short intro (shown in search)<textarea className="inp" name="bio" maxLength={300} placeholder="What you are best at and how you work." style={{ minHeight: 70 }} /></label>
+        <label className="f">Your experience<textarea className="inp" name="experience" maxLength={2000} placeholder="Where you worked, for how long, what jobs you have done most. E.g. 9 years as a plumber, 4 on my own. Water heaters, repipes, sewer lines." /></label>
+        <label className="f">Your skills, separated by commas<input className="inp" name="skills" maxLength={300} placeholder="Tankless water heaters, Repipes, Leak detection" /></label>
         <label className="chk"><input type="checkbox" name="insured" /> I carry liability insurance</label>
         {trade === 'handyman' && <span className="mu xs">Handymen can take jobs under $1,000 total (labor and materials), no permits, nothing inside walls (California B&amp;P Code §7048).</span>}
       </div>
@@ -45,14 +48,20 @@ export default function ProForm({ invite, companyName }: { invite?: string; comp
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16, alignItems: 'center' }}>
           <span style={{ width: 120, height: 150, borderRadius: 14, overflow: 'hidden', display: 'block' }}><Figure name={name || 'You'} accent={accent} photo={photo} /></span>
           <div className="list">
-            <label className="f">Real photo of you in work clothes (JPG/PNG)
-              <input className="inp" type="file" name="photo" accept="image/jpeg,image/png,image/webp" onChange={(e) => { const f = e.target.files?.[0]; setPhoto(f ? URL.createObjectURL(f) : null); }} /></label>
+            <PhotoPicker name="photo_url" prefix="avatar" label="Add a real photo of you in work clothes" onChange={(p) => setPhoto(p[0] ?? null)} required />
             <label className="f">Work-clothes color<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <input type="color" name="uniform" value={uniform} onChange={(e) => setUniform(e.target.value)} style={{ width: 52, height: 40, border: 0, background: 'none' }} />
               <span className="mu xs">{accent === '#B57A50' ? 'Dark clothes: your page uses NovaFides copper.' : 'Your page will use this color.'}</span></span></label>
           </div>
         </div>
         <span className="mu xs">Only a real photo of you. We may clean up the background and light, never your face or clothes.</span>
+      </div>
+
+      <div className="card formcard">
+        <h3 style={{ margin: 0 }}>Photos of your work</h3>
+        <span className="mu sm">Add photos of jobs you have done, in any order: installs, repairs, before and after. Clients look at these first. You can add more later.</span>
+        <PhotoPicker name="work_url" prefix="work" max={24} label="Add work photos" />
+        <span className="mu xs">Only your own work. No faces of clients, house numbers or addresses in the photos.</span>
       </div>
 
       <div className="card formcard">

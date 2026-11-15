@@ -20,7 +20,7 @@ function mapCompany(c: Row): Company {
   };
 }
 
-const PRO_SELECT = `*, company:companies(*), pro_services(service_id, price, jobs_count), availability_rules(weekday, start_time, end_time),
+const PRO_SELECT = `*, company:companies(*), pro_photos(id, url, caption, kind, created_at), pro_services(service_id, price, jobs_count), availability_rules(weekday, start_time, end_time),
   reviews(id, author_name, created_at, service_id, tier, punctuality, workmanship, cleanliness, communication, pricing, body, resolved, review_replies(body))`;
 
 function mapPro(p: Row, stats?: Row): Pro {
@@ -34,7 +34,8 @@ function mapPro(p: Row, stats?: Row): Pro {
   const s = stats;
   return {
     id: p.id, slug: p.slug, name: p.display_name, company, trade: p.trade as Trade, tiers: p.tiers, years: p.years_exp ?? 0,
-    area: p.area ?? '', bio: p.bio ?? '', languages: p.languages ?? [], license: company?.license ?? p.license_no,
+    area: p.area ?? '', bio: p.bio ?? '', experience: p.experience ?? '', skillTags: p.skills ?? [],
+    photos: (p.pro_photos ?? []).filter((x: Row) => x.kind === 'portfolio').sort((a: Row, b: Row) => b.created_at.localeCompare(a.created_at)).map((x: Row) => ({ id: x.id, url: x.url, caption: x.caption })), languages: p.languages ?? [], license: company?.license ?? p.license_no,
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },
     photoUrl: p.photo_url, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
     online: Boolean(p.online_until && new Date(p.online_until) > new Date()), responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),

@@ -289,3 +289,23 @@ a.chip{text-decoration:none}
 .cta2 .btn{white-space:normal;text-align:center}
 @media (max-width:760px){.ph3 .figcol .lbl{display:none}}
 input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padding:3px;cursor:pointer}
+/* listing-style pro page */
+.work img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.wph{display:grid;place-items:center;gap:6px;aspect-ratio:1;background:radial-gradient(70% 70% at 50% 40%,color-mix(in srgb,var(--acc) 22%,transparent),transparent),var(--pcard,var(--card));color:var(--acc)}
+.wph small{color:var(--pmu,var(--mu));font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:0!important}
+.lhead{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;align-items:start;padding-top:24px}
+.lhead .ava{width:200px;aspect-ratio:4/5;border-radius:18px;overflow:hidden;border:1px solid var(--pline);display:block}
+.lhead h1{font-family:var(--fd);font-size:clamp(28px,5vw,40px);margin:4px 0 2px;line-height:1.05}
+.lhead .meta{color:var(--pmu);font-size:14.5px;display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px}
+@media (max-width:620px){.lhead{grid-template-columns:112px minmax(0,1fr);gap:14px}.lhead .ava{width:112px}.lhead .cta2{grid-column:1/-1}}
+.blk{margin-top:30px}
+.blk h2{font-family:var(--fd);font-size:22px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.blk h2 small{font-family:var(--fb);font-size:13px;color:var(--pmu);font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tags span{border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 10%,transparent);border-radius:99px;padding:6px 12px;font-size:14px}
+.prow{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--pline);text-decoration:none;color:inherit}
+.prow b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.prow[aria-current="true"]{color:var(--acc)}
+.newbadge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--pmu);border:1px dashed var(--pline);border-radius:99px;padding:4px 10px}
+.lhead .lcta{grid-column:2;max-width:460px;margin-top:0}
+@media (max-width:620px){.lhead .lcta{grid-column:1/-1;max-width:none}}
