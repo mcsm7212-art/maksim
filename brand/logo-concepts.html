@@ -1,0 +1,148 @@
+<title>NovaFides Logo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: brand board. Palette strip, then four logo concepts, each with a hero lockup and a row of real-world tests (sizes, light, one-colour, app icon, map pin, uniform, van door) */
+:root{
+  --navy:#0B1220; --navy2:#121B2E; --line:#22304A; --ink:#E8EEF8; --mu:#93A3BD;
+  --blue:#2F80ED; --green:#22C55E; --aqua:#2DD4BF; --gold:#F5B942; --white:#FFFFFF; --paper:#F4F7FB;
+  --fd:"Sora","Inter",system-ui,sans-serif; --fb:"Inter",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--navy);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:36px 56px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font-family:var(--fd);font-weight:800;font-size:clamp(28px,5vw,44px);margin:0 0 10px;letter-spacing:-.02em}
+.lead{color:var(--mu);max-width:62ch;margin:0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--aqua);margin-bottom:6px}
+.pal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.pal{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sw{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--navy2)}
+.sw i{display:block;height:58px}
+.sw div{padding:8px 10px;font-size:12px}
+.sw b{display:block;font-weight:600;font-size:13px}
+.sw code{color:var(--mu);font-size:11.5px}
+.concept{border-top:1px solid var(--line);padding-top:30px;display:flex;flex-direction:column;gap:18px}
+.chead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.chead h2{font-family:var(--fd);font-weight:700;font-size:24px;margin:0}
+.chead p{margin:4px 0 0;color:var(--mu);max-width:56ch}
+.tag{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(245,185,66,.14);color:var(--gold);white-space:nowrap}
+.hero{overflow:hidden;border-radius:22px;background:radial-gradient(80% 120% at 20% 0%,#16223A,var(--navy) 70%);border:1px solid var(--line);padding:clamp(24px,5vw,48px);display:flex;align-items:center;justify-content:center;min-height:200px}
+.lock{display:flex;align-items:center;gap:clamp(12px,2.5vw,20px)}
+.lock .t{display:flex;flex-direction:column;line-height:1}
+.lock .nm{font-family:var(--fd);font-weight:800;letter-spacing:-.025em}
+.lock .nm span{background:linear-gradient(90deg,var(--blue),var(--aqua));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lock .sub{font-family:var(--fd);font-weight:600;letter-spacing:.42em;opacity:.8;margin-top:.5em}
+.lock.light .nm{color:#0B1220} .lock.light .sub{color:#33415C}
+.lock.mono .nm,.lock.mono .nm span{background:none;color:currentColor} .lock.mono .sub{color:currentColor}
+.tests{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.tests{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{border-radius:16px;border:1px solid var(--line);background:var(--navy2);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.tile .s{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:18px 10px;min-height:150px;gap:14px}
+.tile .cap{font-size:12px;color:var(--mu);padding:8px 12px;border-top:1px solid var(--line)}
+.tile.white .s{background:var(--white);color:#0B1220}
+.tile.paper .s{background:var(--paper)}
+.sizes{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:center}
+.sizes figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10.5px;color:var(--mu)}
+.app{width:76px;height:76px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#1B5FD0,#0E9F8F);box-shadow:0 10px 30px -10px rgba(47,128,237,.7)}
+.pin{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.pin .lbl{font-size:11.5px;background:var(--white);color:#0B1220;border-radius:99px;padding:3px 9px;font-weight:600;display:flex;gap:6px;align-items:center}
+.pin .lbl i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.van{width:100%;max-width:240px;aspect-ratio:240/140;border-radius:12px;background:linear-gradient(180deg,#F6F8FB,#DCE3EC);border:1px solid #C8D2DE;color:#0B1220;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:14px;position:relative;overflow:hidden}
+.van::before{content:"";position:absolute;left:0;right:0;top:0;height:30%;background:linear-gradient(180deg,#2B3A52,#3D4F6C);border-bottom:3px solid #C8D2DE}
+.van .row{position:relative;margin-top:26%;display:flex;flex-direction:column;gap:4px}
+.van small{font-size:9.5px;color:#33415C;letter-spacing:.04em}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.verdict{grid-template-columns:1fr}}
+.verdict div{border-radius:14px;padding:12px 14px;background:var(--navy2);border:1px solid var(--line);font-size:14px}
+.verdict b{display:block;font-weight:600;margin-bottom:4px}
+.verdict .p b{color:var(--green)} .verdict .m b{color:var(--gold)}
+.pick{border-radius:22px;padding:22px;border:1px solid rgba(45,212,191,.4);background:linear-gradient(160deg,rgba(45,212,191,.08),rgba(47,128,237,.06))}
+.pick h2{font-family:var(--fd);margin:0 0 8px;font-size:22px}
+.pick p{margin:0 0 8px;color:var(--ink)}
+.pick ul{margin:0;padding-left:20px;color:var(--mu)}
+footer{color:var(--mu);font-size:13px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">NovaFides Marketplace · варианты логотипа</div>
+    <h1>Четыре простых значка</h1>
+    <p class="lead">Каждый значок проверен так, как он будет жить в реальности: крошечная иконка во вкладке браузера, белый фон, один цвет для вышивки, иконка приложения, метка на карте «Мастер онлайн», форма мастера и дверь рабочей машины. Хороший знак узнаётся везде.</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">Цвета бренда</div>
+    <div class="pal" id="pal"></div>
+  </section>
+
+  <div id="concepts" style="display:flex;flex-direction:column;gap:44px"></div>
+
+  <section class="pick">
+    <h2>Мой выбор: «Щит с галочкой»</h2>
+    <p>Он лучше всех проходит проверку маленьким размером и одним цветом, а его смысл понятен любому американцу без объяснений: проверено, лицензия, гарантия. Именно это мы и продаём.</p>
+    <ul>
+      <li>Запасной вариант: «Созвездие‑N». Он самый «игровой» и необычный, но в размере 16 px становится россыпью точек.</li>
+      <li>Финальную версию стоит отдать дизайнеру на доработку: выровнять линии и сделать свой шрифт для названия.</li>
+    </ul>
+  </section>
+  <footer>Шрифт названия: Sora. Номер лицензии, сайт и подписи на машине и форме условные, для примера.</footer>
+</div>
+
+<script>
+const C={navy:"#0B1220",blue:"#2F80ED",green:"#22C55E",aqua:"#2DD4BF",gold:"#F5B942",white:"#FFFFFF"};
+let uid=0;
+const sparkle=(x,y,r,fill)=>`<path d="M${x} ${y-r}L${x+r*.32} ${y-r*.32}L${x+r} ${y}L${x+r*.32} ${y+r*.32}L${x} ${y+r}L${x-r*.32} ${y+r*.32}L${x-r} ${y}L${x-r*.32} ${y-r*.32}Z" fill="${fill}"/>`;
+/* mode: "color" (on dark), "light" (colour on white), or a solid colour string for one-colour use; bg = colour used for knock-outs */
+const MARKS={
+ shield:{name:"Щит с галочкой",idea:"Проверено, лицензия, гарантия. Звёздочка — рейтинг и наш игровой штрих.",pros:["Читается даже в 16 px","Понятен без слов: «надёжно и проверено»","Отлично вышивается и печатается в один цвет"],cons:["Щиты часто используют страховые и охранные компании, поэтому важна наша звёздочка и цвета"],tag:"Мой выбор",
+  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const f=mono?mode:`url(#${id})`;
+   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
+   <path d="M32 5L53 12.5V30C53 43.5 44 53.5 32 59C20 53.5 11 43.5 11 30V12.5Z" fill="${f}"/>
+   <path d="M21.5 32.5L29 40L43.5 25" fill="none" stroke="${mono?bg:C.white}" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+   <circle cx="51" cy="10" r="8.2" fill="${bg}"/>${sparkle(51,10,6.2,mono?mode:C.gold)}`}},
+ pipe:{name:"Буква N из трубы",idea:"N, собранная из трубы с муфтами, и капля воды. Сразу про сантехнику и про имя.",pros:["Уникальная форма, легко запомнить","Связь с названием NovaFides"],cons:["Слишком «сантехнический»: электрикам и хендименам подходит хуже","Капля в 16 px почти исчезает"],tag:"",
+  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;
+   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
+   <path d="M18 47V17L46 45V13" fill="none" stroke="${s}" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+   <rect x="11.5" y="44" width="13" height="7" rx="2.5" fill="${mono?mode:C.blue}"/><rect x="39.5" y="9" width="13" height="7" rx="2.5" fill="${mono?mode:C.aqua}"/>
+   <path d="M46 50.5C44 54 41.5 56.6 41.5 58.8a4.5 4.5 0 0 0 9 0C50.5 56.6 48 54 46 50.5Z" fill="${mono?mode:C.green}"/>`}},
+ house:{name:"Дом с галочкой",idea:"Крыша и галочка внутри: «твой дом в надёжных руках».",pros:["Сразу понятно: услуги для дома","Хорошо смотрится на машине и форме"],cons:["Похожие знаки у многих риелторов и ремонтных компаний","Меньше индивидуальности"],tag:"",
+  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;
+   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
+   <path d="M8 31L32 10L56 31" fill="none" stroke="${s}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M15 33V53H49V33" fill="none" stroke="${s}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="${mono?1:.75}"/>
+   <path d="M22.5 41L29.5 48L43 34" fill="none" stroke="${mono?mode:C.green}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`}},
+ stars:{name:"Созвездие‑N",idea:"Четыре звезды, соединённые в букву N, верхняя — золотая. Рейтинг и наш игровой стиль.",pros:["Самый необычный и «игровой»","Красиво светится на тёмном фоне"],cons:["В 16 px превращается в россыпь точек","Не говорит сразу, что это про мастеров"],tag:"",
+  svg(mode,bg){const id="g"+(++uid);const mono=mode!=="color"&&mode!=="light";const s=mono?mode:`url(#${id})`;const dot=mono?mode:(mode==="light"?C.blue:C.white);
+   return `${mono?"":`<defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.aqua}"/></linearGradient></defs>`}
+   <path d="M15 49V17L47 47V18" fill="none" stroke="${s}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+   <circle cx="15" cy="49" r="5.5" fill="${dot}"/><circle cx="15" cy="17" r="5.5" fill="${dot}"/><circle cx="47" cy="47" r="5.5" fill="${dot}"/>
+   ${sparkle(47,15,11,mono?mode:C.gold)}`}}
+};
+const mark=(k,size,mode="color",bg=C.navy)=>`<svg width="${size}" height="${size}" viewBox="0 0 64 64" role="img" aria-label="${MARKS[k].name}">${MARKS[k].svg(mode,bg)}</svg>`;
+const lock=(k,size,cls="",mode="color",bg=C.navy)=>`<div class="lock ${cls}">${mark(k,size,mode,bg)}<div class="t"><div class="nm" style="font-size:${size*.62}px">Nova<span>Fides</span></div><div class="sub" style="font-size:${Math.max(7,size*.13)}px">MARKETPLACE</div></div></div>`;
+
+document.getElementById("pal").innerHTML=[["Ночной синий","#0B1220","фон, игровая тьма"],["Синий доверия","#2F80ED","главный цвет"],["Зелёный «проверено»","#22C55E","галочки, «Book»"],["Бирюзовый неон","#2DD4BF","свечение, акценты"],["Золото Премиум","#F5B942","уровень Премиум, награды"],["Белый","#FFFFFF","текст, светлые версии"]]
+ .map(([n,h,d])=>`<div class="sw"><i style="background:${h}"></i><div><b>${n}</b><code>${h}</code><br>${d}</div></div>`).join("");
+
+const shirt=(k)=>`<svg viewBox="0 0 200 190" style="width:100%;max-width:150px;height:auto" role="img" aria-label="Форма мастера"><path d="M62 18L86 10Q100 22 114 10L138 18L176 48L158 72L146 62V182H54V62L42 72L24 48Z" fill="#14233D" stroke="#2A3B5C" stroke-width="2"/><g transform="translate(112 50)">${MARKS[k].svg(C.white,"#14233D").replace(/^/,'<g transform="scale(.42)">')}</g></g><text x="139" y="88" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="8.5" fill="#fff">NovaFides</text><text x="100" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" fill="#93A3BD" letter-spacing="1.5">LICENSED · INSURED</text></svg>`;
+
+document.getElementById("concepts").innerHTML=Object.keys(MARKS).map((k,i)=>{const m=MARKS[k];return `
+<section class="concept">
+ <div class="chead"><div><div class="eyebrow">Вариант ${i+1}</div><h2>${m.name}</h2><p>${m.idea}</p></div>${m.tag?`<span class="tag">★ ${m.tag}</span>`:""}</div>
+ <div class="hero">${lock(k,clampSize())}</div>
+ <div class="tests">
+  <div class="tile"><div class="s sizes"><figure>${mark(k,64)}64</figure><figure>${mark(k,32)}32</figure><figure>${mark(k,16)}16 px</figure></div><div class="cap">Маленькие размеры: вкладка браузера, аватар</div></div>
+  <div class="tile white"><div class="s">${lock(k,40,"light","light",C.white)}</div><div class="cap">На белом фоне: сайт, документы, инвойс</div></div>
+  <div class="tile white"><div class="s">${lock(k,40,"mono","#0B1220",C.white)}</div><div class="cap">Один цвет: печать, факс, штамп</div></div>
+  <div class="tile"><div class="s"><div class="app">${mark(k,46,C.white,"#1660C8")}</div></div><div class="cap">Иконка приложения</div></div>
+  <div class="tile paper"><div class="s"><div class="pin"><svg width="56" height="70" viewBox="0 0 56 70"><path d="M28 68C28 68 4 42 4 26a24 24 0 0 1 48 0c0 16-24 42-24 42Z" fill="#1660C8"/><g transform="translate(10 8) scale(.56)">${MARKS[k].svg(C.white,"#1660C8")}</g></svg><span class="lbl"><i></i>Online · 8 min</span></div></div><div class="cap">Метка «Мастер онлайн» на карте</div></div>
+  <div class="tile"><div class="s">${shirt(k)}</div><div class="cap">Вышивка на форме мастера (Премиум)</div></div>
+  <div class="tile paper" style="grid-column:span 2"><div class="s"><div class="van"><div class="row">${lock(k,30,"light","light","#EEF2F7")}<small>PLUMBING · ELECTRICAL · CA LIC. #000000 · novafides.com</small></div></div></div><div class="cap">Дверь рабочей машины</div></div>
+ </div>
+ <div class="verdict"><div class="p"><b>Плюсы</b>${m.pros.join(". ")}.</div><div class="m"><b>Минусы</b>${m.cons.join(". ")}.</div></div>
+</section>`}).join("");
+function clampSize(){return Math.max(52,Math.min(96,Math.round(innerWidth/9)))}
+</script>
