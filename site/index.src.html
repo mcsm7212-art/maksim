@@ -1,0 +1,518 @@
+<title>NovaFides</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: NovaFides marketplace prototype. Sticky top bar, hash-routed views (home, search, pro, company, booking, online map, join, bookings, ask). Black & copper base; company/pro pages take their own accent; trust elements stay NovaFides. */
+:root{
+  --bg:#0C0C0E; --bg2:#121215; --card:#16161A; --card2:#1C1C21; --line:#2A2622; --ink:#F3EDE7; --mu:#A89C91; --mu2:#7A7068;
+  --cu:#C97B47; --cu-l:#F2BE92; --ok:#3CCB7F; --warn:#F0A04B; --red:#E5604D; --acc:#C97B47;
+  --foil:linear-gradient(100deg,#F6CDA6,#D08A55 40%,#97522A 72%,#E7AD7E);
+  --fd:"Sora","Inter",system-ui,sans-serif; --fb:"Inter",system-ui,sans-serif; --fn:"Barlow Condensed","Sora",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cu-l);outline-offset:2px}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.in{max-width:1080px;margin:0 auto}
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(12,12,14,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar .in{display:flex;align-items:center;gap:16px;padding-block:10px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex:none}
+.logo b{font-family:var(--fd);font-weight:800;font-size:19px;letter-spacing:-.02em}
+.logo b span{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo small{display:block;font-size:9px;letter-spacing:.42em;color:var(--cu-l)}
+.nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;text-decoration:none;color:var(--mu);font-size:14px;padding:7px 11px;border-radius:10px}
+.nav a.on{color:var(--ink);background:var(--card2)}
+@media (max-width:700px){.bar .in{flex-wrap:wrap;gap:8px}.nav{margin-left:0;width:100%}}
+/* common */
+h1,h2,h3{font-family:var(--fd);letter-spacing:-.02em;text-wrap:balance}
+.eyebrow{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--cu-l)}
+.mu{color:var(--mu)} .mu2{color:var(--mu2)} .sm{font-size:13px} .xs{font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 18px;font-weight:600;background:var(--foil);color:#1A110A;text-decoration:none;white-space:nowrap}
+.btn.ghost{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:8px 12px;font-size:13.5px;border-radius:10px}
+.btn.red{background:#E5604D;color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mu);border-radius:99px;padding:7px 12px;font-size:13.5px;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:var(--cu);color:var(--ink);background:#22170F}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;color:var(--mu);font-size:13.5px;padding:7px 12px;border-radius:9px}
+.seg button[aria-pressed="true"]{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--cu)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.grid2,.grid3{grid-template-columns:1fr}}
+.inp{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--cu)}
+textarea.inp{min-height:96px;resize:vertical}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mu)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
+.badge.ok{color:#9BE3BC;border-color:rgba(60,203,127,.35);background:rgba(60,203,127,.08)}
+.badge.e{color:#FFB4A6;border-color:rgba(229,96,77,.45);background:rgba(229,96,77,.08)}
+.badge.p{color:#F6CF8F;border-color:rgba(240,160,75,.4);background:rgba(240,160,75,.07)}
+.badge.cu{color:var(--cu-l);border-color:rgba(201,123,71,.45);background:rgba(201,123,71,.09)}
+.badge.n{color:var(--mu);border-color:var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(60,203,127,.2);display:inline-block}
+.num{font-family:var(--fn);font-weight:700;line-height:.9;font-variant-numeric:tabular-nums}
+.sec{padding-block:34px}
+.sec h2{font-size:clamp(22px,3.4vw,30px);margin:6px 0 14px}
+.stars{color:#F2BE92;letter-spacing:1px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:#1E1B18;border:1px solid var(--cu);border-radius:14px;padding:12px 16px;max-width:min(520px,92vw);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.modal{position:fixed;inset:0;z-index:55;background:rgba(5,5,6,.7);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.modal .box{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:#141417;border:1px solid var(--line);border-radius:22px;padding:22px}
+/* home */
+.hero{padding-block:46px 28px;position:relative}
+.hero h1{font-size:clamp(34px,6.4vw,64px);line-height:1.02;margin:10px 0 14px;font-weight:800}
+.hero h1 span{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mu);font-size:17px;max-width:58ch;margin:0}
+.sbox{position:relative;margin-top:22px;max-width:640px}
+.sbox .inp{padding:15px 16px 15px 44px;font-size:16px;border-radius:16px}
+.sbox svg{position:absolute;left:15px;top:17px}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;background:#18181C;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.sugg button{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;background:none;border:0;padding:11px 14px;border-bottom:1px solid #222}
+.sugg button:hover,.sugg button:focus-visible{background:#221A14}
+.trade{padding:20px;display:flex;flex-direction:column;gap:8px;text-decoration:none;position:relative;overflow:hidden;min-height:170px}
+.trade h3{margin:0;font-size:22px}
+.trade .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#22170F;color:var(--cu-l)}
+.trade:hover{border-color:var(--cu)}
+.emerg{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;padding:16px 18px;border-color:rgba(229,96,77,.45);background:linear-gradient(110deg,rgba(229,96,77,.12),rgba(229,96,77,.02))}
+.trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.trust{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.trust div{padding:14px;font-size:13.5px}
+.trust b{display:block;font-size:14.5px;margin-bottom:2px}
+.steps{counter-reset:s}
+.steps div{padding:16px}
+.steps b{display:block;margin-bottom:4px}
+/* pro card */
+.pc{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:14px;padding:14px;align-items:center}
+@media (max-width:620px){.pc{grid-template-columns:72px minmax(0,1fr)}.pc .side{grid-column:1/-1;flex-direction:row!important;justify-content:space-between;align-items:center!important}}
+.pc .fig{width:92px;height:110px;border-radius:14px;overflow:hidden}
+@media (max-width:620px){.pc .fig{width:72px;height:88px}}
+.pc h3{margin:0;font-size:17px}
+.pc .side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right}
+.price{font-family:var(--fd);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.lvl{display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.lvl i{width:14px;height:14px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+/* themed page */
+.themed{--pbg:#0C0C0E;--pcard:#16161A;--pink:#F3EDE7;--pmu:#A89C91;--pline:#2A2622}
+.themed.graphite{--pbg:#17181B;--pcard:#1F2024;--pline:#33343A}
+.themed.light{--pbg:#F4F1EC;--pcard:#FFFFFF;--pink:#17171A;--pmu:#5D574F;--pline:#E1DBD2}
+.themed{background:var(--pbg);color:var(--pink)}
+.themed .card{background:var(--pcard);border-color:var(--pline)}
+.themed .mu{color:var(--pmu)}
+.themed.light .chip{background:#fff;color:#4A4540;border-color:var(--pline)} .themed.light .chip[aria-pressed="true"]{background:#FFF4EA;color:#17171A}
+.themed.light .seg{background:#fff;border-color:var(--pline)} .themed.light .seg button[aria-pressed="true"]{background:#F4EDE5;color:#17171A}
+.themed.light .btn.ghost{background:#fff;color:#17171A;border-color:var(--pline)}
+.themed.light .inp{background:#fff;color:#17171A;border-color:var(--pline)}
+.themed.light .badge.ok{color:#17803F;border-color:rgba(23,128,63,.35);background:rgba(23,128,63,.07)}.themed.light .badge.cu{color:#9A4F1F}.themed.light .badge.n{color:#5D574F}.themed.light .badge.p{color:#9A5A00}.themed.light .lvl{filter:brightness(.62) saturate(1.3)}.themed.light .stars{color:#B86A2E}.themed.light .xs.mu2,.themed.light .mu2{color:#7A7068}
+.phero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px;align-items:end;padding-block:26px 10px}
+@media (max-width:760px){.phero{grid-template-columns:1fr}}
+.phero .figbig{border-radius:24px;overflow:hidden;aspect-ratio:4/5;max-height:520px;width:100%;max-width:100%}
+.phero h1{font-size:clamp(34px,6vw,58px);line-height:1;margin:8px 0 6px;font-weight:800}
+.accline{height:3px;width:56px;background:var(--acc);border-radius:2px}
+.kpis{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0}
+.kpis div .num{font-size:46px}
+.kpis small{display:block;font-size:12.5px;color:var(--pmu,var(--mu))}
+.trustrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.slots{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.slot{flex:none;border:1px solid var(--pline,var(--line));background:var(--pcard,var(--card));border-radius:12px;padding:8px 12px;font-size:13px;text-align:center;min-width:92px}
+.slot b{display:block;font-size:14px}
+.slot[aria-pressed="true"]{border-color:var(--cu);box-shadow:inset 0 0 0 1px var(--cu)}
+.skill{padding:16px 18px}
+.skill .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.skill .num{font-size:44px}
+.dash{height:6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 14px,transparent 14px 18px);border-radius:3px;margin:10px 0 8px;position:relative;overflow:hidden}
+.themed.light .dash{background:repeating-linear-gradient(90deg,rgba(0,0,0,.1) 0 14px,transparent 14px 18px)}
+.dash i{position:absolute;inset:0 auto 0 0;background:repeating-linear-gradient(90deg,var(--acc) 0 14px,transparent 14px 18px)}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--pline,var(--line));overflow-x:auto;scrollbar-width:none;margin-top:10px}
+.tabs button{background:none;border:0;padding:12px 0;color:var(--pmu,var(--mu));border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--pink,var(--ink));border-bottom-color:var(--acc)}
+.svc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:13px 2px;border-bottom:1px solid var(--pline,var(--line))}
+.svc .cnt{font-family:var(--fn);font-size:22px;color:var(--acc)}
+.works{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.works{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.work{border:0;padding:0;background:var(--pcard,var(--card));border-radius:14px;overflow:hidden;text-align:left;border:1px solid var(--pline,var(--line))}
+.work svg{display:block;width:100%;height:auto}
+.work span{display:block;padding:8px 10px;font-size:12.5px}
+.rv{padding:16px;display:flex;flex-direction:column;gap:8px}
+.rv .reply{border-left:3px solid var(--acc);padding:8px 12px;background:rgba(255,255,255,.03);border-radius:0 10px 10px 0;font-size:14px}
+.themed.light .rv .reply{background:#F7F2EB}
+.dist div{display:grid;grid-template-columns:30px 1fr 34px;gap:10px;align-items:center;font-size:13px}
+.dist .tr{height:6px;border-radius:3px;background:rgba(127,127,127,.2);overflow:hidden}
+.dist .tr i{display:block;height:100%;background:var(--acc)}
+.stickybook{position:fixed;left:0;right:0;bottom:0;z-index:25;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(12,12,14,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:none}
+@media (max-width:760px){.stickybook{display:flex;justify-content:space-between;align-items:center;gap:12px}.has-sticky{padding-bottom:84px}}
+/* company banner */
+.cban{border-radius:24px;overflow:hidden;position:relative;padding:28px;margin-top:22px;background:radial-gradient(90% 140% at 100% 0%,color-mix(in srgb,var(--acc) 45%,transparent),transparent 60%),var(--pcard);border:1px solid var(--pline)}
+.cmono{width:74px;height:74px;border-radius:18px;display:grid;place-items:center;font-family:var(--fd);font-weight:800;font-size:28px;background:var(--acc);color:#fff}
+/* booking */
+.step{padding:18px;display:flex;flex-direction:column;gap:12px}
+.step h3{margin:0;font-size:17px;display:flex;gap:10px;align-items:center}
+.step h3 i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#22170F;color:var(--cu-l);font-size:13px}
+.brk div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+.brk div b{font-variant-numeric:tabular-nums}
+/* map */
+.map{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#0E1013}
+.map svg{display:block;width:100%;height:auto}
+/* join */
+.drop{border:1.5px dashed var(--line);border-radius:16px;padding:16px;display:flex;gap:14px;align-items:center;cursor:pointer;position:relative}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.preview{border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+.pal{display:flex;gap:8px;flex-wrap:wrap}
+.pal button{width:34px;height:34px;border-radius:50%;border:2px solid transparent}
+.pal button[aria-pressed="true"]{border-color:#fff}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl td{padding:8px 4px;border-bottom:1px solid #222;vertical-align:middle}
+.tbl input[type=number]{width:96px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.week button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 0;font-size:13px;color:var(--mu)}
+.week button[aria-pressed="true"]{border-color:var(--cu);color:var(--ink);background:#22170F}
+footer.ft{border-top:1px solid var(--line);margin-top:40px;padding-block:28px 40px;color:var(--mu2);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.fadein{animation:fi .35s ease}@keyframes fi{from{opacity:0;transform:translateY(6px)}}}
+</style>
+
+<header class="bar pad"><div class="in">
+  <a class="logo" href="#home" aria-label="NovaFides home"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6CDA6"/><stop offset=".4" stop-color="#D08A55"/><stop offset=".7" stop-color="#8E4A24"/><stop offset="1" stop-color="#E3A574"/></linearGradient></defs><path d="M30 13.5L47 9V55L30 51.5Z" fill="url(#lgx)"/><path d="M17 56V8H49V56" fill="none" stroke="#5A524C" stroke-width="4" stroke-linejoin="round"/><path d="M17 8L30 13.5V51.5L17 56Z" fill="#2A2724" stroke="#C97B47" stroke-width="1.2"/><path d="M38.5 21L40.6 25.9L45.5 28L40.6 30.1L38.5 35L36.4 30.1L31.5 28L36.4 25.9Z" fill="#fff"/></svg><div><b>Nova<span>Fides</span></b><small>MARKETPLACE</small></div></a>
+  <nav class="nav" aria-label="Main"><a href="#search" data-nav="search">Find a pro</a><a href="#online" data-nav="online">Online now</a><a href="#ask" data-nav="ask">Describe a job</a><a href="#bookings" data-nav="bookings">My bookings</a><a href="#join" data-nav="join">For pros</a></nav>
+</div></header>
+<main id="app"></main>
+<div id="layer"></div>
+
+<script>
+/* ================= DATA ================= */
+const CAT=__DATA__;
+const TIERS=CAT.meta.tiers;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const usd=n=>"$"+Math.round(n).toLocaleString("en-US");
+const r5=n=>n<200?Math.round(n/5)*5:n<2000?Math.round(n/10)*10:Math.round(n/50)*50;
+function rng(seed){let a=seed*9301+49297;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const SV=[];CAT.trades.forEach(t=>t.groups.forEach(g=>g.items.forEach(([n,ru,lo,hi,u,fl])=>SV.push({id:slug(n),trade:t.id,group:g.name,name:n,ru,lo,hi,unit:u,fl}))));
+const svc=id=>SV.find(s=>s.id===id);
+const TRADE={plumbing:{name:"Plumbing",lic:"C-36",icon:"M12 3C9 7.5 6.5 10.5 6.5 14a5.5 5.5 0 0 0 11 0C17.5 10.5 15 7.5 12 3Z"},electrical:{name:"Electrical",lic:"C-10",icon:"M13 2L5 14h6l-1 8 8-12h-6z"},handyman:{name:"Handyman",lic:"",icon:"M14.5 4.5a4 4 0 0 0 5 5L11 18a2.1 2.1 0 0 1-3-3zM6 21l2-2"}};
+const SYN=[["hot water heater","water heater"],["water tank","water heater"],["garburator","garbage disposal"],["disposal","garbage disposal"],["tap","faucet"],["drip","faucet"],["clog","drain"],["clogged","drain"],["blocked","drain"],["rooter","drain"],["leaking","leak"],["socket","outlet"],["plug","outlet"],["gfi","gfci"],["tesla","ev charger"],["electric car","ev charger"],["ev","ev charger"],["tv","tv wall mounting"],["television","tv wall mounting"],["ikea","furniture assembly"],["assemble","assembly"],["fan","ceiling fan"],["light","light fixture"],["lamp","light fixture"],["breaker","breaker"],["power out","troubleshooting"],["no power","troubleshooting"],["no hot water","water heater repair"],["toilet running","running toilet"],["softener","softener"],["paint","paint"],["hole in wall","drywall"],["shelf","shelves"],["doorbell","doorbell"],["thermostat","thermostat"],["gas smell","gas leak"],["sewer","sewer"],["shower","shower"]];
+function searchSV(q,trade){q=q.trim().toLowerCase();if(!q)return[];let qs=[q];SYN.forEach(([a,b])=>{if(q.includes(a))qs.push(b)});qs=[...new Set(qs)];
+ const toks=[...new Set(qs.join(" ").split(/\s+/).filter(w=>w.length>=3))];
+ return SV.filter(s=>!trade||s.trade===trade).map(s=>{const h=(s.name+" "+s.group+" "+s.ru).toLowerCase();const nm=s.name.toLowerCase();let sc=0;qs.forEach((x,i)=>{if(nm.includes(x))sc+=i?9:14;else if(h.includes(x))sc+=4});toks.forEach(t=>{if(nm.includes(t))sc+=3});if(/repair|replacement|installation/.test(nm)&&sc)sc+=.5;return [sc,s]}).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]).map(x=>x[1]).slice(0,8)}
+
+const COS=[
+ {id:"bayline",name:"Bayline Plumbing",trade:"plumbing",acc:"#2F7FE0",base:"graphite",city:"San Mateo",lic:"1045872",since:2011,guar:12,mgr:"Dana · dispatch",rating:4.8,nr:412,about:"Family-owned plumbing company serving the Peninsula since 2011. Same-day service, upfront flat-rate pricing and a 12-month labor warranty.",techs:["mike","tom","jason"]},
+ {id:"redwood-rooter",name:"Redwood Rooter & Drain",trade:"plumbing",acc:"#D9412E",base:"dark",city:"Redwood City",lic:"1102394",since:2016,guar:6,mgr:"Ana · office",rating:4.7,nr:268,about:"Drains, sewers and emergency plumbing. Trucks on the road until 10 PM every day.",techs:["carlos","kevin"]},
+ {id:"sunline",name:"Sunline Electric",trade:"electrical",acc:"#E8A400",base:"light",city:"Palo Alto",lic:"998761",since:2008,guar:12,mgr:"Rita · scheduling",rating:4.9,nr:530,about:"Residential electricians for older Peninsula homes: panels, EV chargers, rewiring and lighting.",techs:["priya","sam"]}
+];
+const PROS=[
+ {id:"mike",n:"Mike Reyes",co:"bayline",trade:"plumbing",tiers:["standard","premium"],yrs:14,r:4.9,nr:186,jobs:248,resp:12,ontime:98,m:{p:4.9,c:4.95,r:4.9,q:4.95},uni:"#1F3E6E",pants:"#1A1C22",skin:"#C68B65",hair:"#2A1B12",online:true,area:"San Mateo",mult:1.08,langs:["English","Spanish"],bio:"Fourteen years in residential plumbing. Water heaters and repipes are my specialty. I walk you through options before I start and leave the place cleaner than I found it."},
+ {id:"tom",n:"Tom Becker",co:"bayline",trade:"plumbing",tiers:["economy","standard"],yrs:7,r:4.7,nr:92,jobs:131,resp:18,ontime:94,m:{p:4.6,c:4.6,r:4.7,q:4.8},uni:"#1F3E6E",pants:"#1A1C22",skin:"#E3B490",hair:"#8A6440",online:false,area:"Burlingame",mult:1.0,langs:["English"],bio:"Fixtures, drains and toilets. Quick, careful and on time."},
+ {id:"jason",n:"Jason Park",co:"bayline",trade:"plumbing",tiers:["economy"],yrs:2,r:4.6,nr:21,jobs:34,resp:9,ontime:92,m:{p:4.5,c:4.4,r:4.7,q:4.6},uni:"#1F3E6E",pants:"#1A1C22",skin:"#E8C29C",hair:"#121212",online:true,area:"Foster City",mult:0.9,langs:["English","Korean"],bio:"Licensed journeyman, two years in the field. Great value for faucets, toilets and small repairs."},
+ {id:"carlos",n:"Carlos Diaz",co:"redwood-rooter",trade:"plumbing",tiers:["standard"],yrs:11,r:4.8,nr:143,jobs:302,resp:6,ontime:96,m:{p:4.8,c:4.6,r:4.8,q:4.8},uni:"#B8352A",pants:"#24252A",skin:"#B97A55",hair:"#1A120C",online:true,area:"Redwood City",mult:1.02,langs:["English","Spanish"],bio:"Drains, sewer lines and emergencies. If it's backing up, call me."},
+ {id:"kevin",n:"Kevin O'Neil",co:"redwood-rooter",trade:"plumbing",tiers:["standard","premium"],yrs:16,r:4.9,nr:121,jobs:211,resp:15,ontime:97,m:{p:4.9,c:4.9,r:4.9,q:4.9},uni:"#B8352A",pants:"#24252A",skin:"#EBC6A6",hair:"#B5612E",online:false,area:"Menlo Park",mult:1.12,langs:["English"],bio:"Sewer camera inspections and trenchless repairs. I show you the video and explain every option."},
+ {id:"priya",n:"Priya Shah",co:"sunline",trade:"electrical",tiers:["standard","premium"],yrs:12,r:4.95,nr:168,jobs:224,resp:14,ontime:98,m:{p:4.95,c:4.9,r:4.95,q:4.95},uni:"#F2B705",pants:"#2B2B30",skin:"#A66E4E",hair:"#120C0A",online:false,area:"Palo Alto",mult:1.1,langs:["English","Hindi","Gujarati"],bio:"Master electrician. Panel upgrades and EV chargers for older homes, done safely and permitted."},
+ {id:"sam",n:"Sam Torres",co:"sunline",trade:"electrical",tiers:["economy","standard"],yrs:5,r:4.7,nr:64,jobs:97,resp:10,ontime:95,m:{p:4.7,c:4.6,r:4.7,q:4.7},uni:"#F2B705",pants:"#2B2B30",skin:"#C08A62",hair:"#2B1D14",online:true,area:"Mountain View",mult:0.96,langs:["English","Spanish"],bio:"Outlets, lighting, ceiling fans and troubleshooting. Clear quotes, no surprises."},
+ {id:"maksim",n:"Maksim Otto",co:null,trade:"plumbing",tiers:["standard","premium"],yrs:9,r:4.9,nr:128,jobs:246,resp:11,ontime:98,m:{p:4.9,c:4.85,r:4.9,q:4.95},uni:"#15151A",pants:"#121216",skin:"#E2B591",hair:"#3A2A1C",online:true,area:"Redwood City",mult:1.05,lic:"1121547",langs:["English","Russian"],bio:"Independent plumber in Redwood City. Water heaters, sewer lines, fixtures. Clean work, clear prices, and I answer my own phone."},
+ {id:"luis",n:"Luis Moreno",co:null,trade:"handyman",tiers:["economy","standard"],yrs:8,r:4.8,nr:97,jobs:188,resp:16,ontime:96,m:{p:4.8,c:4.8,r:4.8,q:4.8},uni:"#138A84",pants:"#2A2E33",skin:"#B47A52",hair:"#16100C",online:true,area:"Sunnyvale",mult:1.0,langs:["English","Spanish"],bio:"TV mounting, furniture assembly, drywall and doors. Small jobs done right the first time."},
+ {id:"grace",n:"Grace Lin",co:null,trade:"electrical",tiers:["standard","premium"],yrs:10,r:4.9,nr:84,jobs:156,resp:20,ontime:97,m:{p:4.9,c:4.95,r:4.9,q:4.9},uni:"#2E4A7A",pants:"#1E2230",skin:"#EBC7A3",hair:"#141010",online:false,area:"San Jose",mult:1.06,lic:"1088203",langs:["English","Mandarin"],bio:"Independent electrician. Smart homes, lighting design and EV chargers."},
+ {id:"andre",n:"Andre Johnson",co:null,trade:"handyman",tiers:["economy"],yrs:3,r:4.6,nr:29,jobs:47,resp:8,ontime:93,m:{p:4.6,c:4.5,r:4.6,q:4.6},uni:"#6E7A3A",pants:"#2A2A26",skin:"#7A4A30",hair:"#0E0B09",online:true,area:"Daly City",mult:0.9,langs:["English"],bio:"Affordable help with assembly, mounting and small fixes around the house."}
+];
+const co=id=>COS.find(c=>c.id===id);const pro=id=>PROS.find(p=>p.id===id);
+const accOf=p=>{if(p.co)return co(p.co).acc;const c=p.uni;const v=parseInt(c.slice(1),16),r=v>>16,g=v>>8&255,b=v&255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);return (mx<60||mx-mn<25)?"#C97B47":lighten(c,.25)};
+function lighten(h,k){const v=parseInt(h.slice(1),16);let r=v>>16,g=v>>8&255,b=v&255;r=Math.round(r+(255-r)*k);g=Math.round(g+(255-g)*k);b=Math.round(b+(255-b)*k);return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+const baseOf=p=>p.co?co(p.co).base:(accOf(p)==="#C97B47"?"dark":"graphite");
+const licOf=p=>p.co?co(p.co).lic:p.lic;
+/* per-pro services and counters */
+PROS.forEach((p,i)=>{const R=rng(i+7);const list=SV.filter(s=>s.trade===p.trade&&s.lo<9000);const pick=list.filter(()=>R()<.62).slice(0,14);if(pick.length<6)pick.push(...list.slice(0,6));
+ let left=p.jobs;p.svcs=pick.map((s,k)=>{const n=k===pick.length-1?Math.max(1,left):Math.max(1,Math.round(left*(.12+R()*.18)));left=Math.max(1,left-n);return {id:s.id,n}}).sort((a,b)=>b.n-a.n)});
+function levelOf(p){if(p.jobs>=150&&p.r>=4.8&&p.ontime>=95)return {n:"Gold Specialist",c:"#E7B66B",rule:"150+ jobs on NovaFides, rating 4.8+, 95%+ on time"};if(p.jobs>=60&&p.r>=4.6)return {n:"Silver Pro",c:"#C9CED6",rule:"60+ jobs, rating 4.6+"};return {n:"Rising Pro",c:"#C97B47",rule:"New on NovaFides, fewer than 60 jobs"}}
+function priceFor(p,s,tier){const mid=(s.lo+s.hi)/2;return r5(mid*TIERS[tier].multiplier*p.mult)}
+function fromPrice(p){const t=p.tiers[0];return Math.min(...p.svcs.map(x=>priceFor(p,svc(x.id),t)))}
+const TRIP=95;
+/* schedule */
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],HRS=[8,10,12,14,16,18];
+function sched(p){const i=PROS.indexOf(p),R=rng(i*13+3),out=[],now=new Date();for(let d=0;d<7;d++){const day=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d);HRS.forEach(h=>{const t=new Date(day);t.setHours(h,0,0,0);if(t.getTime()>Date.now()+36e5&&R()>.48&&!ST.bookings.some(b=>b.pro===p.id&&b.t===t.getTime()))out.push(t.getTime())})}return out}
+const fmtSlot=t=>{const d=new Date(t),today=new Date();const dd=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(today.getFullYear(),today.getMonth(),today.getDate()))/864e5);const day=dd===0?"Today":dd===1?"Tomorrow":DAYS[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate();const h=d.getHours();return [day,(h%12||12)+":00 "+(h<12?"AM":"PM")]};
+/* reviews */
+const RVT={premium:["Showed up exactly on time in a clean uniform, put down drop cloths and shoe covers, and left the bathroom spotless. Worth every dollar.","Explained every option before starting and sent photos when he finished. Most professional service I've had.","Careful, clean and fast. Gave me tips to avoid the same problem next year."],standard:["Good work, fair price. Arrived a few minutes late but texted ahead.","Fixed it in under an hour and cleaned up after. Would hire again.","Clear quote, no surprises on the bill. Recommended."],economy:["Great value. Did the job well, though I had to sweep up a little afterward.","Quick and affordable. A bit quiet, but the work is solid.","Exactly what I needed for a small job. Fair price."]};
+const NAMES=["Anna K.","David R.","Emily S.","Raj P.","Laura M.","Chen W.","Monica T.","Steve B.","Olga V.","James H.","Fatima A.","Brian L."];
+PROS.forEach((p,i)=>{const R=rng(i*29+5);p.reviews=[];for(let k=0;k<6;k++){const tier=p.tiers[Math.floor(R()*p.tiers.length)];const s=svc(p.svcs[k%p.svcs.length].id);const low=k===4;const base=low?3:R()>.25?5:4;const sc={p:low?2:base,c:base,r:base,q:low?4:base};
+ const rv={who:NAMES[(i*3+k)%NAMES.length],ago:3+k*9+Math.floor(R()*6),svc:s.name,tier,sc,text:low?"The repair works, but he was 40 minutes late and I had to call twice to find out where he was.":RVT[tier][k%3]};
+ if(low){rv.reply="Thank you for the honest feedback. The job before yours ran long and I should have called you myself. I'm sorry. I've added a free follow-up check to your warranty.";rv.resolved=true;rv.updated=true}
+ else if(k===1)rv.reply="Thanks so much! It was a pleasure working in your home.";
+ p.reviews.push(rv)}});
+/* ================= STATE ================= */
+let ST={bookings:[],myReviews:{},replies:{}};
+try{const s=JSON.parse(localStorage.getItem("nf-proto-1"));if(s&&s.bookings)ST=s}catch(e){}
+const save=()=>{try{localStorage.setItem("nf-proto-1",JSON.stringify(ST))}catch(e){}};
+let UI={q:"",trade:"plumbing",svc:null,tier:"standard",sort:"match",ptab:"services",ptier:null,bk:null,join:"company",ask:{text:"",trade:null,to:[]},jc:{acc:null,base:"graphite",name:""},jp:{acc:null,trade:"plumbing",days:[1,2,3,4,5],svcs:{}}};
+
+/* ================= GRAPHICS ================= */
+function figure(p,w=300,h=375,uid="f"){const acc=accOf(p),id=uid+p.id;
+ return `<svg viewBox="0 0 300 375" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Photo of ${esc(p.n)} (illustration)">
+ <defs><radialGradient id="${id}g" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="${acc}" stop-opacity=".45"/><stop offset=".55" stop-color="${acc}" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26221F"/><stop offset="1" stop-color="#0D0C0C"/></linearGradient></defs>
+ <rect width="300" height="375" fill="url(#${id}b)"/><rect width="300" height="375" fill="url(#${id}g)"/><ellipse cx="150" cy="362" rx="96" ry="10" fill="#000" opacity=".5"/>
+ <path d="M112 236L104 360H140L150 262L160 360H196L188 236Z" fill="${p.pants}"/><path d="M104 360h36v6h-38zM160 360h36l2 6h-38z" fill="#0A0A0A"/>
+ <path d="M98 142Q150 120 202 142L214 248H86Z" fill="${p.uni}"/>
+ <path d="M86 248L98 142L74 168L70 236Z" fill="${p.uni}" opacity=".92"/><path d="M214 248L202 142L226 168L230 236Z" fill="${p.uni}" opacity=".92"/>
+ <path d="M96 196Q150 214 204 196L206 214Q150 232 94 214Z" fill="${p.uni}" stroke="rgba(0,0,0,.35)"/>
+ <path d="M150 140V246" stroke="${acc}" stroke-width="2.2"/><path d="M136 132L150 150L164 132" fill="none" stroke="${acc}" stroke-width="2.4"/>
+ <rect x="168" y="160" width="20" height="14" rx="3" fill="${acc}" opacity=".85"/>
+ <rect x="136" y="114" width="28" height="22" rx="8" fill="${p.skin}"/>
+ <ellipse cx="150" cy="92" rx="28" ry="32" fill="${p.skin}"/><path d="M122 86Q124 56 150 56Q178 56 178 86Q170 72 150 72Q130 72 122 86Z" fill="${p.hair}"/>
+ <text x="12" y="366" font-family="Inter,sans-serif" font-size="10" fill="rgba(255,255,255,.35)">ILLUSTRATION · REAL PHOTO ON SIGN-UP</text></svg>`}
+const TIC={plumbing:"M4 10h9a3 3 0 0 1 3 3v1M6 10V7h5v3M8.5 7V5M6 5h5M16 17v.5M16 20v.5",electrical:"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z",handyman:"M14.5 4.5a4 4 0 0 0 5 5L11 18a2.1 2.1 0 0 1-3-3zM6 21l2-2"};
+function workSVG(p,i,after,uid){const R=rng(PROS.indexOf(p)*31+i),g=uid,acc=accOf(p);const c1=after?acc:"#4a4a5e",c2=after?"#101012":"#2a2a38";
+ let s=`<defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}" stop-opacity="${after?.55:.9}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="160" height="120" fill="#121214"/><rect width="160" height="120" fill="url(#${g})"/>`;
+ s+=`<path d="M0 ${84+R()*10}L160 ${78+R()*10}V120H0Z" fill="${after?"rgba(255,255,255,.08)":"rgba(0,0,0,.25)"}"/><g transform="translate(${50+R()*14} ${22+R()*8}) scale(2.5)" fill="none" stroke="${after?"#fff":"#9a9aab"}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="${TIC[p.trade]}"/></g>`;
+ if(after){for(let k=0;k<5;k++){const x=15+R()*130,y=10+R()*90,z=2+R()*3;s+=`<path d="M${x} ${y-z}L${x+z*.3} ${y-z*.3}L${x+z} ${y}L${x+z*.3} ${y+z*.3}L${x} ${y+z}L${x-z*.3} ${y+z*.3}L${x-z} ${y}L${x-z*.3} ${y-z*.3}z" fill="#fff" opacity=".85"/>`}}
+ else{for(let k=0;k<9;k++)s+=`<circle cx="${R()*160}" cy="${R()*120}" r="${2+R()*7}" fill="#111" opacity=".35"/>`}
+ return s}
+const lvlBadge=p=>{const L=levelOf(p);return `<span class="lvl" style="color:${L.c}" title="${esc(L.rule)}"><i style="background:${L.c}"></i>${L.n}</span>`};
+const licBadge=p=>p.trade==="handyman"?`<span class="badge cu">Handyman · jobs under $1,000</span>`:`<span class="badge ok">✓ CA Lic. #${licOf(p)} · ${TRADE[p.trade].lic}</span>`;
+
+/* ================= VIEWS ================= */
+const app=document.getElementById("app");
+function proCard(p,s,tier){const nxt=sched(p)[0],[d,h]=nxt?fmtSlot(nxt):["",""];const c=p.co?co(p.co):null;const cnt=s&&p.svcs.find(x=>x.id===s.id);
+ return `<article class="card pc fadein"><a class="fig" href="#pro-${p.id}" aria-label="${esc(p.n)} profile">${figure(p,92,110,"c")}</a>
+ <div style="min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3><a href="#pro-${p.id}" style="text-decoration:none">${esc(p.n)}</a></h3>${p.online?`<span class="sm" style="color:var(--ok)"><span class="dot"></span> Online</span>`:""}</div>
+  <div class="sm mu">${c?`<a href="#co-${c.id}" style="color:${c.acc};text-decoration:none;font-weight:600">${esc(c.name)}</a>`:"Independent pro"} · ${esc(p.area)}</div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px">${lvlBadge(p)}<span class="sm"><span class="stars">★</span> ${p.r} <span class="mu2">(${p.nr})</span></span><span class="sm mu">${p.jobs} jobs</span></div>
+  <div class="chips" style="margin-top:8px;gap:6px">${licBadge(p)}${cnt?`<span class="badge n">${cnt.n} × ${esc(s.name.toLowerCase())}</span>`:""}</div></div>
+ <div class="side"><div><div class="xs mu">${s?TIERS[tier].name:"from"}</div><div class="price">${usd(s?priceFor(p,s,tier):fromPrice(p))}</div>${nxt?`<div class="xs mu">Next: ${d} ${h}</div>`:""}</div><a class="btn sm" href="#book" data-book="${p.id}" data-svc="${s?s.id:""}">Book</a></div></article>`}
+
+function vHome(){const top=PROS.filter(p=>levelOf(p).n==="Gold Specialist").slice(0,4);const online=PROS.filter(p=>p.online).length;
+ return `<section class="pad hero"><div class="in">
+  <div class="eyebrow">Bay Area · Plumbing · Electrical · Handyman</div>
+  <h1>Your pro. <span>Fair price.</span><br>No lead fees.</h1>
+  <p>Licensed plumbers, electricians and handymen from San Francisco to San Jose. You choose one pro, see the price before you book, and only real customers leave reviews.</p>
+  <div class="sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A89C91" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input class="inp" id="hq" autocomplete="off" placeholder="What needs fixing? Try “water heater”, “outlet”, “mount TV”" aria-label="Search services"><div class="sugg" id="sugg" hidden></div></div>
+  <div class="sm mu" style="margin-top:10px">Can't find it? <a href="#ask" style="color:var(--cu-l)">Describe your job</a> and ask a pro for an estimate.</div>
+ </div></section>
+ <section class="pad"><div class="in grid3">${CAT.trades.map(t=>`<a class="card trade" href="#search" data-trade="${t.id}"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${TRADE[t.id].icon}"/></svg></span><h3>${t.name}</h3><div class="sm mu">${t.groups.reduce((a,g)=>a+g.items.length,0)} services · ${t.id==="handyman"?"jobs under $1,000":"licensed "+TRADE[t.id].lic}</div><div class="sm" style="margin-top:auto;color:var(--cu-l)">${PROS.filter(p=>p.trade===t.id).length} pros near you →</div></a>`).join("")}</div></section>
+ <section class="pad" style="margin-top:14px"><div class="in"><div class="card emerg"><div><b style="font-size:17px">Burst pipe? Sparking outlet?</b><div class="sm mu">${online} pros are online now near you. Approximate location only, for everyone's safety.</div></div><a class="btn red" href="#online">See who's online</a></div></div></section>
+ <section class="pad sec"><div class="in"><div class="eyebrow">Why NovaFides</div><h2>Trust you can check</h2><div class="trust">${[["License verified","Every plumber and electrician shows a California CSLB license, checked by us."],["Real people","ID and face check. One person, one profile. Nobody can delete bad history and start over."],["Real reviews","Only customers with a completed job can review. Pros reply calmly, once."],["Price first","See the price range and a full breakdown before you book. No lead fees for pros."]].map(([a,b])=>`<div class="card"><b>${a}</b><span class="mu">${b}</span></div>`).join("")}</div></div></section>
+ <section class="pad sec" style="padding-top:0"><div class="in"><div class="eyebrow">Gold Specialists</div><h2>Top-rated pros this month</h2><div class="grid2">${top.map(p=>proCard(p,null,"standard")).join("")}</div></div></section>
+ <section class="pad sec" style="padding-top:0"><div class="in"><div class="eyebrow">Companies</div><h2>Trusted local companies</h2><div class="grid3">${COS.map(c=>`<a class="card" href="#co-${c.id}" style="padding:18px;text-decoration:none;display:flex;gap:14px;align-items:center;border-color:${c.acc}55"><span class="cmono" style="--acc:${c.acc};width:54px;height:54px;font-size:20px;background:${c.acc}">${c.name.split(" ").map(w=>w[0]).join("").slice(0,2)}</span><span><b style="display:block">${esc(c.name)}</b><span class="sm mu">${TRADE[c.trade].name} · ${c.city} · <span class="stars">★</span> ${c.rating}</span></span></a>`).join("")}</div></div></section>
+ <section class="pad sec" style="padding-top:0"><div class="in"><div class="eyebrow">How it works</div><h2>Three steps, one pro</h2><div class="grid3 steps">${[["1. Pick a service","Search 115 services or describe your job with photos."],["2. Choose your pro","Compare licenses, real reviews, job counts and prices. Pick a time from their schedule."],["3. Get it done","Your pro arrives on time. You rate punctuality, cleanliness, responsibility and quality."]].map(([a,b])=>`<div class="card"><b>${a}</b><span class="mu">${b}</span></div>`).join("")}</div></div></section>`}
+
+function vSearch(){const s=UI.svc?svc(UI.svc):null;const trade=s?s.trade:UI.trade;
+ let list=PROS.filter(p=>p.trade===trade&&p.tiers.includes(UI.tier));
+ const key={match:(a,b)=>(levelOf(b).n>levelOf(a).n?0:0)||b.r*Math.log(b.jobs)-a.r*Math.log(a.jobs),price:(a,b)=>(s?priceFor(a,s,UI.tier)-priceFor(b,s,UI.tier):fromPrice(a)-fromPrice(b)),rating:(a,b)=>b.r-a.r,soon:(a,b)=>(sched(a)[0]||9e15)-(sched(b)[0]||9e15)}[UI.sort];list.sort(key);
+ const pop=SV.filter(x=>x.trade===trade).slice(0,10);
+ return `<section class="pad sec"><div class="in">
+  <div class="eyebrow">Find a pro</div><h2>${s?esc(s.name):TRADE[trade].name+" pros"}</h2>
+  ${s?`<div class="mu" style="margin:-6px 0 14px">Typical in the Bay Area: <b style="color:var(--ink)">${usd(r5(s.lo*TIERS[UI.tier].multiplier))}–${usd(r5(s.hi*TIERS[UI.tier].multiplier))}</b> ${s.unit==="job"?"per job":s.unit} at ${TIERS[UI.tier].name} level. ${s.fl.includes("P")?'<span class="badge p">Permit usually needed</span>':""} ${s.fl.includes("E")?'<span class="badge e">Emergency available</span>':""}</div>`:""}
+  <div class="sbox" style="margin-top:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A89C91" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input class="inp" id="hq" autocomplete="off" value="${esc(UI.q)}" placeholder="Search a service" aria-label="Search services"><div class="sugg" id="sugg" hidden></div></div>
+  <div class="chips" style="margin-top:12px">${Object.keys(TRADE).map(t=>`<button class="chip" aria-pressed="${t===trade}" data-settrade="${t}">${TRADE[t].name}</button>`).join("")}${s?`<button class="chip" data-clearsvc="1">× ${esc(s.name)}</button>`:""}</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px"><div class="seg" role="group" aria-label="Service level">${Object.entries(TIERS).map(([k,v])=>`<button aria-pressed="${UI.tier===k}" data-tier="${k}">${v.name}</button>`).join("")}</div>
+   <select class="inp" id="sort" style="width:auto"><option value="match" ${UI.sort==="match"?"selected":""}>Best match</option><option value="price" ${UI.sort==="price"?"selected":""}>Lowest price</option><option value="rating" ${UI.sort==="rating"?"selected":""}>Highest rated</option><option value="soon" ${UI.sort==="soon"?"selected":""}>Soonest available</option></select></div>
+  <div class="xs mu" style="margin-top:8px">${{economy:"Economy: newer licensed pro, light cleanup.",standard:"Standard: experienced pro, floor protection, debris removed.",premium:"Premium: top-rated pro, clean uniform, full protection and cleanup, photo report, arrival within 15 min."}[UI.tier]}</div>
+  ${!s?`<div style="margin-top:16px"><div class="sm mu" style="margin-bottom:8px">Popular ${TRADE[trade].name.toLowerCase()} services</div><div class="chips">${pop.map(x=>`<button class="chip" data-pick="${x.id}">${esc(x.name)}</button>`).join("")}</div></div>`:""}
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px">${list.map(p=>proCard(p,s,UI.tier)).join("")||`<div class="card" style="padding:24px" ><b>No ${TIERS[UI.tier].name} pros for this yet.</b><div class="mu">Try another level, or <a href="#ask" style="color:var(--cu-l)">describe your job</a>.</div></div>`}</div>
+  <div class="card" style="padding:18px;margin-top:16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><div><b>Don't see your job?</b><div class="sm mu">Describe it with photos and ask the pros you choose for an estimate.</div></div><a class="btn ghost" href="#ask">Describe your job</a></div>
+ </div></section>`}
+
+function vPro(id){const p=pro(id);if(!p)return vHome();const c=p.co?co(p.co):null,acc=accOf(p),base=baseOf(p),L=levelOf(p);const tier=UI.ptier&&p.tiers.includes(UI.ptier)?UI.ptier:p.tiers[0];
+ const slots=sched(p).slice(0,10);const allRv=[...(ST.myReviews[p.id]||[]),...p.reviews];const dist=[5,4,3,2,1].map(n=>allRv.filter(r=>Math.round((r.sc.p+r.sc.c+r.sc.r+r.sc.q)/4)===n).length);
+ const sk=[["Punctuality","p",`Arrives in the agreed window and texts ahead about changes.`,`${Math.round(p.ontime/2)} of 50 arrivals on time`],["Cleanliness","c","Protects floors and furniture, cleans up after the job.",`rated ${p.m.c.toFixed(1)} of 5 for cleanliness`],["Responsibility","r","Keeps promises, honest quotes, stands behind the work.",`${Math.round(p.m.r*20)}% of clients would hire again`],["Quality","q","Work done right the first time.",`${Math.max(0,Math.round((5-p.m.q)*20))} callbacks in the last 50 jobs`]];
+ const tab=UI.ptab;
+ let body="";
+ if(tab==="services")body=`<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0 4px"><div class="seg" role="group" aria-label="Service level">${p.tiers.map(k=>`<button aria-pressed="${tier===k}" data-ptier="${k}">${TIERS[k].name}</button>`).join("")}</div><span class="xs mu">Counts are jobs completed through NovaFides.</span></div>
+  ${p.svcs.map(x=>{const s=svc(x.id);return `<div class="svc"><div><div style="font-weight:500">${esc(s.name)}</div><div class="xs mu"><span class="cnt">${x.n}</span> done · ${esc(s.group)}${s.fl.includes("P")?" · permit":""}</div></div><div style="text-align:right"><div class="price" style="font-size:18px">${usd(priceFor(p,s,tier))}</div><a class="btn sm" href="#book" data-book="${p.id}" data-svc="${s.id}" style="margin-top:4px">Book</a></div></div>`}).join("")}
+  <div class="svc"><div><div style="font-weight:500">Estimate visit</div><div class="xs mu">For anything not listed. ${usd(TRIP)}, credited if you book the work.</div></div><div style="text-align:right"><a class="btn sm ghost" href="#book" data-book="${p.id}" data-svc="estimate">Book visit</a></div></div>`;
+ if(tab==="works")body=`<div class="works" style="margin-top:14px">${p.svcs.slice(0,9).map((x,i)=>`<button class="work" data-work="${i}"><svg viewBox="0 0 160 120">${workSVG(p,i,true,"w"+p.id+i)}</svg><span>${esc(svc(x.id).name)}<br><span class="mu2">Verified job · ${2+i*5} days ago</span></span></button>`).join("")}</div><p class="xs mu">Prototype: drawings stand in for real job photos. Tap a job to compare before and after.</p>`;
+ if(tab==="reviews")body=`<div class="grid2" style="margin-top:14px;align-items:start"><div class="card" style="padding:18px"><div style="display:flex;align-items:flex-end;gap:10px"><span class="num" style="font-size:64px">${p.r}</span><span class="mu">/ 5 · ${p.nr+(ST.myReviews[p.id]||[]).length} reviews</span></div><div class="dist" style="display:flex;flex-direction:column;gap:6px;margin-top:10px">${dist.map((n,i)=>`<div><span>${5-i}★</span><span class="tr"><i style="width:${n/allRv.length*100}%"></i></span><span class="mu">${n}</span></div>`).join("")}</div><p class="xs mu" style="margin-bottom:0">Only customers with a completed booking can review. Reviews appear when both sides have rated, or after 14 days.</p></div>
+  <div style="display:flex;flex-direction:column;gap:10px">${allRv.map((r,i)=>{const rep=ST.replies[p.id+":"+i]||r.reply;const avg=(r.sc.p+r.sc.c+r.sc.r+r.sc.q)/4;return `<div class="card rv"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(r.who)}</b><span class="stars">${"★".repeat(Math.round(avg))}<span style="opacity:.25">${"★".repeat(5-Math.round(avg))}</span></span></div><div class="xs mu">${esc(r.svc)} · ${TIERS[r.tier].name} · ${r.ago} days ago${r.updated?" · Updated":""}</div><div class="xs mu">Punctuality ${r.sc.p} · Cleanliness ${r.sc.c} · Responsibility ${r.sc.r} · Quality ${r.sc.q}</div><div>${esc(r.text)}</div>${r.resolved?`<span class="badge ok" style="align-self:flex-start">✓ Resolved with the pro</span>`:""}${rep?`<div class="reply"><b style="font-size:13px">Reply from ${esc(p.n.split(" ")[0])}</b><div>${esc(rep)}</div></div>`:`<button class="btn sm ghost" style="align-self:flex-start" data-reply="${i}">Reply as pro (demo)</button>`}</div>`}).join("")}</div></div>`;
+ if(tab==="about")body=`<div class="grid2" style="margin-top:14px"><div class="card" style="padding:18px"><b>About</b><p class="mu">${esc(p.bio)}</p><div class="sm mu">${p.yrs} years of experience · Speaks ${p.langs.join(", ")}</div></div>
+  <div class="card" style="padding:18px"><b>Checks</b><div class="trustrow">${licBadge(p)}<span class="badge ok">✓ Insured</span>${p.trade!=="handyman"?'<span class="badge ok">✓ Bonded</span>':""}<span class="badge ok">✓ ID & photo verified</span></div><div class="sm mu">License status is re-checked with the California CSLB every month. ${c?`${esc(c.name)} is responsible for this technician's work and warranty (${c.guar} months on labor).`:"Independent pro: you deal with them directly."}</div></div>
+  <div class="card" style="padding:18px"><b>Level: <span style="color:${L.c}">${L.n}</span></b><div class="sm mu">${esc(L.rule)}. Levels are recalculated monthly. A pro never loses a level for taking time off; only resolved disputes can lower it, and the reason is always shown.</div></div>
+  <div class="card" style="padding:18px"><b>Price transparency</b><div class="sm mu">Trip & diagnostics ${usd(TRIP)}, credited if you book the work. Prices shown are this pro's own, within NovaFides' fair range for the Bay Area. Final price is confirmed before work starts.</div></div></div>`;
+ return `<div class="themed ${base} has-sticky" style="--acc:${acc}"><section class="pad"><div class="in">
+  <div class="xs" style="letter-spacing:.18em;text-transform:uppercase;padding-top:18px;color:var(--pmu)"><a href="#search" data-settrade="${p.trade}" style="text-decoration:none">${TRADE[p.trade].name}</a> / ${c?`<a href="#co-${c.id}" style="text-decoration:none">${esc(c.name)}</a> / `:""}${esc(p.n)}</div>
+  <div class="phero"><div>
+   <div class="accline"></div>
+   <h1>${esc(p.n)}</h1>
+   <div style="font-size:17px">${c?`<a href="#co-${c.id}" style="color:${acc};font-weight:600;text-decoration:none">${esc(c.name)}</a>`:'<span style="color:var(--acc);font-weight:600">Independent pro</span>'} <span class="mu">· ${esc(p.area)}</span> ${p.online?'<span class="sm" style="color:var(--ok);margin-left:6px"><span class="dot"></span> Online now</span>':""}</div>
+   <div style="margin-top:10px">${lvlBadge(p)}</div>
+   <div class="trustrow">${licBadge(p)}<span class="badge ok">✓ Insured</span><span class="badge ok">✓ ID verified</span></div>
+   <div class="kpis"><div><span class="num">${p.r}</span><small><span class="stars">★★★★★</span> ${p.nr} reviews</small></div><div><span class="num">${p.jobs}</span><small>jobs on NovaFides</small></div><div><span class="num">${p.resp}<span style="font-size:22px"> min</span></span><small>typical reply</small></div></div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#book" data-book="${p.id}">Book · from ${usd(fromPrice(p))}</a><button class="btn ghost" data-msg="${p.id}">${c?"Message "+esc(c.name.split(" ")[0])+" office":"Message "+esc(p.n.split(" ")[0])}</button></div>
+   <div class="xs mu" style="margin-top:8px">Trip & diagnostics ${usd(TRIP)} · credited if you book the work</div>
+  </div><div class="figbig">${figure(p,360,450,"h")}</div></div>
+  <div style="margin-top:8px"><div class="sm mu" style="margin-bottom:8px">Next available</div><div class="slots">${slots.map(t=>{const [d,h]=fmtSlot(t);return `<a class="slot" href="#book" data-book="${p.id}" data-slot="${t}" style="text-decoration:none"><b>${d}</b>${h}</a>`}).join("")||'<span class="mu">Fully booked this week</span>'}</div></div>
+  <div class="eyebrow" style="margin-top:30px">Skill passport</div><h2 style="font-size:28px;margin:6px 0 4px">Reputation in detail</h2><div class="sm mu" style="margin-bottom:12px">Based on the last 50 completed jobs. Each skill is rated separately by customers and checked against booking data.</div>
+  <div class="grid2">${sk.map(([n,k,d,f])=>{const v=Math.round(p.m[k]*20);return `<div class="card skill"><div class="row"><b>${n}</b><span><span class="num">${v}</span><span class="mu sm"> /100</span></span></div><div class="dash"><i style="width:${v}%"></i></div><div class="sm">${d}</div><div class="xs" style="color:var(--acc)">${f}</div></div>`}).join("")}</div>
+  <div class="tabs" role="tablist">${[["services",`Services & prices <span class="mu2">${p.svcs.length}</span>`],["works","Work photos"],["reviews","Reviews"],["about","About & checks"]].map(([k,n])=>`<button role="tab" aria-selected="${tab===k}" data-ptab="${k}">${n}</button>`).join("")}</div>
+  ${body}
+  <div style="height:40px"></div></div></section></div>
+  <div class="stickybook"><div><div class="xs mu">from</div><b class="price">${usd(fromPrice(p))}</b></div><a class="btn" href="#book" data-book="${p.id}">Book ${esc(p.n.split(" ")[0])}</a></div>`}
+
+function vCompany(id){const c=co(id);if(!c)return vHome();const team=c.techs.map(pro);const groups=CAT.trades.find(t=>t.id===c.trade).groups;
+ return `<div class="themed ${c.base}" style="--acc:${c.acc}"><section class="pad"><div class="in">
+  <div class="cban"><div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><span class="cmono">${c.name.split(" ").map(w=>w[0]).join("").slice(0,2)}</span><div style="min-width:0"><h1 style="margin:0;font-size:clamp(28px,5vw,44px)">${esc(c.name)}</h1><div class="mu">${TRADE[c.trade].name} · ${esc(c.city)} · since ${c.since}</div></div></div>
+   <div class="trustrow" style="margin-top:16px"><span class="badge ok">✓ CA Lic. #${c.lic} · ${TRADE[c.trade].lic}</span><span class="badge ok">✓ Insured & bonded</span><span class="badge cu">${c.guar}-month labor warranty</span></div>
+   <div class="kpis"><div><span class="num">${c.rating}</span><small><span class="stars">★★★★★</span> ${c.nr} reviews</small></div><div><span class="num">${team.length}</span><small>technicians</small></div><div><span class="num">${team.reduce((a,p)=>a+p.jobs,0)}</span><small>jobs on NovaFides</small></div></div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#search" data-settrade="${c.trade}">Book a technician</a><button class="btn ghost" data-msgco="${c.id}">Message the office (${esc(c.mgr)})</button></div>
+   <p class="mu" style="max-width:62ch">${esc(c.about)}</p></div>
+  <div class="eyebrow" style="margin-top:28px;color:var(--acc)">Team</div><h2 style="margin:6px 0 12px">Choose your technician</h2>
+  <div style="display:flex;flex-direction:column;gap:12px">${team.map(p=>proCard(p,null,p.tiers[0])).join("")}</div>
+  <div class="sm mu" style="margin-top:10px">Messages go to the office manager. You can still book a specific technician for a specific job. The office can only swap your technician with your OK.</div>
+  <div class="eyebrow" style="margin-top:28px;color:var(--acc)">Services</div><h2 style="margin:6px 0 12px">What ${esc(c.name.split(" ")[0])} does</h2>
+  <div class="grid3">${groups.map(g=>`<div class="card" style="padding:16px"><b>${esc(g.name)}</b><div class="sm mu">${g.items.slice(0,4).map(i=>esc(i[0])).join(" · ")}</div><div class="sm" style="margin-top:6px;color:var(--acc)">from ${usd(r5(Math.min(...g.items.map(i=>i[2]))))}</div></div>`).join("")}</div>
+  <div class="card" style="padding:16px;margin-top:18px"><b>This page uses ${esc(c.name)}'s own colors</b><div class="sm mu">Companies upload their logo, uniforms and trucks; NovaFides picks the brand color and a ${c.base} background. License, ratings, prices and booking always look the same on every page, so they can't be faked.</div></div>
+  <div style="height:40px"></div></div></section></div>`}
+
+function vBook(){const b=UI.bk;if(!b){location.hash="#search";return""}const p=pro(b.pro);const s=b.svc==="estimate"?null:svc(b.svc);const tier=b.tier;const slots=sched(p).slice(0,18);
+ const price=s?priceFor(p,s,tier):0,parts=s?r5(price*.3):0,labor=s?Math.max(0,price-parts):0;
+ return `<section class="pad sec"><div class="in" style="max-width:760px">
+  <div class="eyebrow">Book</div><h2>${esc(p.n)}${p.co?` <span class="mu" style="font-size:.6em">· ${esc(co(p.co).name)}</span>`:""}</h2>
+  <div style="display:flex;flex-direction:column;gap:12px">
+   <div class="card step"><h3><i>1</i>Service</h3><select class="inp" id="bsvc"><option value="estimate" ${!s?"selected":""}>Estimate visit (not sure / not listed) · ${usd(TRIP)}</option>${p.svcs.map(x=>{const v=svc(x.id);return `<option value="${v.id}" ${s&&s.id===v.id?"selected":""}>${esc(v.name)} · ${usd(priceFor(p,v,tier))}</option>`}).join("")}</select></div>
+   <div class="card step"><h3><i>2</i>Service level</h3><div class="seg" role="group" aria-label="Service level">${p.tiers.map(k=>`<button aria-pressed="${tier===k}" data-btier="${k}">${TIERS[k].name}</button>`).join("")}</div><div class="xs mu">${p.tiers.length<3?esc(p.n.split(" ")[0])+" works at "+p.tiers.map(k=>TIERS[k].name).join(" and ")+" level.":""}</div></div>
+   <div class="card step"><h3><i>3</i>Day & time</h3><div class="slots" style="flex-wrap:wrap">${slots.map(t=>{const [d,h]=fmtSlot(t);return `<button class="slot" aria-pressed="${b.t===t}" data-bslot="${t}"><b>${d}</b>${h}</button>`}).join("")}</div></div>
+   <div class="card step"><h3><i>4</i>Details</h3><label class="f">Address (shared with the pro only after booking)<input class="inp" id="baddr" value="${esc(b.addr||"")}" placeholder="Street, city"></label><label class="f">What's going on?<textarea class="inp" id="bnote" placeholder="E.g. kitchen faucet drips, Moen, about 10 years old">${esc(b.note||"")}</textarea></label></div>
+   <div class="card step"><h3><i>5</i>Price breakdown</h3><div class="brk">${s?`<div><span>Trip & diagnostics</span><b>${usd(TRIP)} <span class="mu sm">credited</span></b></div><div><span>Labor (${TIERS[tier].name})</span><b>${usd(labor)}</b></div><div><span>Parts (estimate)</span><b>${usd(parts)}</b></div><div style="border:0"><span style="font-weight:600">Estimated total</span><b class="price">${usd(price)}</b></div>`:`<div><span>Estimate visit</span><b>${usd(TRIP)}</b></div><div style="border:0"><span class="mu sm">Credited toward the work if you book it after the visit.</span><b></b></div>`}</div>
+    <div class="xs mu">${s?`Bay Area typical for this job: ${usd(r5(s.lo*TIERS[tier].multiplier))}–${usd(r5(s.hi*TIERS[tier].multiplier))}. `:""}The pro confirms the final price before starting. You pay the pro directly; NovaFides never charges you a fee.</div></div>
+   <button class="btn" data-confirm="1" ${b.t?"":"disabled"}>${b.t?"Confirm booking · "+fmtSlot(b.t).join(" "):"Pick a time to continue"}</button>
+  </div></div></section>`}
+
+function mapSVG(){const C={"San Francisco":[118,62],"Daly City":[112,112],"South San Francisco":[146,140],"Burlingame":[176,190],"San Mateo":[196,224],"Foster City":[232,226],"Redwood City":[236,290],"Menlo Park":[262,322],"Palo Alto":[282,352],"Mountain View":[312,392],"Sunnyvale":[344,420],"San Jose":[392,470]};
+ const on=PROS.filter(p=>p.online);
+ return `<svg viewBox="0 0 460 520" role="img" aria-label="Map of pros online on the Peninsula"><rect width="460" height="520" fill="#0E1013"/>
+ <path d="M60 30C90 20 140 26 150 46C160 70 150 100 170 130C200 170 230 200 262 250C300 300 340 350 380 400C410 440 440 470 460 490V520H0V0H60Z" fill="#17191C"/>
+ <path d="M150 46C190 60 210 110 240 150C280 200 330 260 360 320C390 380 430 430 460 470V0H150Z" fill="#0B1824"/>
+ <path d="M150 46C160 70 150 100 170 130C200 170 230 200 262 250C300 300 340 350 380 400C410 440 440 470 460 490" fill="none" stroke="#2A3A48" stroke-width="2"/>
+ <text x="330" y="170" font-family="Inter,sans-serif" font-size="13" fill="#2F4A60" letter-spacing="3">SAN FRANCISCO BAY</text><text x="20" y="300" font-family="Inter,sans-serif" font-size="12" fill="#2A2E33" letter-spacing="3" transform="rotate(-70 20 300)">PACIFIC OCEAN</text>
+ ${Object.entries(C).map(([n,[x,y]])=>`<circle cx="${x}" cy="${y}" r="2.5" fill="#5A524C"/><text x="${x-8}" y="${y+4}" text-anchor="end" font-family="Inter,sans-serif" font-size="11" fill="#7A7068">${n}</text>`).join("")}
+ ${on.map((p,i)=>{const [x,y]=C[p.area]||[200,200];const R=rng(i+3),dx=(R()-.5)*24,dy=(R()-.5)*20;const acc=accOf(p);return `<a href="#pro-${p.id}"><circle cx="${x+dx}" cy="${y+dy}" r="22" fill="${acc}" opacity=".16"/><circle cx="${x+dx}" cy="${y+dy}" r="11" fill="#141417" stroke="${acc}" stroke-width="2.5"/><text x="${x+dx}" y="${y+dy+4}" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="9" fill="#F3EDE7">${p.n.split(" ").map(w=>w[0]).join("")}</text></a>`}).join("")}</svg>`}
+function vOnline(){const on=PROS.filter(p=>p.online).map((p,i)=>({p,eta:8+((i*7)%19)})).sort((a,b)=>a.eta-b.eta);
+ return `<section class="pad sec"><div class="in"><div class="eyebrow" style="color:#FFB4A6">Online now</div><h2>Pros free right now</h2><p class="mu" style="margin-top:-6px">Pros switch "Online" on when they're free. We show the area, not their exact location. For a gas smell, leave the house and call PG&E at 1-800-743-5000 first.</p>
+ <div class="grid2" style="align-items:start"><div class="map">${on.length>=3?mapSVG():`<div style="padding:40px;text-align:center" class="mu">Fewer than 3 pros online nearby. We'll notify you when someone is free.</div>`}</div>
+ <div style="display:flex;flex-direction:column;gap:10px">${on.map(({p,eta})=>`<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><a href="#pro-${p.id}" style="width:56px;height:68px;border-radius:12px;overflow:hidden;flex:none">${figure(p,56,68,"o")}</a><div style="flex:1;min-width:0"><b>${esc(p.n)}</b><div class="xs mu">${TRADE[p.trade].name} · ${esc(p.area)} · <span class="stars">★</span> ${p.r}</div><div class="xs" style="color:var(--ok)">~${eta} min away</div></div><a class="btn sm red" href="#book" data-book="${p.id}" data-svc="estimate" data-now="1">Call out</a></div>`).join("")}</div></div></div></section>`}
+
+function vAsk(){const a=UI.ask;const kw={electrical:["outlet","light","power","breaker","switch","wire","electric","ev","fan","spark"],plumbing:["leak","water","pipe","drain","toilet","faucet","sink","sewer","heater","gas","shower","clog"],handyman:["mount","tv","shelf","assemble","furniture","paint","drywall","door","fence","hang"]};
+ let guess=a.trade;if(!guess&&a.text){const t=a.text.toLowerCase();let best=0;Object.entries(kw).forEach(([k,ws])=>{const sc=ws.filter(w=>t.includes(w)).length;if(sc>best){best=sc;guess=k}})}
+ const big=/(remodel|whole house|repipe|panel|rewir|addition|new bathroom|permit)/i.test(a.text);
+ const cands=guess?[...COS.filter(c=>c.trade===guess).map(c=>({id:"co:"+c.id,n:c.name,sub:"Company · you'll talk to the office",acc:c.acc})),...PROS.filter(p=>p.trade===guess&&!p.co&&!(big&&p.trade==="handyman")).map(p=>({id:"pro:"+p.id,n:p.n,sub:"Independent pro · you'll talk to them directly",acc:accOf(p)}))]:[];
+ return `<section class="pad sec"><div class="in" style="max-width:760px"><div class="eyebrow">Not in the catalog?</div><h2>Describe your job</h2><p class="mu" style="margin-top:-6px">Write what you need and add photos. You choose who receives it. Your request is never sold to anyone.</p>
+ <div class="card step"><label class="f">What needs doing?<textarea class="inp" id="atext" placeholder="E.g. install a pendant light over the kitchen island, wiring is already there">${esc(a.text)}</textarea></label>
+  <div class="chips">${Object.keys(TRADE).map(t=>`<button class="chip" aria-pressed="${guess===t}" data-atrade="${t}">${TRADE[t].name}</button>`).join("")}${guess&&!a.trade?'<span class="xs mu" style="align-self:center">detected from your text</span>':""}</div>
+  ${big?`<div class="badge p" style="align-self:flex-start">Sounds like a bigger job or permit work. Only licensed pros will see it.</div>`:""}</div>
+ ${guess?`<div class="card step"><h3><i>2</i>Send to (choose up to 3)</h3>${cands.map(c=>`<label style="display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer"><input type="checkbox" data-ato="${c.id}" ${a.to.includes(c.id)?"checked":""}><span style="width:10px;height:10px;border-radius:50%;background:${c.acc}"></span><span><b>${esc(c.n)}</b><span class="xs mu" style="display:block">${c.sub}</span></span></label>`).join("")}</div>`:""}
+ <button class="btn" data-asksend="1" ${guess&&a.to.length&&a.text.trim().length>5?"":"disabled"}>Send request for estimate</button></div></section>`}
+
+function vBookings(){const L=ST.bookings.slice().reverse();
+ return `<section class="pad sec"><div class="in" style="max-width:820px"><div class="eyebrow">My bookings</div><h2>Your jobs</h2>${L.length?L.map((b,i)=>{const p=pro(b.pro),s=b.svc==="estimate"?null:svc(b.svc),[d,h]=fmtSlot(b.t);const done=b.status==="done";return `<div class="card" style="padding:16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><a href="#pro-${p.id}" style="width:56px;height:68px;border-radius:12px;overflow:hidden;flex:none">${figure(p,56,68,"b")}</a><div style="flex:1;min-width:200px"><b>${s?esc(s.name):"Estimate visit"}</b><div class="sm mu">${esc(p.n)} · ${d} ${h} · ${TIERS[b.tier].name}</div><div class="sm">${b.price?"Est. "+usd(b.price):usd(TRIP)+" visit"}</div></div>${done?`<span class="badge ok">✓ Reviewed</span>`:`<button class="btn sm" data-review="${ST.bookings.indexOf(b)}">Job done · Review</button>`}</div>`}).join(""):`<div class="card" style="padding:24px"><b>No bookings yet.</b><div class="mu">Find a pro and pick a time from their schedule.</div><a class="btn" href="#search" style="margin-top:12px">Find a pro</a></div>`}</div></section>`}
+
+function vJoin(){const j=UI.join,jc=UI.jc,jp=UI.jp;
+ const comp=`<div class="grid2" style="align-items:start"><div style="display:flex;flex-direction:column;gap:12px">
+   <label class="f">Company name<input class="inp" id="jcn" value="${esc(jc.name)}" placeholder="e.g. Bayline Plumbing"></label>
+   <label class="f">CSLB license number<input class="inp" id="jcl" inputmode="numeric" placeholder="1234567"></label>
+   <div class="f">Logo, uniforms or truck photo<div class="drop"><input type="file" accept="image/*" id="jlogo"><span style="font-size:26px">＋</span><span class="sm">We pick your brand color automatically. You can change it.</span></div></div>
+   <div class="f">Brand color<div class="pal">${["#C97B47","#2F7FE0","#D9412E","#E8A400","#138A84","#6E7A3A","#7A4FD6","#E7E2DA"].map(cl=>`<button aria-label="Color ${cl}" aria-pressed="${(jc.acc||"#C97B47")===cl}" data-jcacc="${cl}" style="background:${cl}"></button>`).join("")}${jc.acc&&!["#C97B47","#2F7FE0","#D9412E","#E8A400","#138A84","#6E7A3A","#7A4FD6","#E7E2DA"].includes(jc.acc)?`<button aria-pressed="true" style="background:${jc.acc}" aria-label="Detected color"></button>`:""}</div></div>
+   <div class="f">Page background<div class="seg">${["dark","graphite","light"].map(k=>`<button aria-pressed="${jc.base===k}" data-jcbase="${k}">${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}</div></div>
+   <div class="card" style="padding:14px"><b>Plan</b><div class="sm mu">Company S (2–3 technicians): $129/mo · +$29 per extra technician. Founding members: free for 90 days. No lead fees, ever.</div></div>
+   <button class="btn" data-jsubmit="company">Submit for verification</button></div>
+  <div><div class="sm mu" style="margin-bottom:8px">Live preview</div><div class="preview themed ${jc.base}" style="--acc:${jc.acc||"#C97B47"}"><div class="cban" style="margin:0;border-radius:0;border:0"><div style="display:flex;gap:14px;align-items:center"><span class="cmono" style="width:56px;height:56px;font-size:22px">${esc((jc.name||"Your Co").split(" ").map(w=>w[0]).join("").slice(0,2))}</span><div><b style="font-family:var(--fd);font-size:22px">${esc(jc.name||"Your Company")}</b><div class="sm mu">Plumbing · Bay Area</div></div></div><div class="trustrow"><span class="badge ok">✓ CA Lic. verified</span><span class="badge ok">✓ Insured</span></div><a class="btn sm">Book a technician</a></div></div></div></div>`;
+ const tradeSv=SV.filter(s=>s.trade===jp.trade);
+ const pros=`<div class="grid2" style="align-items:start"><div style="display:flex;flex-direction:column;gap:12px">
+   <label class="f">Full name (as on your ID)<input class="inp" placeholder="First Last"></label>
+   <div class="f">Trade<div class="seg">${Object.keys(TRADE).map(t=>`<button aria-pressed="${jp.trade===t}" data-jptrade="${t}">${TRADE[t].name}</button>`).join("")}</div></div>
+   ${jp.trade!=="handyman"?`<label class="f">CSLB license number (${TRADE[jp.trade].lic})<input class="inp" inputmode="numeric" placeholder="1234567"></label>`:`<div class="xs mu">Handymen don't need a license for jobs under $1,000 with no permit. Bigger jobs go to licensed pros automatically.</div>`}
+   <div class="f">Full-length photo in your work clothes<div class="drop"><input type="file" accept="image/*" id="jphoto"><svg width="40" height="64" viewBox="0 0 40 64" aria-hidden="true"><circle cx="20" cy="9" r="7" fill="none" stroke="#C97B47" stroke-width="2" stroke-dasharray="3 3"/><path d="M8 62V30Q8 19 20 19Q32 19 32 30V62" fill="none" stroke="#C97B47" stroke-width="2" stroke-dasharray="3 3"/></svg><span class="sm">Stand by a light wall, 2 m away, phone at chest height, light in front of you. Wear what you wear to jobs. We only change the background and light, never you.</span></div>${jp.photo?`<img src="${jp.photo}" alt="Your photo" style="max-height:160px;border-radius:12px;margin-top:8px;align-self:flex-start">`:""}</div>
+   <div class="f">Page color ${jp.note?`<span class="xs" style="color:var(--cu-l)">${esc(jp.note)}</span>`:""}<div class="pal">${["#C97B47","#2F7FE0","#D9412E","#E8A400","#138A84","#6E7A3A","#7A4FD6","#E7E2DA"].map(cl=>`<button aria-label="Color ${cl}" aria-pressed="${(jp.acc||"#C97B47")===cl}" data-jpacc="${cl}" style="background:${cl}"></button>`).join("")}</div></div>
+   <div class="f">Days you work<div class="week">${DAYS.map((d,i)=>`<button aria-pressed="${jp.days.includes(i)}" data-jpday="${i}">${d}</button>`).join("")}</div></div>
+   <div class="card" style="padding:14px"><b>Plan</b><div class="sm mu">Independent pro: $59/mo. First 30 pros: free until 3 confirmed jobs or 90 days. No lead fees.</div></div>
+   <button class="btn" data-jsubmit="pro">Submit for verification</button></div>
+  <div><div class="sm mu" style="margin-bottom:8px">Your services and prices <span class="mu2">(recommended Standard price prefilled, you can change it)</span></div><div class="card" style="padding:6px 12px;max-height:520px;overflow:auto"><table class="tbl">${tradeSv.map(s=>`<tr><td><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${jp.svcs[s.id]!==false?"checked":""} data-jpsvc="${s.id}">${esc(s.name)}</label></td><td style="text-align:right"><input class="inp" type="number" min="0" step="5" value="${r5((s.lo+s.hi)/2)}" aria-label="Price for ${esc(s.name)}" style="padding:6px 8px"></td></tr>`).join("")}<tr><td colspan="2"><button class="btn sm ghost" data-jcustom="1">＋ Add a service that's not listed</button></td></tr></table></div></div></div>`;
+ return `<section class="pad sec"><div class="in"><div class="eyebrow">For pros & companies</div><h2>Join NovaFides</h2><p class="mu" style="margin-top:-6px">Flat monthly plan. Clients choose you directly. No lead fees, no bidding wars.</p>
+ <div class="seg" style="margin-bottom:16px">${[["company","Company"],["pro","Independent pro"]].map(([k,n])=>`<button aria-pressed="${j===k}" data-join="${k}">${n}</button>`).join("")}</div>${j==="company"?comp:pros}</div></section>`}
+
+/* ================= ROUTER ================= */
+function route(){const h=location.hash.slice(1)||"home";let html="";
+ if(h==="home")html=vHome();else if(h==="search")html=vSearch();else if(h.startsWith("pro-"))html=vPro(h.slice(4));else if(h.startsWith("co-"))html=vCompany(h.slice(3));else if(h==="book")html=vBook();else if(h==="online")html=vOnline();else if(h==="ask")html=vAsk();else if(h==="bookings")html=vBookings();else if(h==="join")html=vJoin();else html=vHome();
+ app.innerHTML=html+`<footer class="ft pad"><div class="in">NovaFides Marketplace · prototype · Bay Area. Names, photos, licenses and numbers are examples. Prices are estimates from 2025–2026 Bay Area cost guides.</div></footer>`;
+ document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("on",h===a.dataset.nav||(a.dataset.nav==="search"&&(h.startsWith("pro-")||h.startsWith("co-")))));
+ bindSearch()}
+function rerender(keepScroll=true){const y=scrollY;route();if(keepScroll)scrollTo(0,y)}
+addEventListener("hashchange",()=>{route();scrollTo(0,0)});
+function bindSearch(){const i=document.getElementById("hq"),box=document.getElementById("sugg");if(!i)return;
+ const show=()=>{const r=searchSV(i.value);UI.q=i.value;if(!i.value.trim()){box.hidden=true;return}box.hidden=false;box.innerHTML=(r.map(s=>`<button data-pick="${s.id}"><span>${esc(s.name)}<span class="xs mu" style="display:block">${TRADE[s.trade].name} · ${esc(s.group)}</span></span><span class="sm mu">${usd(s.lo)}–${usd(s.hi)}</span></button>`).join("")||"")+`<button data-goask="1"><span>Not listed? <b style="color:var(--cu-l)">Describe your job</b></span><span></span></button>`};
+ i.addEventListener("input",show);i.addEventListener("focus",show)}
+
+/* ================= UI HELPERS ================= */
+function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3400)}
+function modal(html){const l=document.getElementById("layer");l.innerHTML=`<div class="modal" data-close="bg"><div class="box" role="dialog" aria-modal="true">${html}</div></div>`;l.querySelector("input,textarea,button")?.focus()}
+const closeModal=()=>document.getElementById("layer").innerHTML="";
+const BAD=[[/\b(liar|lying|stupid|idiot|dumb|crazy|scam(mer)?|moron)\b/i,"Insults are not allowed. Describe the facts instead."],[/\b(your fault|you were the one|you people|it's on you|blame you)\b/i,"This reads as blaming the customer. Other clients will read it."],[/\b\d{3}[-. )]*\d{3}[-. ]*\d{4}\b/,"Remove phone numbers. Personal data is not allowed in replies."],[/\b\d{2,5}\s+\w+\s+(st|street|ave|avenue|rd|road|blvd|dr|drive|ct|lane|ln)\b/i,"Remove the customer's address."],[/!{2,}|\?{2,}/,"Multiple !! or ?? sound heated. Keep it calm."]];
+function replyModal(p,i){const r=[...(ST.myReviews[p.id]||[]),...p.reviews][i];const low=(r.sc.p+r.sc.c+r.sc.r+r.sc.q)/4<=3.5;
+ modal(`<h3 style="margin:0 0 6px">Reply to ${esc(r.who)}</h3><div class="sm mu" style="margin-bottom:10px">One public reply, up to 600 characters. The customer can't reply back publicly, so keep it short and helpful.</div>
+ ${low?`<div class="card" style="padding:12px;margin-bottom:10px;border-color:rgba(240,160,75,.5)"><b class="sm">Replying to a low rating</b><ol class="sm mu" style="margin:6px 0 0;padding-left:18px"><li>Thank them for the feedback.</li><li>Explain briefly, with facts.</li><li>Offer a fix: come back, redo, partial refund.</li><li>Don't argue or blame. Future clients judge you by this reply.</li></ol><div class="xs" style="color:var(--warn);margin-top:6px">Replies to ratings of 3 or lower publish 1 hour after you write them, so you have time to cool off.</div></div>`:""}
+ <textarea class="inp" id="rtext" maxlength="600" placeholder="Thank you for the feedback…"></textarea><div class="xs mu" id="rcount" style="text-align:right">0 / 600</div><div id="rwarn" class="sm" style="color:var(--warn)"></div>
+ <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button class="btn ghost" data-close="x">Cancel</button><button class="btn" id="rpub" data-pubreply="${p.id}:${i}" ${""}>${low?"Schedule reply":"Publish reply"}</button></div>`);
+ const t=document.getElementById("rtext"),w=document.getElementById("rwarn"),c=document.getElementById("rcount"),btn=document.getElementById("rpub");
+ t.addEventListener("input",()=>{c.textContent=t.value.length+" / 600";const issues=BAD.filter(([re])=>re.test(t.value)).map(x=>x[1]);w.innerHTML=issues.map(x=>"⚠ "+esc(x)).join("<br>");btn.disabled=!t.value.trim()||BAD.slice(0,1).concat(BAD.slice(2,4)).some(([re])=>re.test(t.value))});
+ btn.disabled=true;btn.dataset.low=low?"1":""}
+function reviewModal(bi){const b=ST.bookings[bi],p=pro(b.pro);const v={p:5,c:5,r:5,q:5};
+ const draw=()=>`<h3 style="margin:0 0 4px">How did ${esc(p.n.split(" ")[0])} do?</h3><div class="sm mu" style="margin-bottom:12px">Your review is published when ${esc(p.n.split(" ")[0])} also rates the job, or after 14 days.</div>${[["p","Punctuality"],["c","Cleanliness"],["r","Responsibility"],["q","Quality"]].map(([k,n])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><span>${n}</span><span>${[1,2,3,4,5].map(s=>`<button data-rs="${k}:${s}" aria-label="${n} ${s} of 5" style="background:none;border:0;font-size:24px;padding:0 2px;color:${s<=v[k]?"#F2BE92":"#3a3633"}">★</button>`).join("")}</span></div>`).join("")}<label class="f" style="margin-top:8px">Your review<textarea class="inp" id="rvt" placeholder="What went well? What could be better?"></textarea></label><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button class="btn ghost" data-close="x">Later</button><button class="btn" data-sendrv="${bi}">Submit review</button></div>`;
+ modal(draw());document.getElementById("layer").onclick=e=>{const s=e.target.closest("[data-rs]");if(s){const[k,n]=s.dataset.rs.split(":");v[k]=+n;const t=document.getElementById("rvt").value;document.querySelector(".modal .box").innerHTML=draw();document.getElementById("rvt").value=t}const sd=e.target.closest("[data-sendrv]");if(sd){const t=document.getElementById("rvt").value.trim()||"Great job.";ST.myReviews[p.id]=ST.myReviews[p.id]||[];ST.myReviews[p.id].unshift({who:"You",ago:0,svc:b.svc==="estimate"?"Estimate visit":svc(b.svc).name,tier:b.tier,sc:{...v},text:t});b.status="done";save();closeModal();rerender();toast("Thanks! Your review will appear when the pro rates the job, or in 14 days.")}}}
+function workModal(p,i){const s=svc(p.svcs[i].id);modal(`<h3 style="margin:0 0 10px">${esc(s.name)}</h3><div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/3;max-width:100%" id="ba"><svg viewBox="0 0 160 120" style="position:absolute;inset:0;width:100%;height:100%">${workSVG(p,i,false,"wb"+i)}</svg><svg viewBox="0 0 160 120" style="position:absolute;inset:0;width:100%;height:100%;clip-path:inset(0 0 0 var(--cut,50%))">${workSVG(p,i,true,"wa"+i)}</svg><span style="position:absolute;top:10px;left:10px" class="badge n">Before</span><span style="position:absolute;top:10px;right:10px" class="badge n">After</span></div><input type="range" min="0" max="100" value="50" id="bar" aria-label="Compare before and after" style="width:100%;margin-top:10px;accent-color:#C97B47"><div class="xs mu">Verified job through NovaFides. Prototype uses drawings instead of photos.</div><div style="text-align:right;margin-top:10px"><button class="btn ghost" data-close="x">Close</button></div>`);document.getElementById("bar").addEventListener("input",e=>document.getElementById("ba").style.setProperty("--cut",e.target.value+"%"))}
+function extractColor(file,cb){const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas"),k=Math.min(1,120/Math.max(img.width,img.height));c.width=Math.max(1,img.width*k|0);c.height=Math.max(1,img.height*k|0);const x=c.getContext("2d");x.drawImage(img,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data;
+ let best=null,bs=-1,dark=0,tot=0;const bins={};for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];if(a<128)continue;tot++;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx<55)dark++;const sat=mx?(mx-mn)/mx:0;if(sat<.28||mx<60||mx>245&&sat<.4)continue;const key=(r>>5)+","+(g>>5)+","+(b>>5);bins[key]=bins[key]||{n:0,r:0,g:0,b:0};const B=bins[key];B.n++;B.r+=r;B.g+=g;B.b+=b}
+ Object.values(bins).forEach(B=>{if(B.n>bs){bs=B.n;best=B}});
+ const hex=best?"#"+[best.r/best.n,best.g/best.n,best.b/best.n].map(v=>Math.round(v).toString(16).padStart(2,"0")).join(""):null;cb(hex,dark/tot,c.toDataURL("image/jpeg",.7))};img.src=rd.result};rd.readAsDataURL(file)}
+
+/* ================= EVENTS ================= */
+document.addEventListener("click",e=>{
+ const el=e.target.closest("[data-pick],[data-goask],[data-trade],[data-settrade],[data-clearsvc],[data-tier],[data-book],[data-ptab],[data-ptier],[data-btier],[data-bslot],[data-confirm],[data-msg],[data-msgco],[data-reply],[data-pubreply],[data-close],[data-review],[data-work],[data-atrade],[data-asksend],[data-join],[data-jcacc],[data-jcbase],[data-jpacc],[data-jptrade],[data-jpday],[data-jsubmit],[data-jcustom]");
+ if(!el)return;const ds=el.dataset;
+ if(ds.close){if(ds.close==="bg"&&e.target!==el)return;closeModal();return}
+ if(ds.pick){const s=svc(ds.pick);UI.svc=s.id;UI.trade=s.trade;UI.q=s.name;if(location.hash!=="#search")location.hash="#search";else rerender(false);return}
+ if(ds.goask){UI.ask.text=UI.q;location.hash="#ask";return}
+ if(ds.trade){UI.trade=ds.trade;UI.svc=null;UI.q="";return}
+ if(ds.settrade){UI.trade=ds.settrade;UI.svc=null;UI.q="";if(location.hash==="#search"){e.preventDefault();rerender()}return}
+ if(ds.clearsvc){UI.svc=null;UI.q="";rerender();return}
+ if(ds.tier){UI.tier=ds.tier;rerender();return}
+ if(ds.book){const p=pro(ds.book);const sv=ds.svc||(UI.svc&&p.svcs.some(x=>x.id===UI.svc)?UI.svc:p.svcs[0].id);const t=UI.tier&&p.tiers.includes(UI.tier)?UI.tier:p.tiers[0];UI.bk={pro:p.id,svc:sv,tier:UI.ptier&&p.tiers.includes(UI.ptier)?UI.ptier:t,t:ds.slot?+ds.slot:(ds.now?sched(p)[0]:null)};if(location.hash==="#book"){e.preventDefault();rerender(false)}return}
+ if(ds.ptab){UI.ptab=ds.ptab;rerender();return}
+ if(ds.ptier){UI.ptier=ds.ptier;rerender();return}
+ if(ds.btier){UI.bk.tier=ds.btier;keepBook();rerender();return}
+ if(ds.bslot){UI.bk.t=+ds.bslot;keepBook();rerender();return}
+ if(ds.confirm){keepBook();const b=UI.bk,p=pro(b.pro),s=b.svc==="estimate"?null:svc(b.svc);ST.bookings.push({...b,price:s?priceFor(p,s,b.tier):0,status:"booked",at:Date.now()});save();const [d,h]=fmtSlot(b.t);
+  modal(`<div style="text-align:center"><div style="width:110px;height:132px;border-radius:16px;overflow:hidden;margin:0 auto 12px">${figure(p,110,132,"m")}</div><h3 style="margin:0">You're booked with ${esc(p.n.split(" ")[0])}</h3><p class="mu">${d} at ${h} · ${s?esc(s.name):"Estimate visit"}</p><p class="sm mu">${p.co?esc(co(p.co).name)+"'s office will confirm within 15 minutes.":esc(p.n.split(" ")[0])+" will confirm within "+p.resp+" minutes."} Their phone number unlocks once confirmed.</p><a class="btn" href="#bookings" data-close="x">See my bookings</a></div>`);UI.bk=null;return}
+ if(ds.msg||ds.msgco){const c=ds.msgco?co(ds.msgco):(pro(ds.msg).co?co(pro(ds.msg).co):null);const who=c?c.name+" office ("+c.mgr+")":pro(ds.msg).n;modal(`<h3 style="margin:0 0 6px">Message ${esc(who)}</h3><div class="sm mu" style="margin-bottom:10px">${c?"You're writing to the company office, not to an individual technician.":"You're writing directly to the pro."} Keep payments and contacts on NovaFides until you book; we'll warn you about links and phone numbers to protect you from scams.</div><textarea class="inp" id="mtext" placeholder="Hi! I have a question about…"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button class="btn ghost" data-close="x">Cancel</button><button class="btn" data-close="x" onclick="toast('Message sent. Typical reply: ${c?15:pro(ds.msg).resp} min.')">Send</button></div>`);return}
+ if(ds.reply){replyModal(pro(location.hash.slice(5)),+ds.reply);return}
+ if(ds.pubreply){const t=document.getElementById("rtext").value.trim();if(!t)return;ST.replies[ds.pubreply]=t;save();const low=el.dataset.low;closeModal();rerender();toast(low?"Reply scheduled. It publishes in 1 hour (shown now for the demo).":"Reply published.");return}
+ if(ds.review){reviewModal(+ds.review);return}
+ if(ds.work){workModal(pro(location.hash.slice(5)),+ds.work);return}
+ if(ds.atrade){UI.ask.trade=ds.atrade;UI.ask.to=[];UI.ask.text=document.getElementById("atext").value;rerender();return}
+ if(ds.asksend){toast("Request sent. You'll get estimates in My bookings. Nobody else sees it.");UI.ask={text:"",trade:null,to:[]};rerender();return}
+ if(ds.join){UI.join=ds.join;rerender();return}
+ if(ds.jcacc){UI.jc.acc=ds.jcacc;UI.jc.name=document.getElementById("jcn").value;rerender();return}
+ if(ds.jcbase){UI.jc.base=ds.jcbase;UI.jc.name=document.getElementById("jcn").value;rerender();return}
+ if(ds.jpacc){UI.jp.acc=ds.jpacc;UI.jp.note="";rerender();return}
+ if(ds.jptrade){UI.jp.trade=ds.jptrade;rerender();return}
+ if(ds.jpday){const d=+ds.jpday,a=UI.jp.days;const i=a.indexOf(d);i>=0?a.splice(i,1):a.push(d);rerender();return}
+ if(ds.jcustom){modal(`<h3 style="margin:0 0 6px">Add a service</h3><div class="sm mu" style="margin-bottom:10px">We check it fits your license. Popular custom services join the main catalog.</div><label class="f">Service name<input class="inp" placeholder="e.g. Pendant light installation"></label><label class="f" style="margin-top:8px">Price<input class="inp" placeholder="$ or leave empty for 'Price on quote'"></label><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button class="btn ghost" data-close="x">Cancel</button><button class="btn" data-close="x" onclick="toast('Service sent for review. Usually approved within a day.')">Add</button></div>`);return}
+ if(ds.jsubmit){toast(ds.jsubmit==="company"?"Submitted. We'll verify your CSLB license and insurance within 2 business days.":"Submitted. Next: ID and face check, then CSLB license check.");return}
+});
+function keepBook(){const a=document.getElementById("baddr"),n=document.getElementById("bnote");if(a)UI.bk.addr=a.value;if(n)UI.bk.note=n.value}
+document.addEventListener("change",e=>{const t=e.target;
+ if(t.id==="sort"){UI.sort=t.value;rerender();}
+ if(t.id==="bsvc"){keepBook();UI.bk.svc=t.value;rerender();}
+ if(t.dataset.ato){const a=UI.ask;a.text=document.getElementById("atext").value;if(t.checked){if(a.to.length>=3){t.checked=false;toast("Choose up to 3.");return}a.to.push(t.dataset.ato)}else a.to=a.to.filter(x=>x!==t.dataset.ato);rerender()}
+ if(t.dataset.jpsvc){UI.jp.svcs[t.dataset.jpsvc]=t.checked}
+ if(t.id==="jlogo"&&t.files[0]){UI.jc.name=document.getElementById("jcn").value;extractColor(t.files[0],(hex)=>{UI.jc.acc=hex||"#C97B47";rerender();toast(hex?"Brand color detected: "+hex:"No strong color found, using NovaFides copper.")})}
+ if(t.id==="jphoto"&&t.files[0]){extractColor(t.files[0],(hex,dark,url)=>{UI.jp.photo=url;if(!hex||dark>.45){UI.jp.acc="#C97B47";UI.jp.note="Dark clothing detected: using NovaFides copper. You can pick another color."}else{UI.jp.acc=hex;UI.jp.note="Color taken from your work clothes."}rerender()})}
+});
+document.addEventListener("input",e=>{if(e.target.id==="atext"){UI.ask.text=e.target.value;clearTimeout(window._at);window._at=setTimeout(()=>{const pos=e.target.selectionStart;rerender();const n=document.getElementById("atext");if(n){n.focus();n.setSelectionRange(pos,pos)}},700)}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+route();
+</script>
