@@ -247,6 +247,25 @@ textarea.inp{min-height:90px;resize:vertical}
 .skbar{display:flex;flex-direction:column;gap:10px}
 .skbar .row{font-size:14px}
 
+/* trust, deal, form */
+.tag.ok{background:rgba(127,232,176,.12);color:var(--ok)}
+.tag.no{background:rgba(255,255,255,.05);color:var(--mu2)}
+.okc{color:var(--ok)} .noc{color:var(--mu2)}
+.pill.warn{background:rgba(255,194,122,.14);color:var(--warn)}
+.facts{line-height:1.4}
+.card.deal{border-color:rgba(127,224,255,.35);background:linear-gradient(160deg,rgba(127,224,255,.07),rgba(183,166,255,.04))}
+.card.deal.over{border-color:rgba(255,194,122,.5)}
+dl.tzl,.tz dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}
+dl.tzl dt,.tz dt{color:var(--mu)} dl.tzl dd,.tz dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.card.tz{border-style:dashed}
+.phs{display:flex;gap:8px;flex-wrap:wrap}
+.ph{position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;background:var(--card2);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph button{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:1;padding:0}
+.ph.add{cursor:pointer;border-style:dashed;color:var(--acc);text-align:center;font-size:12px;line-height:1.3}
+.ph.add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.room-sum{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:30;display:flex;gap:6px 12px;flex-wrap:wrap;justify-content:center;font-size:13px;color:var(--mu);padding:4px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));background:var(--bg)}
+.wrapR.sum{top:calc(env(safe-area-inset-top,0px) + 92px)}
 /* overlay + toast */
 .ovl{position:fixed;inset:0;z-index:60;background:rgba(5,7,18,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));animation:fade .25s}
 .ovl .box{width:100%;max-width:380px;background:linear-gradient(180deg,#17163d,#0c0f26);border:1px solid var(--line);border-radius:28px;padding:28px 22px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow:hidden;animation:pop .45s cubic-bezier(.2,1.3,.4,1)}
@@ -310,9 +329,18 @@ function seed(){
   {id:206,t:"Заменить смеситель в ванной",c:"plumb",d:"Смеситель купила, нужна установка.",rw:1800,dl:"2 дня",df:2,dist:"Южный",at:NOW-60*M,st:"open",resp:[{h:2},{h:1}]},
   {id:207,t:"Установить 5 светильников",c:"electric",d:"Точечные, в натяжной потолок.",rw:2500,dl:"Неделя",df:2,dist:"Северный",at:NOW-4*60*M,st:"work",hired:11,resp:[{h:11}]}
  ];
+ const MET={1:[12,70,99,88,4.9,4.25],2:[5,88,92,55,4.3,3.5],3:[16,95,100,92,5,4.5],4:[8,65,90,40,4.2,4],5:[9,92,97,75,4.7,3.75],6:[3,85,95,50,4.4,3.9],7:[11,90,99,90,4.9,4.6],8:[19,80,100,85,5,4.4],9:[15,82,98,70,4.8,4.5],10:[12,96,99,95,4.7,4.85],11:[6,75,88,30,4,3.4]};
+ const VER={1:[1,1,0],2:[1,0,0],3:[1,1,1],4:[0,0,0],5:[1,1,0],6:[1,0,0],7:[1,0,1],8:[1,1,0],9:[1,0,0],10:[1,0,1],11:[0,0,0]};
+ H.forEach(h=>{const m=MET[h.id];h.m={resp:m[0],onTime:m[1],clean:m[2],repeat:m[3],qual:m[4],comm:m[5]};const v=VER[h.id];h.v={pass:!!v[0],self:!!v[1],deep:!!v[2]};h.sk=skillsFrom(h.m)});
+ const q102=Q.find(q=>q.id===102);q102.deal={res:3500,dl:NOW+20*60*M,extra:[],start:NOW-3*60*M};
+ q102.tz=[["Что сделать?","Свет"],["Сколько точек?","3–5"],["Материалы","Есть"]];
  return {H,Q,nextId:300};
 }
-const KEY="sozvezdie-v1";
+const WIN=20;
+function skillsFrom(m){const c=(x)=>Math.max(10,Math.min(99,Math.round(x)));return {s:c(100-m.resp*1.6),p:c(m.onTime),q:c(m.clean*.4+m.repeat*.2+m.qual*20*.4),c:c(m.comm*20)}}
+const facts=h=>({s:`отвечает в среднем за ${h.m.resp} мин`,p:`${Math.round(h.m.onTime)}% работ сданы в срок`,q:`${Math.round(h.m.clean)}% без споров · ${Math.round(h.m.repeat)}% заказывают снова`,c:`общение: ${h.m.comm.toFixed(1)} из 5 по оценкам`});
+function verTags(h,short){const v=h.v||{};return (v.pass?`<span class="tag ok">✓ Паспорт проверен</span>`:`<span class="tag no">Паспорт пока не предоставлен</span>`)+(v.self&&!short?`<span class="tag ok">✓ Самозанятый</span>`:"")+(v.deep&&!short?`<span class="tag ok">✓ Углублённая проверка</span>`:"")}
+const KEY="sozvezdie-v2";
 let DB;
 try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!DB||!DB.H)DB=seed();
@@ -321,15 +349,12 @@ const hero=id=>DB.H.find(h=>h.id===id);
 const quest=id=>DB.Q.find(q=>q.id===id);
 
 /* ============ STATE ============ */
-let tab="board", stack=[], ui={cat:"all",hcat:"all",sort:"r",cmp:{}};
+let tab="board", stack=[], ui={cat:"all",hcat:"all",sort:"r",cmp:{},boardView:"list",mineView:"list"};
 const cur=()=>stack[stack.length-1];
 const clearModal=()=>{const m=document.getElementById("modal");if(m)m.innerHTML=""};
 function go(s){clearModal();if(s.type==="hero")ui.arrive="door-back";stack.push(s);render(true)}
 function back(){clearModal();stack.pop();render(true)}
 function setTab(t){clearModal();
- const inHall=!cur()&&tab==="board"&&ui.boardView!=="list",inMine=!cur()&&tab==="mine"&&ui.mineView!=="list";
- if(inHall&&t==="mine"&&ui.mineView!=="list"){doorGo("door-mine");return}
- if(inMine&&t==="board"&&ui.boardView!=="list"){doorGo("door-hall");return}
  tab=t;stack=[];render(true)}
 
 /* ============ HELPERS ============ */
@@ -360,8 +385,9 @@ function radar(series,size=120,labels=false){
  return s+"</svg>";
 }
 const skl=sk=>`<ul class="skl">${SK.map(([k,n])=>`<li>${n}<b>${sk[k]}</b></li>`).join("")}</ul>`;
+const sklFacts=h=>{const f=facts(h);return `<div class="skbar">${SK.map(([k,n])=>`<div><div class="row"><span>${n}</span><b>${h.sk[k]}</b></div><div class="bar"><i style="width:${h.sk[k]}%"></i></div><div class="xs mu" style="margin-top:4px">${f[k]}</div></div>`).join("")}</div><p class="xs mu" style="margin:10px 0 0">Навыки считаются по последним ${WIN} сделкам: время ответа в чате, сдача до таймера, споры и повторные заказы. Оценки заказчиков — только часть расчёта.</p>`};
 const xpbar=h=>`<div class="xp"><div class="row"><span>До ${h.lv+1} уровня</span><span>${h.xp} / ${xpNext(h.lv)} XP</span></div><div class="bar"><i style="width:${h.xp/xpNext(h.lv)*100}%"></i></div></div>`;
-const status=q=>q.st==="open"?(q.mine&&q.resp.length?`<span class="pill open"><i></i>Выбери героя · ${q.resp.length}</span>`:`<span class="pill open"><i></i>Ищет героя</span>`):q.st==="work"?`<span class="pill work"><i></i>В работе</span>`:`<span class="pill done"><i></i>Выполнен${q.score?" · ★"+q.score:""}</span>`;
+const status=q=>q.st==="open"?(q.mine&&q.resp.length?`<span class="pill open"><i></i>Выбери героя · ${q.resp.length}</span>`:`<span class="pill open"><i></i>Ищет героя</span>`):q.st==="work"?(q.dispute?`<span class="pill warn"><i></i>Спор</span>`:`<span class="pill work"><i></i>В работе</span>`):`<span class="pill done"><i></i>Выполнен${q.score?" · ★"+q.score:""}</span>`;
 const IC={
  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
  board:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg>',
@@ -385,7 +411,7 @@ function qcard(q){
 }
 function vBoard(){
  const list=DB.Q.filter(q=>q.st!=="done"&&(ui.cat==="all"||q.c===ui.cat)).sort((a,b)=>b.at-a.at);
- return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Созвездие</b><small>Доска квестов · твой город</small></div></div><span class="sp"></span><button class="iconbtn" data-act="boardview" data-id="room" aria-label="Открыть зал квестов">${IC.sky}</button></header>
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Созвездие</b><small>Доска квестов · твой город</small></div></div><span class="sp"></span><button class="chip" data-act="boardview" data-id="room">✦ Зал</button></header>
  <div class="stack">
   <div class="chips">${[["all","Все"],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${ui.cat===k?"on":""}" data-act="cat" data-id="${k}">${v}</button>`).join("")}</div>
   <div class="h2">Свежие квесты <small>${plural(list.length,"квест","квеста","квестов")}</small></div>
@@ -397,7 +423,8 @@ function hcard(h){
   <div class="row l" style="gap:12px">${ava(h)}<div style="min-width:0;flex:1"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="mu sm">${CLS[h.c]} · ${plural(h.o,"квест","квеста","квестов")}</div><div class="sm"><span class="rate">★ ${h.r}</span></div></div>
    <div style="text-align:right"><div class="mu xs">от</div><div class="price" style="font-size:16px">${rub(h.pr)}</div></div></div>
   <div class="row l" style="gap:14px">${radar([h.sk],88)}${skl(h.sk)}</div>
-  <div class="tags">${h.b.slice(0,3).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
+  <div class="facts xs mu">⏱ ${facts(h).s} · ✓ ${facts(h).p}</div>
+  <div class="tags">${verTags(h,true)}${h.b.slice(0,2).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
  </button>`;
 }
 function vHeroes(){
@@ -413,7 +440,7 @@ function vHeroes(){
 function vMine(){
  const my=DB.Q.filter(q=>q.mine).sort((a,b)=>({open:0,work:1,done:2}[a.st]-{open:0,work:1,done:2}[b.st])||b.at-a.at);
  const n=st=>my.filter(q=>q.st===st).length;
- return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Мои квесты</b><small>Заказы, которые ты создал</small></div></div><span class="sp"></span><button class="iconbtn" data-act="mineview" data-id="room" aria-label="Открыть кабинет">${IC.sky}</button></header>
+ return `<header class="hdr"><div class="logo">${IC.logo}<div><b>Мои квесты</b><small>Заказы, которые ты создал</small></div></div><span class="sp"></span><button class="chip" data-act="mineview" data-id="room">✦ Кабинет</button></header>
  <div class="stack">
   <div class="summary"><div><b>${n("open")}</b><span>ждут героя</span></div><div><b>${n("work")}</b><span>в работе</span></div><div><b>${n("done")}</b><span>выполнено</span></div></div>
   ${my.map(q=>{const h=q.hired&&hero(q.hired);return `<button class="card" data-act="quest" data-id="${q.id}">
@@ -433,6 +460,8 @@ function vQuest(id){
   <div class="row"><span class="mu sm">${CATS[q.c]} · ${esc(q.dist)}</span>${status(q)}</div>
   <div class="ttl" style="font-size:20px">${esc(q.t)}</div>
   ${q.d?`<div class="mu">${esc(q.d)}</div>`:""}
+  ${q.ph&&q.ph.length?`<div class="phs">${q.ph.map((u,k)=>`<span class="ph"><img src="${u}" alt="Фото ${k+1}"></span>`).join("")}</div>`:""}
+  ${q.tz&&q.tz.length?`<dl class="tzl">${q.tz.map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>`:""}
   <div class="tags"><span class="tag">Сложность ${"★".repeat(q.df)}${"☆".repeat(5-q.df)}</span><span class="tag c">Срок: ${esc(q.dl)}</span></div>
   <div class="row"><span class="price">${rub(q.price||q.rw)}</span><span class="mu xs">${ago(q.at)}</span></div></div>`;
  let body="",bar="";
@@ -448,8 +477,9 @@ function vQuest(id){
    <div class="row l" style="gap:12px"><button style="all:unset;cursor:pointer;display:flex;gap:12px;align-items:center;flex:1;min-width:0" data-act="hero" data-id="${h.id}">${ava(h)}<span style="min-width:0"><span class="ttl" style="font-size:16px;display:block">${esc(h.n)}</span><span class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span> · ${h.o} квестов</span></span></button>
     <div style="text-align:right"><div class="price" style="font-size:17px">${rub(r.p)}</div><div class="xs mu">предлагает</div></div></div>
    <div class="row l" style="gap:14px">${radar([h.sk],92)}${skl(h.sk)}</div>
+   <div class="facts xs mu">⏱ ${facts(h).s} · ✓ ${facts(h).p}</div>
    ${r.m?`<div class="msg">«${esc(r.m)}»</div>`:""}
-   <div class="tags">${h.b.slice(0,3).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
+   <div class="tags">${verTags(h,true)}${h.b.slice(0,2).map(b=>`<span class="tag g">${ACH[b][0]} ${ACH[b][1]}</span>`).join("")}</div>
    <div class="row"><button class="check ${on?"on":""}" data-act="tcmp" data-id="${h.id}" data-q="${q.id}" aria-pressed="${on}"><i></i>Сравнить</button>
     <button class="btn sm" data-act="hire" data-id="${h.id}" data-q="${q.id}">Нанять</button></div>
   </div>`}).join(""):`<div class="card empty"><b>Герои уже смотрят твой квест</b>Первые отклики обычно приходят за несколько минут.</div>`);
@@ -459,10 +489,10 @@ function vQuest(id){
   body=`<div class="h2">${q.st==="work"?"Твой герой":"Квест выполнил"}</div>
   <button class="card" data-act="hero" data-id="${h.id}"><div class="row l" style="gap:12px">${ava(h)}<div style="flex:1"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div>${radar([h.sk],64)}</div></button>`;
   if(q.st==="work"){
-   body+=`<div class="card"><ul class="tl"><li class="ok">Герой нанят<br><span class="xs mu">${ago(q.at)}</span></li><li class="ok">Герой подтвердил квест</li><li class="now">Работа идёт</li><li>Готово, осталось оценить</li></ul></div>`;
-   bar=`<button class="btn ghost" data-act="chat" style="flex:0 0 auto;width:auto">Написать</button><button class="btn" data-act="rate" data-id="${q.id}">Квест выполнен</button>`;
+   body+=dealCard(q)+`<div class="card"><ul class="tl"><li class="ok">Деньги зарезервированы<br><span class="xs mu">${ago(q.deal?q.deal.start:q.at)}</span></li><li class="ok">Герой подтвердил условия</li><li class="now">Работа идёт</li><li>Приёмка и перевод денег герою</li></ul></div>`;
+   bar=`<button class="btn ghost" data-act="chat" style="flex:0 0 auto;width:auto">Написать</button><button class="btn" data-act="rate" data-id="${q.id}">Принять работу</button>`;
   } else {
-   body+=`<div class="card"><div class="row"><span>Твоя оценка</span><span class="rate" style="font-size:18px">${"★".repeat(q.score||5)}</span></div>${q.note?`<div class="mu">«${esc(q.note)}»</div>`:""}</div>`;
+   body+=`<div class="card"><div class="row"><span>🔒 Оплата</span><span class="okc">${rub(q.price||q.rw)} переведены герою</span></div></div><div class="card"><div class="row"><span>Твоя оценка</span><span class="rate" style="font-size:18px">${"★".repeat(q.score||5)}</span></div>${q.note?`<div class="mu">«${esc(q.note)}»</div>`:""}</div>`;
    bar=`<button class="btn" data-act="create" data-hero="${h.id}" data-cat="${q.c}">Нанять снова</button>`;
   }
  }
@@ -471,14 +501,15 @@ function vQuest(id){
 
 function vCompare(qid){
  const q=quest(qid),ids=ui.cmp[qid]||[],hs=ids.map(hero),offers=ids.map(id=>q.resp.find(r=>r.h===id));
- const rows=[...SK.map(([k,n])=>[n,hs.map(h=>h.sk[k]),"max"]),["Рейтинг",hs.map(h=>h.r),"max"],["Уровень",hs.map(h=>h.lv),"max"],["Квестов",hs.map(h=>h.o),"max"],["Цена",offers.map(o=>o.p),"min"]];
+ const rows=[...SK.map(([k,n])=>[n,hs.map(h=>h.sk[k]),"max"]),["Отвечает, мин",hs.map(h=>h.m.resp),"min"],["В срок, %",hs.map(h=>Math.round(h.m.onTime)),"max"],["Рейтинг",hs.map(h=>h.r),"max"],["Уровень",hs.map(h=>h.lv),"max"],["Квестов",hs.map(h=>h.o),"max"],["Цена",offers.map(o=>o.p),"min"]];
  return {html:subhdr("Сравнение героев")+`<div class="stack">
   <div class="card" style="align-items:center">${radar(hs.map(h=>h.sk),320,true)}
    <div class="legend">${hs.map((h,i)=>`<span><i style="background:${SERIES[i]}"></i>${esc(h.n.split(" ")[0])}</span>`).join("")}</div>
    <div class="mu sm" style="text-align:center">Чем шире созвездие, тем сильнее герой. Сразу видно, кто в чём лучше.</div></div>
   <div class="card tblwrap"><table class="cmp"><thead><tr><th></th>${hs.map((h,i)=>`<th><span style="color:${SERIES[i]}">${esc(h.n.split(" ")[0])}</span></th>`).join("")}</tr></thead><tbody>
-   ${rows.map(([n,vals,m])=>{const best=m==="max"?Math.max(...vals):Math.min(...vals);return `<tr><td>${n}</td>${vals.map(v=>`<td class="${v===best?"best":""}">${n==="Цена"?rub(v):v}</td>`).join("")}</tr>`}).join("")}
+   ${rows.map(([n,vals,m])=>{const best=m==="max"?Math.max(...vals):Math.min(...vals);return `<tr><td>${n}</td>${vals.map(v=>`<td class="${v===best&&new Set(vals).size>1?"best":""}">${n==="Цена"?rub(v):v}</td>`).join("")}</tr>`}).join("")}
   </tbody></table></div>
+  <div class="card"><div class="row" style="flex-wrap:wrap;gap:6px">${hs.map((h,i)=>`<span class="sm"><b style="color:${SERIES[i]};font-weight:500">${esc(fn(h))}:</b> ${h.v.pass?"паспорт проверен":"паспорт не предоставлен"}</span>`).join("")}</div></div>
   <div class="stack">${hs.map((h,i)=>`<button class="btn ${i?"ghost":""}" data-act="hire" data-id="${h.id}" data-q="${q.id}">${esc(fn(h))} · нанять за ${rub(offers[i].p)}</button>`).join("")}</div>
  </div>`,bar:""};
 }
@@ -489,7 +520,8 @@ function vHero(id){
   <div class="hero-top">${ava(h,"xl")}<h2>${esc(h.n)}</h2><div class="mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div>
   <div class="stats"><div><b>${h.lv}</b><span>уровень</span></div><div><b>${h.o}</b><span>квестов</span></div><div><b>${rub(h.pr).replace(" ₽","")}</b><span>₽, от</span></div></div>
   <div class="card">${xpbar(h)}</div>
-  <div class="card" style="align-items:center"><div class="h2" style="align-self:stretch;margin:0">Созвездие навыков</div>${radar([h.sk],300,true)}<div style="align-self:stretch">${skl(h.sk)}</div></div>
+  <div class="tags" style="justify-content:center">${verTags(h)}</div>
+  <div class="card" style="align-items:center"><div class="h2" style="align-self:stretch;margin:0">Созвездие навыков</div>${radar([h.sk],300,true)}<div style="align-self:stretch">${sklFacts(h)}</div></div>
   <div class="card"><div class="mu">${esc(h.bio)}</div></div>
   <div class="h2">Достижения <small>${h.b.length}</small></div>
   <div class="ach">${h.b.map(b=>`<div><b>${ACH[b][0]}</b><strong>${ACH[b][1]}</strong>${ACH[b][2]}</div>`).join("")}</div>
@@ -498,30 +530,79 @@ function vHero(id){
  </div>`,bar:`<button class="btn" data-act="create" data-hero="${h.id}" data-cat="${h.c}">Предложить квест</button>`};
 }
 
+const QQ={plumb:[["Что случилось?",["Течёт","Засор","Замена","Установка"]],["Где?",["Кухня","Ванная","Туалет","Другое"]],["Материалы",["Есть","Нужно купить","Пусть привезёт мастер"]]],electric:[["Что сделать?",["Розетки","Свет","Проводка","Щиток"]],["Сколько точек?",["1–2","3–5","Больше 5"]],["Материалы",["Есть","Нужно купить"]]],repair:[["Что сделать?",["Собрать мебель","Повесить","Починить","Другое"]],["Объём",["Мелочь","Пара часов","Целый день"]]],clean:[["Тип уборки",["Обычная","Генеральная","После ремонта","Окна"]],["Площадь",["До 40 м²","40–80 м²","Больше 80 м²"]]],move:[["Что перевезти?",["Мебель","Квартиру","Офис","Пару вещей"]],["Лифт",["Есть","Нет"]]],it:[["Что нужно?",["Сайт","Магазин","Доработка","Бот"]],["Есть дизайн?",["Да","Нет"]]],design:[["Что нужно?",["Логотип","Фирменный стиль","Соцсети","Упаковка"]],["Есть пример?",["Да","Нет"]]],tutor:[["Предмет",["Математика","Физика","Русский","Английский"]],["Цель",["Экзамен","Подтянуть","Олимпиада"]]]};
+const REL={plumb:["Вывоз мусора","Мастер на час"],electric:["Мастер на час","Уборка после работ"],repair:["Перевозка","Уборка после работ"],clean:["Мытьё окон","Вывоз мусора"],move:["Сборка мебели","Уборка"],it:["Логотип","Тексты для сайта"],design:["Печать","Сайт"],tutor:["Пробник экзамена"]};
+function tzOf(f){const t=[];(QQ[f.c]||[]).forEach(([q],k)=>{if(f.ans&&f.ans[k]!=null)t.push([q,QQ[f.c][k][1][f.ans[k]]])});if(f.rel&&f.rel.length)t.push(["Ещё нужно",f.rel.join(", ")]);return t}
 function vCreate(s){
- const h=s.hero&&hero(s.hero);const f=s.f||(s.f={t:"",c:s.cat||"plumb",d:"",rw:"",dl:"2 дня",df:2,dist:"Центральный"});
+ const h=s.hero&&hero(s.hero);const f=s.f||(s.f={t:"",c:s.cat||"plumb",d:"",rw:"",dl:"2 дня",df:2,dist:"Центральный"});f.ans=f.ans||{};f.rel=f.rel||[];f.ph=f.ph||[];
+ const tz=tzOf(f);
  return {html:subhdr("Новый квест")+`<form class="stack" id="cf" novalidate>
   ${h?`<div class="card row l" style="gap:12px;flex-direction:row">${ava(h,"s")}<span class="sm">Квест сразу увидит <b>${esc(h.n)}</b></span></div>`:""}
   <div class="fld"><label for="f-t">Что нужно сделать</label><input class="inp" id="f-t" name="t" maxlength="80" placeholder="Например: починить кран на кухне" value="${esc(f.t)}" required></div>
+  <div class="fld"><label>Фото — по ним герои точнее назовут цену</label><div class="phs">${f.ph.map((u,k)=>`<span class="ph"><img src="${u}" alt="Фото ${k+1}"><button type="button" data-act="phdel" data-id="${k}" aria-label="Удалить фото">×</button></span>`).join("")}${f.ph.length<4?`<label class="ph add"><input type="file" accept="image/*" multiple id="f-ph"><span>＋<br>Фото</span></label>`:""}</div></div>
   <div class="fld"><label>Категория</label><div class="chips">${Object.entries(CATS).map(([k,v])=>`<button type="button" class="chip ${f.c===k?"on":""}" data-act="fcat" data-id="${k}">${v}</button>`).join("")}</div></div>
-  <div class="fld"><label for="f-d">Подробности</label><textarea class="inp" id="f-d" name="d" maxlength="400" placeholder="Опиши задачу, когда удобно, что уже есть">${esc(f.d)}</textarea></div>
+  ${(QQ[f.c]||[]).map(([q,opts],k)=>`<div class="fld"><label>${q}</label><div class="tags">${opts.map((o,oi)=>`<button type="button" class="chip ${f.ans[k]===oi?"on":""}" data-act="fans" data-k="${k}" data-id="${oi}">${o}</button>`).join("")}</div></div>`).join("")}
+  <div class="fld"><label for="f-d">Подробности</label><textarea class="inp" id="f-d" name="d" maxlength="400" placeholder="Когда удобно, этаж, что уже пробовали">${esc(f.d)}</textarea></div>
   <div class="row" style="align-items:flex-start">
-   <div class="fld" style="flex:1"><label for="f-rw">Награда, ₽</label><input class="inp" id="f-rw" name="rw" inputmode="numeric" placeholder="2000" value="${esc(f.rw)}"></div>
+   <div class="fld" style="flex:1"><label for="f-rw">Бюджет, ₽</label><input class="inp" id="f-rw" name="rw" inputmode="numeric" placeholder="2000" value="${esc(f.rw)}"></div>
    <div class="fld" style="flex:1"><label for="f-dl">Срок</label><select class="inp" id="f-dl" name="dl">${[...new Set([f.dl,"Сегодня","Завтра","2 дня","Неделя","Не спешу"])].map(o=>`<option ${f.dl===o?"selected":""}>${o}</option>`).join("")}</select></div>
   </div>
   <div class="fld"><label for="f-dist">Район</label><input class="inp" id="f-dist" name="dist" maxlength="40" value="${esc(f.dist)}"></div>
   <div class="fld"><label>Сложность</label><div class="starsel" role="radiogroup" aria-label="Сложность">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=f.df?"on":""}" data-act="fdf" data-id="${i}" aria-label="${i} из 5">★</button>`).join("")}</div></div>
+  ${REL[f.c]?`<div class="fld"><label>Часто заказывают вместе</label><div class="tags">${REL[f.c].map(r=>`<button type="button" class="chip ${f.rel.includes(r)?"on":""}" data-act="frel" data-id="${esc(r)}">＋ ${r}</button>`).join("")}</div></div>`:""}
+  <div class="card tz"><div class="row"><b style="font-weight:500">Техническое задание</b><span class="xs mu">так его увидят герои</span></div>
+   <dl>${[["Задача",f.t||"—"],["Категория",CATS[f.c]],...tz,["Фото",f.ph.length?plural(f.ph.length,"фото","фото","фото"):"нет"],["Срок",f.dl],["Район",f.dist]].map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
+   <div class="xs mu">Отклики для героев бесплатны. Ты платишь только за выполненную работу, деньги хранятся у сервиса до твоей приёмки.</div></div>
   <div class="mu sm" id="ferr" role="alert"></div>
  </form>`,bar:`<button class="btn" data-act="publish">Опубликовать квест</button>`};
 }
 
+function fmtDl(t){return new Date(t).toLocaleString("ru-RU",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function leftTxt(t){const d=t-Date.now(),a=Math.abs(d),h=Math.floor(a/36e5),dd=Math.floor(h/24),mm=Math.floor(a%36e5/6e4);const x=dd?`${dd} д ${h%24} ч`:h?`${h} ч ${mm} мин`:`${mm} мин`;return d>=0?"осталось "+x:"просрочено на "+x}
+function dlOptions(){const at=(days,hh)=>{const d=new Date();d.setDate(d.getDate()+days);d.setHours(hh,0,0,0);return d.getTime()};return [["Сегодня до 20:00",at(0,20)],["Завтра до 20:00",at(1,20)],["Через 2 дня",at(2,20)],["Через неделю",at(7,20)]].filter(([,t])=>t>Date.now()+36e5)}
+function couponFor(h){const sv=(DB.saved||[]).filter(k=>k.startsWith(h.id+":"));let best=0,name="";sv.forEach(k=>{const c=coupons(h).find(x=>x.id===k.split(":")[1]);const m=c&&/(\d+)%/.exec(c.pc);if(m&&+m[1]>best){best=+m[1];name=c.t}});return best?{pct:best,name}:null}
+function vDeal(st){
+ const q=quest(st.q),h=hero(st.h),r=q.resp.find(x=>x.h===st.h),opts=dlOptions();
+ if(st.di==null){const map={"Сегодня":0,"Завтра":1,"2 дня":2,"Неделя":3};st.di=Math.min(opts.length-1,map[q.dl]??2)}
+ const cp=couponFor(h),disc=cp?Math.round(r.p*cp.pct/100):0,total=r.p-disc;
+ return {html:subhdr("Безопасная сделка")+`<div class="stack">
+  <div class="card"><div class="row l" style="gap:12px">${ava(h)}<div style="flex:1;min-width:0"><div class="ttl" style="font-size:16px">${esc(h.n)}</div><div class="sm mu">${CLS[h.c]} · <span class="rate">★ ${h.r}</span> · ${facts(h).p}</div></div></div><div class="tags">${verTags(h,true)}</div></div>
+  <div class="h2">Условия сделки</div>
+  <div class="card"><dl class="tzl"><dt>Задача</dt><dd>${esc(q.t)}</dd>${(q.tz||[]).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}<dt>Район</dt><dd>${esc(q.dist)}</dd></dl>
+   <div class="fld"><label>Срок сдачи — запустится таймер</label><div class="tags">${opts.map(([n],k)=>`<button type="button" class="chip ${st.di===k?"on":""}" data-act="ddl" data-id="${k}">${n}</button>`).join("")}</div></div></div>
+  <div class="card"><div class="plist">
+   <div><span>Работа</span><b>${rub(r.p)}</b></div>
+   ${cp?`<div><span>Купон «${esc(cp.name)}» −${cp.pct}%</span><b style="color:var(--ok)">−${rub(disc)}</b></div>`:""}
+   <div><span>Сервисный сбор для заказчика</span><b>0 ₽</b></div>
+   <div style="border:0"><span style="font-weight:600">Итого к резерву</span><b class="price" style="font-size:20px">${rub(total)}</b></div></div>
+   <div class="xs mu">Других платежей не будет. Комиссию сервиса платит герой, и только с выполненного заказа.</div></div>
+  <div class="card"><ul class="tl"><li class="ok">Деньги резервируются у сервиса, герой их пока не получает</li><li class="ok">За сутки до срока герою придёт напоминание</li><li class="ok">Ты принимаешь работу — деньги переводятся герою</li><li class="ok">Если срок сорван — отмена в одно нажатие и полный возврат</li></ul>
+   <div class="xs mu">Если что-то пошло не так, открой спор: специалист разберёт его по условиям и переписке в течение 24 часов.</div></div>
+ </div>`,bar:`<button class="btn" data-act="confirmdeal">🔒 Зарезервировать ${rub(total)} и нанять</button>`};
+}
+function dealCard(q){
+ const d=q.deal;if(!d)return"";const over=Date.now()>d.dl,soon=!over&&d.dl-Date.now()<864e5;
+ return `<div class="card deal ${over?"over":""}">
+  <div class="row"><b style="font-weight:500">🔒 Зарезервировано</b><span class="price" style="font-size:20px">${rub(q.price)}</span></div>
+  ${d.extra.length?`<div class="xs mu">Включая доплаты: ${d.extra.map(x=>`${esc(x.d)} — ${rub(x.a)}`).join("; ")}</div>`:""}
+  <div class="row"><span class="sm">Срок: ${fmtDl(d.dl)}</span><span class="pill ${over?"warn":"open"}"><i></i>${leftTxt(d.dl)}</span></div>
+  ${soon?`<div class="xs mu">До срока меньше суток — герою отправлено напоминание.</div>`:""}
+  ${over?`<div class="sm" style="color:var(--warn)">Срок сорван. Можно отменить сделку — деньги вернутся полностью.</div><button class="btn sm" data-act="dcancel" data-id="${q.id}" style="width:100%">Отменить и вернуть ${rub(q.price)}</button>`:""}
+  ${q.dispute?`<div class="sm" style="color:var(--warn)">Открыт спор. Специалист ответит в течение 24 часов.</div>`:""}
+  ${ui.extraOpen===q.id?`<div class="row" style="gap:8px;align-items:flex-end"><div class="fld" style="flex:1"><label for="x-d">Что добавить</label><input class="inp" id="x-d" maxlength="60" placeholder="Ещё одна розетка"></div><div class="fld" style="width:110px"><label for="x-a">Сумма, ₽</label><input class="inp" id="x-a" inputmode="numeric" placeholder="500"></div></div><button class="btn sm" data-act="dextra2" data-id="${q.id}" style="width:100%">Доплатить и обновить условия</button>`
+   :`<div class="row" style="gap:8px"><button class="btn sm ghost" data-act="dextra" data-id="${q.id}" style="flex:1">＋ Доп. работы</button><button class="btn sm ghost" data-act="ddispute" data-id="${q.id}" style="flex:1">Открыть спор</button></div>`}
+ </div>`;
+}
 function vRate(qid){
- const q=quest(qid),h=hero(q.hired),s=cur();s.v=s.v||{s:5,q:5,p:5,c:5};
- return {html:subhdr("Оценка квеста")+`<div class="stack">
-  <div class="hero-top">${ava(h,"xl")}<h2>Как ${gv(h,"справился","справилась")} ${esc(fn(h))}?</h2><div class="mu sm">Оценка изменит созвездие героя и даст ему опыт</div></div>
-  <div class="card">${SK.map(([k,n])=>`<div class="row"><span>${n}</span><div class="starsel">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=s.v[k]?"on":""}" data-act="rstar" data-k="${k}" data-id="${i}" aria-label="${n}: ${i} из 5">★</button>`).join("")}</div></div>`).join("")}</div>
+ const q=quest(qid),h=hero(q.hired),s=cur();s.v=s.v||{q:5,c:5,again:1};const onTime=!q.deal||Date.now()<=q.deal.dl;
+ return {html:subhdr("Приёмка работы")+`<div class="stack">
+  <div class="hero-top">${ava(h,"xl")}<h2>Как ${gv(h,"справился","справилась")} ${esc(fn(h))}?</h2><div class="mu sm">После приёмки ${rub(q.price||q.rw)} переведутся герою</div></div>
+  <div class="card">${[["q","Качество работы"],["c","Общение"]].map(([k,n])=>`<div class="row"><span>${n}</span><div class="starsel">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=s.v[k]?"on":""}" data-act="rstar" data-k="${k}" data-id="${i}" aria-label="${n}: ${i} из 5">★</button>`).join("")}</div></div>`).join("")}
+   <div class="row"><span>Сдано в срок</span><span class="${onTime?"okc":"noc"}">${onTime?"✓ да, по таймеру":"нет, срок был сорван"}</span></div></div>
+  <div class="card"><div class="row"><span>Наняли бы ${gv(h,"его","её")} снова?</span><div class="seg" style="width:140px">${[[1,"Да"],[0,"Нет"]].map(([v,t])=>`<button type="button" class="${s.v.again===v?"on":""}" data-act="ragain" data-id="${v}">${t}</button>`).join("")}</div></div><div class="xs mu">Этот ответ видит только сервис. Он честнее звёзд и влияет на навык «Качество».</div></div>
   <div class="fld"><label for="r-note">Отзыв (по желанию)</label><textarea class="inp" id="r-note" maxlength="300" placeholder="Что понравилось?">${esc(s.note||"")}</textarea></div>
- </div>`,bar:`<button class="btn" data-act="sendrate" data-id="${q.id}">Отправить оценку</button>`};
+  <div class="xs mu">Отзыв опубликуется, когда герой тоже оценит сделку, или через 14 дней. Так никто не подстраивает оценку под чужую.</div>
+ </div>`,bar:`<button class="btn" data-act="sendrate" data-id="${q.id}">Принять работу и перевести ${rub(q.price||q.rw)}</button>`};
 }
 
 /* ============ HERO ROOM ============ */
@@ -647,7 +728,8 @@ function chip(x,y,t){const w=t.length*8.4+44;return `<g transform="translate(${x
 const ROOMOBJ=[["sky","Навыки",IC.sky],["works","Работы",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>'],["prices","Цены и скидки",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.5"/></svg>'],["reviews","Отзывы",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>'],["trophy","Награды",IC.heroes],["sched","Время",'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'],["hero","Обо мне",IC.mine]];
 function vRoom(h){
  return `<header class="room-hdr"><button class="iconbtn" data-act="back" aria-label="Назад">${IC.back}</button><div class="nm"><b>Комната героя</b><span>${esc(h.n)} · ${CLS[h.c]}</span></div><button class="iconbtn" data-act="herolist" data-id="${h.id}" aria-label="Показать списком"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></header>
- <div class="wrapR" id="wrapR"><svg class="scene" id="scene" viewBox="-200 0 1700 860" preserveAspectRatio="xMidYMid slice">${roomSVG(h)}</svg></div>
+ <div class="room-sum"><span class="rate">★ ${h.r}</span><span>${h.o} квестов</span><span>⏱ ${h.m.resp} мин</span><span>от ${rub(h.pr)}</span><span class="${h.v.pass?"okc":"noc"}">${h.v.pass?"✓ паспорт":"паспорт не предоставлен"}</span></div>
+ <div class="wrapR sum" id="wrapR"><svg class="scene" id="scene" viewBox="-200 0 1700 860" preserveAspectRatio="xMidYMid slice">${roomSVG(h)}</svg></div>
  <div class="hint" id="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 12h11M15 8l4 4-4 4M5 9v6"/></svg>Проведи пальцем, чтобы осмотреться</div>
  <div class="room-bar"><div class="chips">${ROOMOBJ.map(([k,n,ic])=>`<button class="chip" data-act="obj" data-id="${k}">${ic}${n}</button>`).join("")}</div>
   <div class="acts"><button class="btn" data-act="create" data-hero="${h.id}" data-cat="${h.c}">Предложить квест</button></div></div>`;
@@ -679,8 +761,7 @@ function openObj(obj){
 function sheet(obj,h,extra){
  const ic=(ROOMOBJ.find(o=>o[0]===obj)||ROOMOBJ[0])[2];let t="",b="";
  if(obj==="sky"){t="Созвездие навыков";b=`<div style="display:flex;justify-content:center">${radar([h.sk],300,true)}</div>
-  <div class="skbar">${SK.map(([k,n])=>`<div><div class="row"><span>${n}</span><b>${h.sk[k]}</b></div><div class="bar"><i style="width:${h.sk[k]}%"></i></div></div>`).join("")}</div>
-  <p class="mu sm">Навыки считаются по оценкам заказчиков. После каждого квеста созвездие героя немного меняется.</p>`}
+  ${sklFacts(h)}`}
  if(obj==="works"){t="Фото работ";b=`<div class="works">${WORKS[h.c].map((w,i)=>`<button class="work" data-act="work" data-id="${i}"><svg viewBox="0 0 160 120">${workSVG(h,i,true,"t"+i)}</svg><span>${w}</span></button>`).join("")}</div><p class="mu xs" style="margin-top:12px">В прототипе вместо настоящих фото стоят рисунки-заглушки. Нажми на работу, чтобы сравнить «до» и «после».</p>`}
  if(obj==="work"){const i=extra;t=WORKS[h.c][i];b=`<div class="ba" id="ba"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice">${workSVG(h,i,false,"b"+i)}</svg><svg class="after" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice">${workSVG(h,i,true,"a"+i)}</svg><span class="lb" style="left:10px">До</span><span class="lb" style="right:10px">После</span><span class="handle"></span><input type="range" min="0" max="100" value="50" aria-label="Сравнить до и после" id="baR"></div>
   <p class="mu sm">Двигай ползунок, чтобы сравнить результат.</p><button class="btn ghost" data-act="obj" data-id="works">← Все работы</button>`}
@@ -696,7 +777,9 @@ function sheet(obj,h,extra){
  if(obj==="hero"){t="Обо мне";b=`<div class="stack"><div class="row l" style="gap:14px">${ava(h)}<div><div class="ttl">${esc(h.n)}</div><div class="mu sm">${CLS[h.c]} · <span class="rate">★ ${h.r}</span></div></div></div>
   <div class="mu">${esc(h.bio)}</div>
   <div class="stats"><div><b>${h.lv}</b><span>уровень</span></div><div><b>${h.o}</b><span>квестов</span></div><div><b>~${5+h.id%4*5}</b><span>мин на ответ</span></div></div>
-  <div class="card">${xpbar(h)}</div></div>`}
+  <div class="tags">${verTags(h)}</div>
+  <div class="card">${xpbar(h)}</div>
+  <div class="card sm"><b style="font-weight:500">Как растёт уровень</b><div class="mu">За каждый принятый заказ герой получает опыт: 100 XP + 20 за каждую звезду сложности, +50 при сдаче в срок. 1000 XP — новый уровень. Уровень не падает за перерыв в работе. Понизить его может только проигранный спор, и герой всегда видит причину.</div></div></div>`}
  sheetRaw(t,ic,b);
  const r=document.getElementById("baR");if(r)r.addEventListener("input",()=>document.getElementById("ba").style.setProperty("--cut",r.value+"%"));
 }
@@ -984,7 +1067,7 @@ function render(scrollTop){
  else if(!s&&tab==="mine"&&ui.mineView!=="list"){html=false}
  else if(!s){html=tab==="board"?vBoard():tab==="heroes"?vHeroes():vMine();}
  else if(s.type==="hero"){const h=hero(s.id);appEl.className="app roomv";appEl.innerHTML=vRoom(h);navEl.innerHTML="";initRoom(h);return}
- else{const r=s.type==="quest"?vQuest(s.id):s.type==="herolist"?vHero(s.id):s.type==="compare"?vCompare(s.id):s.type==="create"?vCreate(s):vRate(s.id);html=r.html??r;bar=r.bar||"";}
+ else{const r=s.type==="quest"?vQuest(s.id):s.type==="herolist"?vHero(s.id):s.type==="deal"?vDeal(s):s.type==="compare"?vCompare(s.id):s.type==="create"?vCreate(s):vRate(s.id);html=r.html??r;bar=r.bar||"";}
  if(html===null||html===false){appEl.className="app roomv";appEl.innerHTML=html===null?vHall():vMineRoom()}
  else{appEl.className="app"+(s?" sub":"");appEl.innerHTML=`<div class="${scrollTop?"screen":""}">${html}</div>`}
  const waiting=DB.Q.filter(q=>q.mine&&q.st==="open"&&q.resp.length).length;
@@ -1009,22 +1092,25 @@ function burst(x,y,n=34){if(reduce)return;const cols=["#b7a6ff","#7fe0ff","#ffd8
 function modal(html){const m=document.getElementById("modal");m.innerHTML=`<div class="ovl" role="dialog" aria-modal="true"><div class="box">${html}</div></div>`;const b=m.querySelector(".box").getBoundingClientRect();setTimeout(()=>burst(b.left+b.width/2,b.top+70),120);m.querySelector("[data-act]")?.focus()}
 function closeModal(){document.getElementById("modal").innerHTML=""}
 
-function hire(qid,hid){
- const q=quest(qid),h=hero(hid),r=q.resp.find(x=>x.h===hid);
- q.st="work";q.hired=hid;q.price=r.p;q.at=Date.now();delete ui.cmp[qid];save();
+function hire(qid,hid,price,dl){
+ const q=quest(qid),h=hero(hid);
+ q.st="work";q.hired=hid;q.price=price;q.at=Date.now();q.deal={res:price,dl,extra:[],start:Date.now()};delete ui.cmp[qid];save();
  stack=[{type:"quest",id:qid}];tab="mine";render(true);
- modal(`${ava(h,"xl")}<h3>${esc(fn(h))} ${gv(h,"принял","приняла")} квест!</h3><p>«${esc(q.t)}»</p><p class="sm">${gv(h,"Он","Она")} свяжется с тобой в течение 15 минут. Оплата ${rub(r.p)} — после выполнения.</p><button class="btn" data-act="close" style="margin-top:6px">Отлично</button>`);
+ modal(`${ava(h,"xl")}<h3>${esc(fn(h))} ${gv(h,"принял","приняла")} квест!</h3><p>«${esc(q.t)}»</p><p class="sm">${rub(price)} зарезервированы у сервиса. ${gv(h,"Он","Она")} получит деньги, когда ты примешь работу. Срок: ${fmtDl(dl)}.</p><button class="btn" data-act="close" style="margin-top:6px">Отлично</button>`);
 }
 function sendRate(qid){
  const q=quest(qid),h=hero(q.hired),v=cur().v,note=document.getElementById("r-note")?.value.trim()||"";
- const avg=(v.s+v.q+v.p+v.c)/4;
- SK.forEach(([k])=>{h.sk[k]=Math.max(10,Math.min(100,Math.round(h.sk[k]*.85+v[k]*20*.15)))});
- h.r=Math.round(((h.r*h.o)+avg)/(h.o+1)*100)/100;h.o++;
- const gain=100+q.df*20+(avg===5?50:0),oldXp=h.xp,oldLv=h.lv;h.xp+=gain;let up=false;
+ const onTime=!q.deal||Date.now()<=q.deal.dl,w=1/WIN,old={...h.sk};
+ h.m.onTime=h.m.onTime*(1-w)+(onTime?100:0)*w;h.m.clean=h.m.clean*(1-w)+(q.dispute?0:100)*w;h.m.repeat=h.m.repeat*(1-w)+(v.again?100:0)*w;
+ h.m.qual=h.m.qual*(1-w)+v.q*w;h.m.comm=h.m.comm*(1-w)+v.c*w;h.sk=skillsFrom(h.m);
+ const avg=(v.q+v.c)/2;h.r=Math.round(((h.r*h.o)+avg)/(h.o+1)*100)/100;h.o++;
+ const gain=100+q.df*20+(onTime?50:0),oldXp=h.xp,oldLv=h.lv;h.xp+=gain;let up=false;
  while(h.xp>=xpNext(h.lv)){h.xp-=xpNext(h.lv);h.lv++;up=true}
- q.st="done";q.score=Math.round(avg);q.note=note;if(note)h.rv.unshift(["Вы",note,Math.round(avg)]);save();
+ q.st="done";q.score=Math.round(avg);q.note=note;if(q.deal)q.deal.paid=true;if(note)h.rv.unshift(["Вы",note,Math.round(avg)]);save();
  stack=[{type:"quest",id:qid}];render(true);
- modal(`${ava(h,"xl")}<h3>${up?`Новый уровень: ${h.lv}!`:`${esc(fn(h))}: +${gain} XP`}</h3><p>${up?`Благодаря тебе ${esc(fn(h))} ${gv(h,"поднялся","поднялась")} на новый уровень.`:"Спасибо за оценку! Она помогает другим выбрать героя."}</p>
+ const ch=SK.filter(([k])=>h.sk[k]!==old[k]).map(([k,n])=>`<div class="row sm"><span>${n}</span><span>${old[k]} → <b style="color:${h.sk[k]>old[k]?"var(--ok)":"var(--warn)"}">${h.sk[k]}</b></span></div>`).join("");
+ modal(`${ava(h,"xl")}<h3>${up?`Новый уровень: ${h.lv}!`:`${esc(fn(h))}: +${gain} XP`}</h3><p>${rub(q.price||q.rw)} переведены герою. ${up?`Благодаря тебе ${esc(fn(h))} ${gv(h,"поднялся","поднялась")} на новый уровень.`:"Спасибо, оценка помогает другим выбрать героя."}</p>
+  ${ch?`<div style="align-self:stretch;text-align:left" class="card">${ch}</div>`:""}
   <div class="xp" style="align-self:stretch;text-align:left"><div class="row"><span>Уровень ${h.lv}</span><span>${h.xp} / ${xpNext(h.lv)} XP</span></div><div class="bar"><i id="xpb" style="width:${up?0:oldXp/xpNext(oldLv)*100}%"></i></div></div>
   <button class="btn" data-act="close" style="margin-top:6px">Готово</button>`);
  requestAnimationFrame(()=>setTimeout(()=>{const b=document.getElementById("xpb");if(b)b.style.width=h.xp/xpNext(h.lv)*100+"%"},200));
@@ -1034,8 +1120,8 @@ function publish(){
  f.t=form.t.value.trim();f.d=form.d.value.trim();f.rw=form.rw.value.replace(/\D/g,"");f.dl=form.dl.value;f.dist=form.dist.value.trim()||"Центральный";
  const err=document.getElementById("ferr");
  if(f.t.length<3){err.textContent="Напиши, что нужно сделать: хотя бы пару слов.";form.t.focus();return}
- if(!f.rw||+f.rw<100){err.textContent="Укажи награду: от 100 ₽.";form.rw.focus();return}
- const q={id:DB.nextId++,mine:true,t:f.t,c:f.c,d:f.d,rw:+f.rw,dl:f.dl,df:f.df,dist:f.dist,at:Date.now(),st:"open",resp:[]};
+ if(!f.rw||+f.rw<100){err.textContent="Укажи бюджет: от 100 ₽.";form.rw.focus();return}
+ const q={id:DB.nextId++,mine:true,t:f.t,c:f.c,d:f.d,rw:+f.rw,dl:f.dl,df:f.df,dist:f.dist,at:Date.now(),st:"open",resp:[],tz:tzOf(f),ph:f.ph||[]};
  DB.Q.push(q);save();
  const invited=s.hero;tab="mine";stack=[{type:"quest",id:q.id}];render(true);
  toast(`${IC.sky.replace('<svg','<svg width="22" height="22" style="color:var(--acc2);flex:none"')}<span>Квест опубликован. Герои уже смотрят!</span>`);
@@ -1068,13 +1154,25 @@ document.addEventListener("click",e=>{
   case"create":go({type:"create",hero:el.dataset.hero?+el.dataset.hero:null,cat:el.dataset.cat||null});break;
   case"tcmp":{const q=+el.dataset.q,l=ui.cmp[q]||(ui.cmp[q]=[]),h=+id;const i=l.indexOf(h);if(i>=0)l.splice(i,1);else{if(l.length>=4){toast("Сравнить можно до 4 героев");break}l.push(h)}render(false);break}
   case"compare":go({type:"compare",id:+id});break;
-  case"hire":{const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,16);setTimeout(()=>hire(+el.dataset.q,+id),180);break}
+  case"hire":go({type:"deal",q:+el.dataset.q,h:+id});break;
+  case"ddl":cur().di=+id;render(false);break;
+  case"confirmdeal":{const st=cur(),q=quest(st.q),h=hero(st.h),r=q.resp.find(x=>x.h===st.h),cp=couponFor(h),total=r.p-(cp?Math.round(r.p*cp.pct/100):0),dl=dlOptions()[st.di][1];
+   if(cp)DB.saved=DB.saved.filter(k=>!(k.startsWith(h.id+":")&&/%/.test((coupons(h).find(c=>c.id===k.split(":")[1])||{}).pc||"")));
+   const b=el.getBoundingClientRect();burst(b.left+b.width/2,b.top+b.height/2,16);setTimeout(()=>hire(st.q,st.h,total,dl),180);break}
+  case"dextra":ui.extraOpen=+id;render(false);break;
+  case"dextra2":{const q=quest(+id),a=+(document.getElementById("x-a").value.replace(/\D/g,"")),d=document.getElementById("x-d").value.trim()||"Доп. работы";if(!a){toast("Укажи сумму доплаты");break}q.deal.extra.push({a,d});q.price+=a;ui.extraOpen=null;save();render(false);toast(`Доплата ${rub(a)} зарезервирована, условия обновлены`);break}
+  case"ddispute":sheetRaw("Открыть спор",IC.mine,`<p class="mu">Деньги остаются в резерве, пока спор не решён. Специалист поддержки (живой человек) изучит условия сделки и вашу переписку и ответит в течение 24 часов.</p><button class="btn" data-act="ddispute2" data-id="${id}">Открыть спор</button>`);break;
+  case"ddispute2":{const q=quest(+id);q.dispute=true;save();clearModal();render(false);toast("Спор открыт. Ответим в течение 24 часов");break}
+  case"dcancel":{const q=quest(+id),h=hero(q.hired),w=1/WIN;h.m.onTime=h.m.onTime*(1-w);h.sk=skillsFrom(h.m);toast(`Сделка отменена. ${rub(q.price)} вернутся на карту`);q.st="open";q.hired=null;q.deal=null;q.price=null;q.dispute=false;q.resp=q.resp.filter(r=>r.h!==h.id);save();render(true);break}
+  case"ragain":cur().v.again=+id;cur().note=document.getElementById("r-note")?.value;render(false);break;
   case"close":closeModal();break;
   case"chat":toast("Чат с героем появится в полной версии");break;
   case"rate":go({type:"rate",id:+id});break;
   case"rstar":{const s=cur();s.note=document.getElementById("r-note")?.value;s.v[el.dataset.k]=+id;render(false);break}
   case"sendrate":sendRate(+id);break;
-  case"fcat":case"fdf":{const s=cur(),form=document.getElementById("cf");Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});if(a==="fcat")s.f.c=id;else s.f.df=+id;render(false);break}
+  case"fcat":case"fdf":case"fans":case"frel":case"phdel":{const s=cur(),form=document.getElementById("cf");Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});
+   if(a==="fcat"){if(s.f.c!==id){s.f.ans={};s.f.rel=[]}s.f.c=id}else if(a==="fdf")s.f.df=+id;else if(a==="fans"){const k=+el.dataset.k;s.f.ans[k]=s.f.ans[k]===+id?null:+id}else if(a==="frel"){const i=s.f.rel.indexOf(id);if(i>=0)s.f.rel.splice(i,1);else s.f.rel.push(id)}else s.f.ph.splice(+id,1);
+   const y=scrollY;render(false);scrollTo(0,y);break}
   case"publish":publish();break;
   case"boardview":ui.boardView=id;render(true);break;
   case"mineview":ui.mineView=id;render(true);break;
@@ -1086,10 +1184,14 @@ document.addEventListener("click",e=>{
   case"coupon":{DB.saved=DB.saved||[];if(!DB.saved.includes(id))DB.saved.push(id);save();sheet("prices",roomH);toast("Купон сохранён. Скидка применится при найме");break}
   case"slot":{const h=roomH;closeSheet();go({type:"create",hero:h.id,cat:h.c,f:{t:"",c:h.c,d:"",rw:"",dl:id,df:2,dist:"Центральный"}});break}
   case"reset":DB=seed();save();ui.cmp={};render(true);toast("Демо-данные восстановлены");break;
-  case"about":modal(`<span style="display:block">${IC.logo.replace('width="34" height="34"','width="64" height="64"')}</span><h3>Созвездие</h3><p>Доска квестов, где ты выбираешь исполнителя как героя в игре. У каждого героя есть уровень, рейтинг, достижения и созвездие навыков.</p><p class="sm">Это прототип: данные хранятся только в твоём браузере.</p><button class="btn" data-act="close" style="margin-top:6px">Понятно</button>`);break;
+  case"about":modal(`<span style="display:block">${IC.logo.replace('width="34" height="34"','width="64" height="64"')}</span><h3>Созвездие</h3><p>Доска квестов, где ты выбираешь исполнителя как героя в игре. Навыки героя считаются по реальным сделкам, а не только по звёздам.</p><p class="sm">Отклики для героев бесплатны. Деньги заказчика хранятся у сервиса, пока он не примет работу.</p><p class="sm">Это прототип: данные хранятся только в твоём браузере.</p><button class="btn" data-act="close" style="margin-top:6px">Понятно</button>`);break;
  }
 });
 document.addEventListener("submit",e=>{e.preventDefault();publish()});
+document.addEventListener("change",e=>{if(e.target.id!=="f-ph")return;const s=cur(),form=document.getElementById("cf");if(!s||!s.f)return;
+ Object.assign(s.f,{t:form.t.value,d:form.d.value,rw:form.rw.value,dl:form.dl.value,dist:form.dist.value});
+ const files=[...e.target.files].slice(0,4-s.f.ph.length);let left=files.length;if(!left)return;
+ files.forEach(file=>{const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const k=Math.min(1,360/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);s.f.ph.push(c.toDataURL("image/jpeg",.72));if(--left===0){const y=scrollY;render(false);scrollTo(0,y)}};img.onerror=()=>{if(--left===0)render(false)};img.src=rd.result};rd.readAsDataURL(file)})});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();unzoom()}});
 
 /* ============ STARFIELD ============ */
