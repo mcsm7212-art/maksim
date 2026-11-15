@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "market": "San Francisco Bay Area (SF to San Jose)",
+    "currency": "USD",
+    "priceNote": "Typical total for Standard level (labor + standard parts). Estimates built from 2025-2026 Bay Area cost guides and contractor pages; verify with local pros before launch. Handyman rates are an estimate.",
+    "flags": {
+      "P": "Permit usually required",
+      "E": "Emergency / same-day available",
+      "H": "Handyman can do it (under $1,000 total, no permit, no work inside walls)"
+    },
+    "tiers": {
+      "economy": {"name": "Economy", "ru": "Эконом", "multiplier": 0.85},
+      "standard": {"name": "Standard", "ru": "Стандарт", "multiplier": 1.0},
+      "premium": {"name": "Premium", "ru": "Премиум", "multiplier": 1.35}
+    }
+  },
+  "trades": [
+    {
+      "id": "plumbing", "name": "Plumbing", "ru": "Сантехника", "license": "CSLB C-36 Plumbing",
+      "groups": [
+        {"name": "Faucets & Sinks", "ru": "Смесители и раковины", "items": [
+          ["Faucet replacement", "Замена смесителя", 250, 450, "job", "H"],
+          ["Kitchen sink installation", "Установка кухонной мойки", 450, 1100, "job", ""],
+          ["Bathroom vanity & sink installation", "Установка тумбы с раковиной", 500, 1500, "job", ""],
+          ["Garbage disposal installation", "Установка измельчителя отходов", 350, 600, "job", "H"],
+          ["Garbage disposal repair", "Ремонт измельчителя", 150, 300, "job", "E"],
+          ["Shut-off valve replacement", "Замена запорного крана", 200, 400, "job", ""],
+          ["Under-sink leak repair", "Устранение течи под раковиной", 175, 350, "job", "E"]
+        ]},
+        {"name": "Toilets", "ru": "Унитазы", "items": [
+          ["Running toilet repair", "Ремонт бачка (течёт, не набирает)", 150, 300, "job", "H"],
+          ["Toilet installation / replacement", "Установка или замена унитаза", 400, 700, "job", ""],
+          ["Toilet reseal (wax ring)", "Переустановка, замена уплотнения", 200, 350, "job", "H"],
+          ["Clogged toilet", "Засор унитаза", 150, 300, "job", "E"],
+          ["Bidet seat installation", "Установка биде-крышки", 150, 350, "job", "H"]
+        ]},
+        {"name": "Drains & Sewer", "ru": "Канализация и засоры", "items": [
+          ["Sink, tub or shower drain clearing", "Прочистка раковины, ванны, душа", 175, 300, "job", "E"],
+          ["Main sewer line clearing", "Прочистка основной канализации", 300, 600, "job", "E"],
+          ["Hydro-jetting", "Гидродинамическая прочистка", 500, 1000, "job", ""],
+          ["Sewer camera inspection", "Видеодиагностика канализации", 250, 450, "job", ""],
+          ["Sewer line repair / replacement", "Ремонт и замена канализационной трубы", 3000, 15000, "job", "P"],
+          ["Cleanout installation", "Установка ревизии", 800, 2500, "job", "P"]
+        ]},
+        {"name": "Water Heaters", "ru": "Водонагреватели", "items": [
+          ["Water heater repair", "Ремонт водонагревателя", 200, 500, "job", "E"],
+          ["Tank water heater replacement", "Замена бойлера (бак 40–50 галлонов)", 2200, 3800, "job", "PE"],
+          ["Tankless water heater installation", "Установка проточного водонагревателя", 5000, 9000, "job", "P"],
+          ["Tankless flush & descaling", "Промывка проточного от накипи", 200, 350, "job", ""],
+          ["Expansion tank installation", "Расширительный бак", 300, 600, "job", "P"],
+          ["Hot water recirculation pump", "Насос рециркуляции горячей воды", 700, 1500, "job", ""]
+        ]},
+        {"name": "Pipes & Leaks", "ru": "Трубы и протечки", "items": [
+          ["Leak detection", "Поиск протечки", 250, 600, "job", "E"],
+          ["Pipe leak repair", "Ремонт трубы", 300, 900, "job", "E"],
+          ["Burst pipe emergency", "Прорыв трубы (срочно)", 400, 1500, "job", "E"],
+          ["Whole-house repipe (PEX / copper)", "Замена всех труб в доме", 8000, 20000, "job", "P"],
+          ["Pressure regulator (PRV) replacement", "Регулятор давления воды", 450, 900, "job", ""],
+          ["Outdoor spigot (hose bib) replacement", "Замена уличного крана", 200, 400, "job", "H"],
+          ["Slab leak repair", "Протечка под фундаментом", 2000, 6000, "job", "P"]
+        ]},
+        {"name": "Showers & Tubs", "ru": "Душ и ванна", "items": [
+          ["Shower valve / cartridge replacement", "Замена смесителя или картриджа душа", 300, 800, "job", ""],
+          ["Showerhead or handheld shower install", "Установка лейки душа", 120, 250, "job", "H"],
+          ["Bathtub or shower installation", "Установка ванны или душевой", 1500, 5000, "job", "P"],
+          ["Tub & shower re-caulking", "Обновление герметика", 150, 350, "job", "H"]
+        ]},
+        {"name": "Appliances & Water Quality", "ru": "Техника и очистка воды", "items": [
+          ["Dishwasher installation", "Подключение посудомойки", 250, 500, "job", "H"],
+          ["Washing machine hookup", "Подключение стиральной машины", 200, 400, "job", "H"],
+          ["Fridge water line / ice maker", "Подвод воды к холодильнику", 150, 300, "job", "H"],
+          ["Water filtration or softener installation", "Фильтры и умягчитель воды", 500, 2500, "job", ""],
+          ["Reverse osmosis system", "Система обратного осмоса", 400, 900, "job", ""]
+        ]},
+        {"name": "Gas", "ru": "Газ", "items": [
+          ["Gas leak detection & repair", "Поиск и устранение утечки газа", 250, 900, "job", "E"],
+          ["Gas line installation / extension", "Прокладка газовой линии", 600, 2500, "job", "P"],
+          ["Seismic gas shut-off valve", "Сейсмический газовый клапан", 400, 900, "job", "P"],
+          ["Gas appliance hookup (range, dryer)", "Подключение газовой плиты или сушилки", 200, 450, "job", ""]
+        ]},
+        {"name": "Outdoor & Other", "ru": "Улица и прочее", "items": [
+          ["Backflow preventer testing", "Ежегодный тест обратного клапана", 100, 200, "job", ""],
+          ["Sump pump installation / repair", "Дренажный насос", 500, 1500, "job", "E"],
+          ["Plumbing diagnostic visit", "Выезд и диагностика", 125, 175, "visit", "E"]
+        ]}
+      ]
+    },
+    {
+      "id": "electrical", "name": "Electrical", "ru": "Электрика", "license": "CSLB C-10 Electrical",
+      "groups": [
+        {"name": "Outlets & Switches", "ru": "Розетки и выключатели", "items": [
+          ["Outlet replacement", "Замена розетки", 150, 250, "job", ""],
+          ["GFCI outlet installation", "Розетка с защитой (GFCI)", 175, 300, "job", ""],
+          ["USB or smart outlet", "USB- или умная розетка", 175, 300, "job", ""],
+          ["Light switch or dimmer replacement", "Выключатель или диммер", 125, 250, "job", ""],
+          ["Smart switch installation", "Умный выключатель", 150, 300, "job", ""],
+          ["New outlet (new wire run)", "Новая розетка с прокладкой провода", 250, 500, "job", "P"]
+        ]},
+        {"name": "Lighting", "ru": "Освещение", "items": [
+          ["Light fixture replacement", "Замена светильника", 175, 350, "job", ""],
+          ["Recessed lighting", "Точечные светильники", 200, 400, "per light", "P"],
+          ["Ceiling fan installation", "Потолочный вентилятор", 300, 600, "job", ""],
+          ["Chandelier installation", "Установка люстры", 250, 600, "job", ""],
+          ["Under-cabinet lighting", "Подсветка кухни", 400, 1200, "job", ""],
+          ["Outdoor & landscape lighting", "Уличное и ландшафтное освещение", 500, 2500, "job", "P"]
+        ]},
+        {"name": "Panels & Circuits", "ru": "Щитки и линии", "items": [
+          ["Troubleshooting (tripping breaker, partial outage)", "Поиск неисправности, выбивает автомат", 200, 450, "job", "E"],
+          ["Breaker replacement", "Замена автомата", 200, 400, "job", "E"],
+          ["New dedicated circuit", "Новая отдельная линия", 300, 900, "job", "P"],
+          ["240V appliance circuit (range, dryer, oven)", "Линия 240 В для плиты, сушилки, духовки", 500, 1500, "job", "P"],
+          ["Panel upgrade (100A to 200A)", "Замена щитка на 200 А", 4000, 7000, "job", "P"],
+          ["Subpanel installation", "Дополнительный щиток", 1500, 3500, "job", "P"],
+          ["Whole-home surge protector", "Защита дома от скачков напряжения", 300, 700, "job", ""]
+        ]},
+        {"name": "EV & Energy", "ru": "Электромобили и энергия", "items": [
+          ["Level 2 EV charger installation", "Зарядная станция для электромобиля", 1200, 2200, "job", "P"],
+          ["EV charger with panel upgrade", "Зарядка с заменой щитка", 3500, 6500, "job", "P"],
+          ["Generator transfer switch or interlock", "Подключение генератора", 800, 2500, "job", "P"],
+          ["Home battery backup preparation", "Подготовка под домашний аккумулятор", 1500, 4000, "job", "P"]
+        ]},
+        {"name": "Safety & Old Wiring", "ru": "Безопасность и старая проводка", "items": [
+          ["Hardwired smoke & CO detectors", "Датчики дыма и угарного газа", 150, 300, "per device", ""],
+          ["Electrical safety inspection", "Проверка электрики (покупка, продажа дома)", 200, 450, "visit", ""],
+          ["Sparking outlet or burning smell", "Искрит розетка, запах гари (срочно)", 200, 500, "job", "E"],
+          ["Knob-and-tube wiring replacement", "Замена старинной проводки knob-and-tube", 8000, 25000, "job", "P"],
+          ["Aluminum wiring remediation", "Замена алюминиевой проводки", 2000, 8000, "job", "P"],
+          ["Room rewiring", "Перепроводка комнаты", 1500, 4000, "job", "P"]
+        ]},
+        {"name": "Smart Home & Outdoor", "ru": "Умный дом и улица", "items": [
+          ["Video doorbell installation", "Видеозвонок", 150, 300, "job", "H"],
+          ["Smart thermostat installation", "Умный термостат", 150, 300, "job", "H"],
+          ["Hot tub or spa wiring", "Подключение джакузи", 1500, 3500, "job", "P"],
+          ["Outdoor outlet (weatherproof)", "Уличная розетка", 300, 700, "job", "P"],
+          ["Electrical diagnostic visit", "Выезд и диагностика", 125, 175, "visit", "E"]
+        ]}
+      ]
+    },
+    {
+      "id": "handyman", "name": "Handyman", "ru": "Мастер на час", "license": "No license needed under $1,000 (labor + materials), no permit, no work inside walls",
+      "groups": [
+        {"name": "Mounting & Hanging", "ru": "Монтаж и навеска", "items": [
+          ["TV wall mounting", "Монтаж телевизора на стену", 150, 350, "job", "H"],
+          ["Shelves installation", "Установка полок", 100, 250, "job", "H"],
+          ["Pictures, mirrors & art hanging", "Картины, зеркала", 90, 200, "job", "H"],
+          ["Curtain rods & blinds", "Карнизы и жалюзи", 100, 300, "job", "H"],
+          ["Wall cabinet mounting", "Навесные шкафы", 150, 400, "job", "H"]
+        ]},
+        {"name": "Furniture & Assembly", "ru": "Сборка мебели", "items": [
+          ["Furniture assembly", "Сборка мебели", 90, 300, "job", "H"],
+          ["Bed or wardrobe assembly", "Кровать или шкаф", 150, 400, "job", "H"],
+          ["Outdoor furniture & grill assembly", "Уличная мебель и гриль", 100, 300, "job", "H"],
+          ["Exercise equipment assembly", "Сборка тренажёров", 150, 350, "job", "H"],
+          ["Kids' playset assembly", "Детский игровой комплекс", 300, 800, "job", "H"]
+        ]},
+        {"name": "Walls & Paint", "ru": "Стены и покраска", "items": [
+          ["Drywall patch & repair", "Ремонт гипсокартона", 150, 450, "job", "H"],
+          ["Paint touch-up (one wall or room)", "Покраска стены или комнаты", 250, 900, "job", "H"],
+          ["Caulking (kitchen, bath, windows)", "Герметизация швов", 120, 300, "job", "H"],
+          ["Wallpaper removal (small area)", "Снятие обоев", 250, 800, "job", "H"]
+        ]},
+        {"name": "Doors & Windows", "ru": "Двери и окна", "items": [
+          ["Door repair & adjustment", "Регулировка и ремонт двери", 120, 300, "job", "H"],
+          ["Door lock & hardware replacement", "Замена замка и ручек", 120, 250, "job", "H"],
+          ["Interior door replacement (pre-hung)", "Замена межкомнатной двери", 300, 700, "job", "H"],
+          ["Weatherstripping", "Уплотнители дверей и окон", 120, 300, "job", "H"],
+          ["Window & door screen repair", "Ремонт москитных сеток", 90, 200, "job", "H"],
+          ["Cabinet door & drawer fixes", "Ремонт фасадов и ящиков", 90, 250, "job", "H"]
+        ]},
+        {"name": "Carpentry & Outdoors", "ru": "Плотницкие работы и двор", "items": [
+          ["Baseboard & trim repair", "Плинтусы и наличники", 150, 450, "job", "H"],
+          ["Fence & gate repair", "Ремонт забора и калитки", 200, 800, "job", "H"],
+          ["Deck board replacement (small area)", "Замена досок террасы", 250, 900, "job", "H"],
+          ["Handrail installation", "Установка перил", 200, 600, "job", "H"],
+          ["Gutter cleaning", "Чистка водостоков", 150, 350, "job", "H"],
+          ["Pressure washing", "Мойка под давлением", 200, 600, "job", "H"]
+        ]},
+        {"name": "Floors & Tile", "ru": "Полы и плитка", "items": [
+          ["Grout repair & regrouting", "Обновление затирки", 200, 600, "job", "H"],
+          ["Tile replacement (a few tiles)", "Замена нескольких плиток", 200, 500, "job", "H"],
+          ["Squeaky floor fix", "Устранение скрипа пола", 150, 400, "job", "H"]
+        ]},
+        {"name": "Home Maintenance", "ru": "Обслуживание дома", "items": [
+          ["Battery smoke detector replacement", "Замена батареечных датчиков дыма", 90, 200, "job", "H"],
+          ["HVAC filter replacement", "Замена фильтров вентиляции", 90, 150, "job", "H"],
+          ["Childproofing", "Защита дома от детей", 150, 400, "job", "H"],
+          ["Holiday lights installation", "Праздничная подсветка", 200, 800, "job", "H"],
+          ["Small repairs (hourly)", "Мелкий ремонт, почасово", 80, 130, "per hour", "H"]
+        ]}
+      ]
+    }
+  ]
+}

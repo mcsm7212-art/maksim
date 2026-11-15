@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NovaFides Services</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: service catalog in NovaFides black & copper. Sticky header with trade tabs, controls (search, level, filters), grouped service rows */
+:root{
+  --black:#0C0C0E; --card:#141417; --card2:#1A1A1E; --line:#2B2622; --ink:#F3EDE7; --mu:#A89C91; --mu2:#7A7068;
+  --cu:#C97B47; --cu-l:#F2BE92; --ok:#3CCB7F; --warn:#F0A04B; --red:#E5604D;
+  --fd:"Sora","Inter",system-ui,sans-serif; --fb:"Inter",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--black);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--black)}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.in{max-width:1000px;margin:0 auto}
+.top{padding-block:22px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand b{font-family:var(--fd);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand b span{background:linear-gradient(100deg,#F6CDA6,#D08A55 45%,#97522A 75%,#E7AD7E);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{display:block;font-size:10px;letter-spacing:.45em;color:var(--cu-l);margin-top:2px}
+h1{font-family:var(--fd);font-weight:700;font-size:clamp(26px,5vw,40px);letter-spacing:-.02em;margin:22px 0 6px}
+.lead{color:var(--mu);margin:0;max-width:66ch}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:linear-gradient(var(--black) 85%,rgba(12,12,14,0));padding-block:12px 10px}
+@media (max-width:720px){.sticky{position:static}}
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--mu);border-radius:14px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.tab small{font-weight:500;color:var(--mu2);font-variant-numeric:tabular-nums}
+.tab[aria-selected="true"]{background:linear-gradient(135deg,#2A1C13,#1A1410);border-color:var(--cu);color:var(--ink)}
+.tab[aria-selected="true"] small{color:var(--cu-l)}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.search{flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{flex:1;min-width:0;background:none;border:0;color:var(--ink);font:inherit;padding:10px 0;outline:none}
+.search:focus-within{border-color:var(--cu)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;color:var(--mu);font:inherit;font-size:13.5px;padding:7px 11px;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--cu)}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mu);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--cu);color:var(--ink);background:#21170F}
+:focus-visible{outline:2px solid var(--cu-l);outline-offset:2px}
+.lic{margin:14px 0 4px;border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--card);display:flex;gap:12px;align-items:flex-start;font-size:14px}
+.lic i{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#16251C;color:var(--ok);font-style:normal;font-weight:700}
+.lic.hm i{background:#2A1C13;color:var(--cu-l)}
+.lic b{font-weight:600}
+.lic p{margin:2px 0 0;color:var(--mu)}
+.group{margin-top:26px}
+.gh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.gh h2{font-family:var(--fd);font-weight:600;font-size:18px;margin:0}
+.gh h2 em{font-style:normal;font-family:var(--fb);font-weight:400;font-size:13px;color:var(--mu2);margin-left:8px}
+.gh span{font-size:12.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:12px 2px;border-bottom:1px solid #1E1B19}
+.row .nm{font-weight:500}
+.row .ru{font-size:12.5px;color:var(--mu2)}
+.row .pr{text-align:right;font-family:var(--fd);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .pr small{display:block;font-family:var(--fb);font-weight:400;font-size:11.5px;color:var(--mu2)}
+.bdg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.b{font-size:11.5px;padding:2px 8px;border-radius:99px;border:1px solid}
+.b.e{color:#FFB4A6;border-color:rgba(229,96,77,.45);background:rgba(229,96,77,.08)}
+.b.p{color:#F6CF8F;border-color:rgba(240,160,75,.4);background:rgba(240,160,75,.07)}
+.b.h{color:var(--cu-l);border-color:rgba(201,123,71,.45);background:rgba(201,123,71,.08)}
+.b.l{color:#9BE3BC;border-color:rgba(60,203,127,.35);background:rgba(60,203,127,.07)}
+.empty{color:var(--mu);padding:40px 0;text-align:center}
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}
+@media (max-width:720px){.tiers{grid-template-columns:1fr}}
+.tier{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card)}
+.tier b{font-family:var(--fd);font-weight:600}
+.tier.prem{border-color:rgba(201,123,71,.55);background:linear-gradient(160deg,#21170F,#141417)}
+.tier ul{margin:6px 0 0;padding-left:18px;color:var(--mu);font-size:13px}
+.tier .m{float:right;color:var(--cu-l);font-size:13px;font-variant-numeric:tabular-nums}
+footer{color:var(--mu2);font-size:12.5px;padding-block:36px 48px}
+</style>
+
+<div class="pad top"><div class="in">
+  <div class="brand"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6CDA6"/><stop offset=".4" stop-color="#D08A55"/><stop offset=".7" stop-color="#8E4A24"/><stop offset="1" stop-color="#E3A574"/></linearGradient></defs><path d="M30 13.5L47 9V55L30 51.5Z" fill="url(#lg)"/><path d="M17 56V8H49V56" fill="none" stroke="#5A524C" stroke-width="4" stroke-linejoin="round"/><path d="M17 8L30 13.5V51.5L17 56Z" fill="#2A2724" stroke="#C97B47" stroke-width="1.2"/><path d="M38.5 21L40.6 25.9L45.5 28L40.6 30.1L38.5 35L36.4 30.1L31.5 28L36.4 25.9Z" fill="#fff"/></svg><div><b>Nova<span>Fides</span></b><small>MARKETPLACE</small></div></div>
+  <h1>Services</h1>
+  <p class="lead">Every job our pros do, with typical Bay Area prices. Russian lines under each service are for the owner and will be removed before launch.</p>
+  <div class="tiers">
+    <div class="tier"><span class="m">×0.85</span><b>Economy</b><ul><li>Newer pro, still fully licensed</li><li>Job done right, no extras</li><li>Debris bagged, light cleanup</li></ul></div>
+    <div class="tier"><span class="m">×1.00</span><b>Standard</b><ul><li>Experienced pro</li><li>Shoe covers, floor protection</li><li>Debris removed, area cleaned</li></ul></div>
+    <div class="tier prem"><span class="m">×1.35</span><b>Premium</b><ul><li>Top-rated pro, clean uniform</li><li>Drop cloths, towels, full protection</li><li>Full cleanup, photo report, ±15 min arrival</li></ul></div>
+  </div>
+</div></div>
+
+<div class="pad sticky"><div class="in">
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="ctrl">
+    <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A89C91" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search services (faucet, EV charger, TV…)" aria-label="Search services"></label>
+    <div class="seg" role="group" aria-label="Service level" id="lvl"></div>
+  </div>
+  <div class="ctrl" id="flt"></div>
+</div></div>
+
+<div class="pad"><div class="in" id="list"></div></div>
+<div class="pad"><footer class="in">Prices are typical totals for the chosen level (labor + standard parts) built from 2025–2026 Bay Area cost guides. Real prices are set by each pro or company; NovaFides only shows a fair range. Permit costs and emergency surcharges are extra. Handyman work in California is limited to jobs under $1,000 in total with no permit and nothing inside walls; anything bigger needs a licensed contractor.</footer></div>
+
+<script>
+const DATA={"meta":{"market":"San Francisco Bay Area (SF to San Jose)","currency":"USD","priceNote":"Typical total for Standard level (labor + standard parts). Estimates built from 2025-2026 Bay Area cost guides and contractor pages; verify with local pros before launch. Handyman rates are an estimate.","flags":{"P":"Permit usually required","E":"Emergency / same-day available","H":"Handyman can do it (under $1,000 total, no permit, no work inside walls)"},"tiers":{"economy":{"name":"Economy","ru":"Эконом","multiplier":0.85},"standard":{"name":"Standard","ru":"Стандарт","multiplier":1.0},"premium":{"name":"Premium","ru":"Премиум","multiplier":1.35}}},"trades":[{"id":"plumbing","name":"Plumbing","ru":"Сантехника","license":"CSLB C-36 Plumbing","groups":[{"name":"Faucets & Sinks","ru":"Смесители и раковины","items":[["Faucet replacement","Замена смесителя",250,450,"job","H"],["Kitchen sink installation","Установка кухонной мойки",450,1100,"job",""],["Bathroom vanity & sink installation","Установка тумбы с раковиной",500,1500,"job",""],["Garbage disposal installation","Установка измельчителя отходов",350,600,"job","H"],["Garbage disposal repair","Ремонт измельчителя",150,300,"job","E"],["Shut-off valve replacement","Замена запорного крана",200,400,"job",""],["Under-sink leak repair","Устранение течи под раковиной",175,350,"job","E"]]},{"name":"Toilets","ru":"Унитазы","items":[["Running toilet repair","Ремонт бачка (течёт, не набирает)",150,300,"job","H"],["Toilet installation / replacement","Установка или замена унитаза",400,700,"job",""],["Toilet reseal (wax ring)","Переустановка, замена уплотнения",200,350,"job","H"],["Clogged toilet","Засор унитаза",150,300,"job","E"],["Bidet seat installation","Установка биде-крышки",150,350,"job","H"]]},{"name":"Drains & Sewer","ru":"Канализация и засоры","items":[["Sink, tub or shower drain clearing","Прочистка раковины, ванны, душа",175,300,"job","E"],["Main sewer line clearing","Прочистка основной канализации",300,600,"job","E"],["Hydro-jetting","Гидродинамическая прочистка",500,1000,"job",""],["Sewer camera inspection","Видеодиагностика канализации",250,450,"job",""],["Sewer line repair / replacement","Ремонт и замена канализационной трубы",3000,15000,"job","P"],["Cleanout installation","Установка ревизии",800,2500,"job","P"]]},{"name":"Water Heaters","ru":"Водонагреватели","items":[["Water heater repair","Ремонт водонагревателя",200,500,"job","E"],["Tank water heater replacement","Замена бойлера (бак 40–50 галлонов)",2200,3800,"job","PE"],["Tankless water heater installation","Установка проточного водонагревателя",5000,9000,"job","P"],["Tankless flush & descaling","Промывка проточного от накипи",200,350,"job",""],["Expansion tank installation","Расширительный бак",300,600,"job","P"],["Hot water recirculation pump","Насос рециркуляции горячей воды",700,1500,"job",""]]},{"name":"Pipes & Leaks","ru":"Трубы и протечки","items":[["Leak detection","Поиск протечки",250,600,"job","E"],["Pipe leak repair","Ремонт трубы",300,900,"job","E"],["Burst pipe emergency","Прорыв трубы (срочно)",400,1500,"job","E"],["Whole-house repipe (PEX / copper)","Замена всех труб в доме",8000,20000,"job","P"],["Pressure regulator (PRV) replacement","Регулятор давления воды",450,900,"job",""],["Outdoor spigot (hose bib) replacement","Замена уличного крана",200,400,"job","H"],["Slab leak repair","Протечка под фундаментом",2000,6000,"job","P"]]},{"name":"Showers & Tubs","ru":"Душ и ванна","items":[["Shower valve / cartridge replacement","Замена смесителя или картриджа душа",300,800,"job",""],["Showerhead or handheld shower install","Установка лейки душа",120,250,"job","H"],["Bathtub or shower installation","Установка ванны или душевой",1500,5000,"job","P"],["Tub & shower re-caulking","Обновление герметика",150,350,"job","H"]]},{"name":"Appliances & Water Quality","ru":"Техника и очистка воды","items":[["Dishwasher installation","Подключение посудомойки",250,500,"job","H"],["Washing machine hookup","Подключение стиральной машины",200,400,"job","H"],["Fridge water line / ice maker","Подвод воды к холодильнику",150,300,"job","H"],["Water filtration or softener installation","Фильтры и умягчитель воды",500,2500,"job",""],["Reverse osmosis system","Система обратного осмоса",400,900,"job",""]]},{"name":"Gas","ru":"Газ","items":[["Gas leak detection & repair","Поиск и устранение утечки газа",250,900,"job","E"],["Gas line installation / extension","Прокладка газовой линии",600,2500,"job","P"],["Seismic gas shut-off valve","Сейсмический газовый клапан",400,900,"job","P"],["Gas appliance hookup (range, dryer)","Подключение газовой плиты или сушилки",200,450,"job",""]]},{"name":"Outdoor & Other","ru":"Улица и прочее","items":[["Backflow preventer testing","Ежегодный тест обратного клапана",100,200,"job",""],["Sump pump installation / repair","Дренажный насос",500,1500,"job","E"],["Plumbing diagnostic visit","Выезд и диагностика",125,175,"visit","E"]]}]},{"id":"electrical","name":"Electrical","ru":"Электрика","license":"CSLB C-10 Electrical","groups":[{"name":"Outlets & Switches","ru":"Розетки и выключатели","items":[["Outlet replacement","Замена розетки",150,250,"job",""],["GFCI outlet installation","Розетка с защитой (GFCI)",175,300,"job",""],["USB or smart outlet","USB- или умная розетка",175,300,"job",""],["Light switch or dimmer replacement","Выключатель или диммер",125,250,"job",""],["Smart switch installation","Умный выключатель",150,300,"job",""],["New outlet (new wire run)","Новая розетка с прокладкой провода",250,500,"job","P"]]},{"name":"Lighting","ru":"Освещение","items":[["Light fixture replacement","Замена светильника",175,350,"job",""],["Recessed lighting","Точечные светильники",200,400,"per light","P"],["Ceiling fan installation","Потолочный вентилятор",300,600,"job",""],["Chandelier installation","Установка люстры",250,600,"job",""],["Under-cabinet lighting","Подсветка кухни",400,1200,"job",""],["Outdoor & landscape lighting","Уличное и ландшафтное освещение",500,2500,"job","P"]]},{"name":"Panels & Circuits","ru":"Щитки и линии","items":[["Troubleshooting (tripping breaker, partial outage)","Поиск неисправности, выбивает автомат",200,450,"job","E"],["Breaker replacement","Замена автомата",200,400,"job","E"],["New dedicated circuit","Новая отдельная линия",300,900,"job","P"],["240V appliance circuit (range, dryer, oven)","Линия 240 В для плиты, сушилки, духовки",500,1500,"job","P"],["Panel upgrade (100A to 200A)","Замена щитка на 200 А",4000,7000,"job","P"],["Subpanel installation","Дополнительный щиток",1500,3500,"job","P"],["Whole-home surge protector","Защита дома от скачков напряжения",300,700,"job",""]]},{"name":"EV & Energy","ru":"Электромобили и энергия","items":[["Level 2 EV charger installation","Зарядная станция для электромобиля",1200,2200,"job","P"],["EV charger with panel upgrade","Зарядка с заменой щитка",3500,6500,"job","P"],["Generator transfer switch or interlock","Подключение генератора",800,2500,"job","P"],["Home battery backup preparation","Подготовка под домашний аккумулятор",1500,4000,"job","P"]]},{"name":"Safety & Old Wiring","ru":"Безопасность и старая проводка","items":[["Hardwired smoke & CO detectors","Датчики дыма и угарного газа",150,300,"per device",""],["Electrical safety inspection","Проверка электрики (покупка, продажа дома)",200,450,"visit",""],["Sparking outlet or burning smell","Искрит розетка, запах гари (срочно)",200,500,"job","E"],["Knob-and-tube wiring replacement","Замена старинной проводки knob-and-tube",8000,25000,"job","P"],["Aluminum wiring remediation","Замена алюминиевой проводки",2000,8000,"job","P"],["Room rewiring","Перепроводка комнаты",1500,4000,"job","P"]]},{"name":"Smart Home & Outdoor","ru":"Умный дом и улица","items":[["Video doorbell installation","Видеозвонок",150,300,"job","H"],["Smart thermostat installation","Умный термостат",150,300,"job","H"],["Hot tub or spa wiring","Подключение джакузи",1500,3500,"job","P"],["Outdoor outlet (weatherproof)","Уличная розетка",300,700,"job","P"],["Electrical diagnostic visit","Выезд и диагностика",125,175,"visit","E"]]}]},{"id":"handyman","name":"Handyman","ru":"Мастер на час","license":"No license needed under $1,000 (labor + materials), no permit, no work inside walls","groups":[{"name":"Mounting & Hanging","ru":"Монтаж и навеска","items":[["TV wall mounting","Монтаж телевизора на стену",150,350,"job","H"],["Shelves installation","Установка полок",100,250,"job","H"],["Pictures, mirrors & art hanging","Картины, зеркала",90,200,"job","H"],["Curtain rods & blinds","Карнизы и жалюзи",100,300,"job","H"],["Wall cabinet mounting","Навесные шкафы",150,400,"job","H"]]},{"name":"Furniture & Assembly","ru":"Сборка мебели","items":[["Furniture assembly","Сборка мебели",90,300,"job","H"],["Bed or wardrobe assembly","Кровать или шкаф",150,400,"job","H"],["Outdoor furniture & grill assembly","Уличная мебель и гриль",100,300,"job","H"],["Exercise equipment assembly","Сборка тренажёров",150,350,"job","H"],["Kids' playset assembly","Детский игровой комплекс",300,800,"job","H"]]},{"name":"Walls & Paint","ru":"Стены и покраска","items":[["Drywall patch & repair","Ремонт гипсокартона",150,450,"job","H"],["Paint touch-up (one wall or room)","Покраска стены или комнаты",250,900,"job","H"],["Caulking (kitchen, bath, windows)","Герметизация швов",120,300,"job","H"],["Wallpaper removal (small area)","Снятие обоев",250,800,"job","H"]]},{"name":"Doors & Windows","ru":"Двери и окна","items":[["Door repair & adjustment","Регулировка и ремонт двери",120,300,"job","H"],["Door lock & hardware replacement","Замена замка и ручек",120,250,"job","H"],["Interior door replacement (pre-hung)","Замена межкомнатной двери",300,700,"job","H"],["Weatherstripping","Уплотнители дверей и окон",120,300,"job","H"],["Window & door screen repair","Ремонт москитных сеток",90,200,"job","H"],["Cabinet door & drawer fixes","Ремонт фасадов и ящиков",90,250,"job","H"]]},{"name":"Carpentry & Outdoors","ru":"Плотницкие работы и двор","items":[["Baseboard & trim repair","Плинтусы и наличники",150,450,"job","H"],["Fence & gate repair","Ремонт забора и калитки",200,800,"job","H"],["Deck board replacement (small area)","Замена досок террасы",250,900,"job","H"],["Handrail installation","Установка перил",200,600,"job","H"],["Gutter cleaning","Чистка водостоков",150,350,"job","H"],["Pressure washing","Мойка под давлением",200,600,"job","H"]]},{"name":"Floors & Tile","ru":"Полы и плитка","items":[["Grout repair & regrouting","Обновление затирки",200,600,"job","H"],["Tile replacement (a few tiles)","Замена нескольких плиток",200,500,"job","H"],["Squeaky floor fix","Устранение скрипа пола",150,400,"job","H"]]},{"name":"Home Maintenance","ru":"Обслуживание дома","items":[["Battery smoke detector replacement","Замена батареечных датчиков дыма",90,200,"job","H"],["HVAC filter replacement","Замена фильтров вентиляции",90,150,"job","H"],["Childproofing","Защита дома от детей",150,400,"job","H"],["Holiday lights installation","Праздничная подсветка",200,800,"job","H"],["Small repairs (hourly)","Мелкий ремонт, почасово",80,130,"per hour","H"]]}]}]};
+const st={t:"plumbing",q:"",lvl:"standard",f:{E:false,H:false,P:false}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd=n=>"$"+Math.round(n).toLocaleString("en-US");
+const r5=n=>n<200?Math.round(n/5)*5:n<2000?Math.round(n/10)*10:Math.round(n/50)*50;
+const count=t=>t.groups.reduce((a,g)=>a+g.items.length,0);
+function tabs(){document.getElementById("tabs").innerHTML=DATA.trades.map(t=>`<button class="tab" role="tab" aria-selected="${t.id===st.t}" data-t="${t.id}">${t.name}<small>${count(t)}</small></button>`).join("")}
+function lvl(){document.getElementById("lvl").innerHTML=Object.entries(DATA.meta.tiers).map(([k,v])=>`<button aria-pressed="${st.lvl===k}" data-l="${k}">${v.name}</button>`).join("")}
+function flt(){const F=[["E","Emergency / same-day"],["H","Handyman can do"],["P","Needs permit"]];document.getElementById("flt").innerHTML=F.map(([k,n])=>`<button class="chip" aria-pressed="${st.f[k]}" data-f="${k}">${n}</button>`).join("")}
+function list(){
+ const t=DATA.trades.find(x=>x.id===st.t),m=DATA.meta.tiers[st.lvl].multiplier,q=st.q.trim().toLowerCase();
+ const lic=t.id==="handyman"?`<div class="lic hm"><i>$</i><div><b>Handyman jobs: under $1,000, no permit</b><p>${esc(t.license)}. Bigger jobs, permits, or anything behind walls go to a licensed contractor automatically.</p></div></div>`:`<div class="lic"><i>✓</i><div><b>Licensed ${t.name.toLowerCase()} only · ${esc(t.license)}</b><p>Every pro in this category shows a verified California license number, insurance and bond on their profile.</p></div></div>`;
+ let html=lic,total=0;
+ t.groups.forEach(g=>{
+  const items=g.items.filter(([n,ru,lo,hi,u,fl])=>(!q||n.toLowerCase().includes(q)||ru.toLowerCase().includes(q))&&Object.entries(st.f).every(([k,on])=>!on||fl.includes(k)));
+  if(!items.length)return;total+=items.length;
+  html+=`<section class="group"><div class="gh"><h2>${esc(g.name)}<em>${esc(g.ru)}</em></h2><span>${items.length}</span></div>`+items.map(([n,ru,lo,hi,u,fl])=>`<div class="row"><div><div class="nm">${esc(n)}</div><div class="ru">${esc(ru)}</div><div class="bdg">${t.id!=="handyman"&&!fl.includes("H")?`<span class="b l">License required</span>`:""}${fl.includes("E")?`<span class="b e">Emergency</span>`:""}${fl.includes("P")?`<span class="b p">Permit</span>`:""}${fl.includes("H")?`<span class="b h">Handyman OK</span>`:""}</div></div><div class="pr">${usd(r5(lo*m))}–${usd(r5(hi*m))}<small>${u==="job"?"per job":u}</small></div></div>`).join("")+`</section>`;
+ });
+ if(!total)html+=`<div class="empty">No services match. Try another word or clear the filters.</div>`;
+ document.getElementById("list").innerHTML=html;
+}
+function all(){tabs();lvl();flt();list()}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.t){st.t=b.dataset.t;all()}else if(b.dataset.l){st.lvl=b.dataset.l;lvl();list()}else if(b.dataset.f){st.f[b.dataset.f]=!st.f[b.dataset.f];flt();list()}});
+document.getElementById("q").addEventListener("input",e=>{st.q=e.target.value;list()});
+all();
+</script>
+
+</html>
