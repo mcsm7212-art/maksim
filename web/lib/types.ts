@@ -82,5 +82,6 @@ export interface Pro {
   reviews: Review[];
   /** weekday 0..6, hours "08:00" */
   availability: { weekday: number; start: string; end: string }[];
-  busy: string[]; // ISO start times already booked
+  /** Busy time ranges (ISO): NovaFides jobs and blocks imported from the pro's own calendar */
+  busy: { start: string; end: string }[];
 }

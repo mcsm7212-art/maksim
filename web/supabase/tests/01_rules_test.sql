@@ -217,4 +217,17 @@ select pg_temp.ok((select count(*) from public.invoices) = 1, 'company office se
 update public.invoices set status = 'paid';
 do $$ begin update public.invoices set notes = 'changed'; raise exception 'FAIL: edited paid'; exception when others then if sqlerrm like 'FAIL%' then raise; end if; end $$;
 select pg_temp.ok((select paid_at is not null from public.invoices), 'office marks paid; paid invoice is locked');
+-- 11) calendar
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+insert into public.pro_private (pro_id, calendar_token, busy_ics_url) values (auth.uid(), 'tok-abcdefghijklmnopqrstuvwxyz', 'https://calendar.google.com/calendar/ical/secret/basic.ics');
+insert into public.pro_busy (pro_id, starts_at, ends_at) values (auth.uid(), '2030-01-02 09:00-08', '2030-01-02 12:00-08');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok((select count(*) from public.pro_private) = 0, 'other pros cannot see calendar secrets');
+do $$ begin insert into public.pro_busy (pro_id, starts_at, ends_at) values ('00000000-0000-0000-0000-0000000000a2', '2030-01-03 09:00-08', '2030-01-03 10:00-08'); raise exception 'FAIL: wrote busy for other';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'pro cannot add busy times for someone else');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_busy_ranges('00000000-0000-0000-0000-0000000000a2') where starts_at = '2030-01-02 09:00-08') = 1, 'public sees imported busy range (time only)');
+select pg_temp.ok((select count(*) from public.calendar_feed('tok-abcdefghijklmnopqrstuvwxyz')) >= 1, 'calendar app reads jobs with the secret token');
+select pg_temp.ok((select count(*) from public.calendar_feed('wrong-token-wrong-token-xx')) = 0, 'wrong token gets nothing');
 \echo ALL RULE TESTS PASSED

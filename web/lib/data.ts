@@ -84,8 +84,8 @@ export const getPro = cache(async (slug: string): Promise<Pro | null> => {
   if (!data) return null;
   const stats = await statsFor([data.id]);
   const pro = mapPro(data, stats.get(data.id));
-  const { data: busy } = await sb.rpc('pro_busy_times', { p_id: data.id });
-  pro.busy = (busy ?? []).map((b: Row) => b.starts_at);
+  const { data: busy } = await sb.rpc('pro_busy_ranges', { p_id: data.id });
+  pro.busy = (busy ?? []).map((b: Row) => ({ start: b.starts_at, end: b.ends_at }));
   return pro;
 });
 
@@ -113,7 +113,8 @@ export const getCompany = cache(async (slug: string): Promise<Company | null> =>
 export function openSlots(pro: Pro, days = 7): string[] {
   const out: string[] = [];
   const now = Date.now();
-  const busy = new Set(pro.busy.map((b) => new Date(b).getTime()));
+  const busy = pro.busy.map((b) => [new Date(b.start).getTime(), new Date(b.end).getTime()] as const);
+  const taken = (s: number) => busy.some(([a, z]) => s < z && s + 2 * 36e5 > a); // 2-hour visit overlaps a busy range
   const seed = pro.slug.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const today = pacificParts(new Date());
   for (let d = 0; d < days; d++) {
@@ -123,7 +124,7 @@ export function openSlots(pro: Pro, days = 7): string[] {
       const sh = Number(rule.start.slice(0, 2)); const eh = Number(rule.end.slice(0, 2));
       for (let h = sh; h + 2 <= eh; h += 2) {
         const ms = atPacific(today.y, today.m, today.d + d, h).getTime();
-        if (ms < now + 36e5 || busy.has(ms)) continue;
+        if (ms < now + 36e5 || taken(ms)) continue;
         if (!isLive() && (seed + d * 7 + h) % 5 < 2) continue; // demo: make schedules look real
         out.push(new Date(ms).toISOString());
       }
