@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { toneCheck } from '@/lib/tone';
+import { aiToneCheck } from '@/lib/ai-tone';
+import { getLang } from '@/lib/i18n';
 
 export type ReplyState = { error?: string; ok?: string } | undefined;
 const s = (f: FormData, k: string) => String(f.get(k) ?? '').trim();
@@ -13,6 +15,9 @@ export async function replyToReview(_p: ReplyState, f: FormData): Promise<ReplyS
   const body = s(f, 'body');
   const tone = toneCheck(body); if (tone) return { error: tone };
   const sb = await supabaseServer();
+  const { data: review } = await sb.from('reviews').select('body').eq('id', s(f, 'review')).maybeSingle();
+  const ai = await aiToneCheck(body, review?.body ?? '', await getLang());
+  if (ai && !ai.ok) return { error: ai.suggestion || 'Please make the reply calmer before posting.' };
   const { error } = await sb.from('review_replies').insert({ review_id: s(f, 'review'), author_id: me.id, body });
   if (error) return { error: error.message.startsWith('cool-off') ? 'Take a breath: you can reply 1 hour after a low rating.' : error.code === '23505' ? 'You already replied to this review.' : error.message };
   revalidatePath('/account/reviews');
