@@ -319,3 +319,10 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 
 @media (max-width:620px){.bk{grid-template-columns:1fr}.bk .chips{justify-content:flex-start}}
 @media (max-width:700px){.nav{flex-wrap:wrap;overflow:visible}.nav a{padding:6px 9px}}
+.invline{display:grid;grid-template-columns:130px minmax(0,1fr) 70px 100px auto;gap:8px;align-items:center}
+@media (max-width:620px){.invline{grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding-bottom:10px}.invline input:nth-child(2){grid-column:1/-1;order:-1}}
+@media print{.bar,.demo,footer.ft,.noprint{display:none!important}body,html,.themed{background:#fff!important;color:#111!important}.card{background:#fff!important;border-color:#ccc!important}.mu,.mu2{color:#555!important}.inv{box-shadow:none!important}}
+.inv table{width:100%;border-collapse:collapse;font-size:14.5px}
+.inv th{text-align:left;font-weight:600;color:var(--mu);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px;border-bottom:1px solid var(--line)}
+.inv td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.inv td.r,.inv th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}

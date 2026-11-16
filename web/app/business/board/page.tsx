@@ -56,6 +56,7 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><b className="sm">{b.starts_at ? slotLabel(b.starts_at, tr)[1] : tr('No time yet')}</b><span className="xs" style={{ color }}>{tr(label)}</span></div>
         <span className="sm">{svc(b.service_id)}</span>
         <span className="mu xs">{b.address}{b.client?.full_name ? ` · ${b.client.full_name}` : ''}{b.client?.phone ? ` · ${b.client.phone}` : ''}</span>
+        {['in_progress', 'done'].includes(b.status) && <Link className="xs" href={`/invoice/new?booking=${b.id}`}>{tr('Create invoice')}</Link>}
         {nx && b.pro_id && <form action={setStatus}><input type="hidden" name="id" value={b.id} /><input type="hidden" name="status" value={nx[0]} /><button className="btn ghost sm" style={{ padding: '5px 10px' }}>{tr(nx[1])}</button></form>}
       </div>
     );

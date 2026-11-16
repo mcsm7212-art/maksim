@@ -192,4 +192,29 @@ select public.set_online(4, 'Redwood City');
 select pg_temp.ok((select online_area = 'Redwood City' and online_until > now() from public.pros where id = auth.uid()), 'pro goes online in a chosen city');
 select public.set_online(0);
 select pg_temp.ok((select online_until is null from public.pros where id = auth.uid()), 'pro goes offline');
+-- 10) invoices
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+insert into public.invoices (id, booking_id, created_by, items, tax_rate, subtotal, total, status) values
+ ('50000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', auth.uid(),
+  '[{"kind":"labor","description":"Faucet install","qty":1,"price":200},{"kind":"material","description":"Faucet","qty":1,"price":100},{"kind":"discount","description":"Trip fee credit","qty":1,"price":95}]',
+  9.375, 1, 1, 'draft');
+select pg_temp.ok((select total from public.invoices) = 214.38, 'totals computed by server (labor + materials + tax on materials - credit)');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.invoices) = 0, 'client does not see a draft');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+update public.invoices set status = 'sent';
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.invoices where status = 'sent') = 1, 'client sees the sent invoice');
+select pg_temp.ok((select count(*) from public.notifications where body like 'New invoice NF-%: $214.38.') = 1, 'client notified about the invoice');
+update public.invoices set status = 'paid';
+select pg_temp.ok((select status from public.invoices) = 'sent', 'client cannot mark an invoice paid');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+do $$ begin insert into public.invoices (booking_id, created_by, items) values ('20000000-0000-0000-0000-000000000002', auth.uid(), '[{"kind":"labor","description":"x","qty":1,"price":1}]'); raise exception 'FAIL: other pro billed';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'another pro cannot bill this job');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a0');
+select pg_temp.ok((select count(*) from public.invoices) = 1, 'company office sees its technician invoice');
+update public.invoices set status = 'paid';
+do $$ begin update public.invoices set notes = 'changed'; raise exception 'FAIL: edited paid'; exception when others then if sqlerrm like 'FAIL%' then raise; end if; end $$;
+select pg_temp.ok((select paid_at is not null from public.invoices), 'office marks paid; paid invoice is locked');
 \echo ALL RULE TESTS PASSED

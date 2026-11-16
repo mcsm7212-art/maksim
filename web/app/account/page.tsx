@@ -43,6 +43,8 @@ export default async function Account({ searchParams }: { searchParams: Promise<
   ]);
   const { data: myRatings } = me.pro ? await sb.from('client_ratings').select('booking_id').eq('pro_id', me.id) : { data: [] as any[] };
   const rated = new Set((myRatings ?? []).map((r: any) => r.booking_id));
+  const { data: invs } = bookingIds.length ? await sb.from('invoices').select('id, number, status, total, booking_id').in('booking_id', bookingIds).neq('status', 'void') : { data: [] as any[] };
+  const invOf = (id: string) => (invs ?? []).find((x: any) => x.booking_id === id);
   const photosOf = (id: string) => (jobPhotos ?? []).filter((p: any) => p.booking_id === id);
   const done = new Set((reviewed ?? []).map((r) => r.booking_id));
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
@@ -97,6 +99,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
                 {['confirmed', 'on_the_way'].includes(b.status) && <StatusBtn id={b.id} s="in_progress" l={tr('Start')} />}
                 {b.status === 'in_progress' && <StatusBtn id={b.id} s="done" l={tr('Done')} />}
               </span>
+              {['in_progress', 'done'].includes(b.status) && <div style={{ gridColumn: '1/-1' }}><InvoiceLink inv={invOf(b.id)} booking={b.id} tr={tr} biller /></div>}
               {b.status === 'done' && !rated.has(b.id) && <form action={rateClient} className="list" style={{ gridColumn: '1/-1', gap: 8 }}>
                 <input type="hidden" name="booking" value={b.id} /><input type="hidden" name="client" value={b.client_id} />
                 <b className="sm">{tr('Rate this client (private, only pros see it)')}</b>
@@ -129,6 +132,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
               <span className="mu sm">{when(b, tr)}{b.company ? ` · ${b.company.name}` : ''}</span></div>
             {b.pro ? <div className="sm">{tr('Your pro')}: <Link href={`/pro/${b.pro.slug}`}><b>{b.pro.display_name}</b></Link>{b.chosen_by === 'office' && <span className="mu xs"> · {tr('assigned by the office')}</span>}</div>
               : <div className="mu sm">{tr('The office will assign a technician. You will see who is coming here.')}</div>}
+            {invOf(b.id) && <InvoiceLink inv={invOf(b.id)} booking={b.id} tr={tr} />}
             {photosOf(b.id).length > 0 && <JobPhotos photos={photosOf(b.id)} tr={tr} />}
             {b.proposed && <div className="note">
               {tr('{company} asks to change your technician to', { company: b.company?.name ?? '' })} <Link href={`/pro/${b.proposed.slug}`}><b>{b.proposed.display_name}</b></Link>.
@@ -174,4 +178,10 @@ function JobPhotos({ photos, tr }: { photos: { id: string; url: string; kind: st
       })}
     </div>
   );
+}
+
+function InvoiceLink({ inv, booking, tr, biller }: { inv?: { id: string; number: string; status: string; total: number }; booking: string; tr: T; biller?: boolean }) {
+  if (!inv) return biller ? <Link className="btn ghost sm" href={`/invoice/new?booking=${booking}`}>{tr('Create invoice')}</Link> : null;
+  const st = tr(inv.status === 'draft' ? 'Draft' : inv.status === 'sent' ? 'Awaiting payment' : 'Paid');
+  return <Link className="btn ghost sm" href={`/invoice/${inv.id}`}>{tr('Invoice')} {inv.number} · ${Number(inv.total).toFixed(2)} · {st}</Link>;
 }

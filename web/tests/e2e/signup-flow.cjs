@@ -76,6 +76,14 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/account');await s.click('button:has-text("Save rating")');await s.waitForTimeout(800);
  if(sql("select publish_at<=now() from reviews")!=='t')throw new Error('review not published after both rated');step('pro rated client → review published');
  await s.goto(B+'/account/reviews');await s.fill('textarea[name=body]','Thank you Anna! Glad the new faucet works well.');await s.click('button:has-text("Post reply")');await s.waitForTimeout(1500);await s.screenshot({path:D+'e_reply.png',fullPage:true});await s.waitForSelector('.reply:has-text("Glad the new faucet")',{timeout:5000});
- await c.goto(B+'/pro/max-solo');await c.waitForSelector('text=Glad the new faucet');step('reply shows on the public page');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
+ await c.goto(B+'/pro/max-solo');await c.waitForSelector('text=Glad the new faucet');step('reply shows on the public page');
+ // invoice: pro bills the job (labor from the booking + a material line with 9.375% tax), sends, client opens, pro marks paid
+ await s.goto(B+'/account');await s.click('a:has-text("Create invoice")');await s.waitForURL(/invoice\/new/);
+ await s.click('button:has-text("+ Material")');const rows=s.locator('.invline');await rows.nth(1).locator('input').nth(0).fill('Moen faucet');await rows.nth(1).locator('input').nth(2).fill('150');
+ await s.fill('input[name=tax_rate]','9.375');await s.fill('textarea[name=payment]','Zelle to Max Solo');await s.click('button:has-text("Send to client")');await s.waitForURL(/invoice\/[0-9a-f-]{36}$/);
+ const total=sql("select total from invoices");if(total!==String((400+150+14.06).toFixed(2)))throw new Error('invoice total '+total);
+ await c.goto(B+'/account');await c.click('a:has-text("Invoice NF-")');await c.waitForSelector('text=Zelle to Max Solo');await c.screenshot({path:D+'e_invoice.png',fullPage:true});
+ await s.reload();await s.click('button:has-text("Mark as paid")');await s.waitForTimeout(800);if(sql("select status from invoices")!=='paid')throw new Error('not paid');
+ step('invoice: pro billed $'+total+', client opened it, pro marked it paid');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
  await o.goto(B+'/business');await o.screenshot({path:D+'e_business.png',fullPage:true});
 }catch(e){console.log('FAIL',e.message)}console.log(errs.length?errs.join('\n'):'no page errors');await b.close()})();
