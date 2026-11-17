@@ -75,6 +75,10 @@ export default async function ProPage({ params, searchParams }: Props) {
             <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link>
             <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>
           </div>
+          <div className="chips lcta" style={{ marginTop: 0 }}>
+            <a className="btn ghost sm" href={`/api/vcard/${pro.slug}`}>{tr('Save to contacts')}</a>
+            <a className="btn ghost sm" href={`/api/qr/${pro.slug}?format=png`}>{tr('QR code')}</a>
+          </div>
           {sp.chat === 'demo' && <p className="note" style={{ gridColumn: '1/-1' }}>{tr('Demo mode: chat turns on when the database is connected.')}</p>}
         </div>
 

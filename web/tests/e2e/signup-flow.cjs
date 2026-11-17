@@ -91,6 +91,17 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const total=sql("select total from invoices");if(total!==String((400+150+14.06).toFixed(2)))throw new Error('invoice total '+total);
  await c.goto(B+'/account');await c.click('a:has-text("Invoice NF-")');await c.waitForSelector('text=Zelle to Max Solo');await c.screenshot({path:D+'e_invoice.png',fullPage:true});
  await s.reload();await s.click('button:has-text("Mark as paid")');await s.waitForTimeout(800);if(sql("select status from invoices")!=='paid')throw new Error('not paid');
- step('invoice: pro billed $'+total+', client opened it, pro marked it paid');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
+ step('invoice: pro billed $'+total+', client opened it, pro marked it paid');
+ // business card: short address, QR, vCard, print sheet
+ await s.goto(B+'/account/card');await s.fill('input[name=handle]','search');await s.click('button:has-text("Save address")');await s.waitForSelector('text=reserved by the site');
+ await s.fill('input[name=handle]','max');await s.click('button:has-text("Save address")');await s.waitForSelector('text=old address keeps working');
+ await s.fill('input[name=phone]','(650) 555-0100');await s.click('button:has-text("Save phone")');await s.waitForTimeout(800);await s.reload();
+ await s.screenshot({path:D+'e_card.png',fullPage:true});
+ const v3=await b.newPage();await v3.goto(B+'/max');if(!(await v3.textContent('h1')).includes('Max Solo'))throw new Error('short address does not show the pro');
+ await v3.goto(B+'/max-solo');if(!v3.url().endsWith('/max'))throw new Error('old address did not redirect: '+v3.url());
+ const qr=await (await fetch(B+'/api/qr/max')).text();if(!qr.startsWith('<svg'))throw new Error('qr not svg');
+ const vc=await (await fetch(B+'/api/vcard/max')).text();if(!vc.includes('FN:Max Solo')||vc.includes('555-0100'))throw new Error('vcard wrong: '+vc);
+ const pp=await s.context().newPage();await pp.goto(B+'/account/card/print');if((await pp.locator('.sheet .bcard').count())!==20)throw new Error('print sheet must have 20 card sides');await pp.screenshot({path:D+'e_print.png',fullPage:true});await pp.close();await v3.close();
+ step('business card: short address /max, old address redirects, QR, vCard (no private phone), print sheet of 10');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
  await o.goto(B+'/business');await o.screenshot({path:D+'e_business.png',fullPage:true});
 }catch(e){console.log('FAIL',e.message)}console.log(errs.length?errs.join('\n'):'no page errors');await b.close()})();

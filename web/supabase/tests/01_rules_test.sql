@@ -230,4 +230,15 @@ select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.pro_busy_ranges('00000000-0000-0000-0000-0000000000a2') where starts_at = '2030-01-02 09:00-08') = 1, 'public sees imported busy range (time only)');
 select pg_temp.ok((select count(*) from public.calendar_feed('tok-abcdefghijklmnopqrstuvwxyz')) >= 1, 'calendar app reads jobs with the secret token');
 select pg_temp.ok((select count(*) from public.calendar_feed('wrong-token-wrong-token-xx')) = 0, 'wrong token gets nothing');
+-- 12) short addresses
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok(public.set_handle('Mike-Plumber') = 'mike-plumber', 'pro picks a short address');
+select pg_temp.ok((select pro_id from public.pro_handles where handle = 'mike') = auth.uid(), 'old address keeps pointing to the pro');
+do $$ begin perform public.set_handle('search'); raise exception 'FAIL: reserved'; exception when others then if sqlerrm not like 'handle:%' then raise; end if; end $$;
+select pg_temp.ok(true, 'site words like "search" are reserved');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+do $$ begin perform public.set_handle('mike'); raise exception 'FAIL: took old handle'; exception when others then if sqlerrm not like 'handle:%' then raise; end if; end $$;
+select pg_temp.ok(true, 'nobody can take another pro''s old address');
+do $$ begin perform public.set_handle('a'); raise exception 'FAIL: short'; exception when others then if sqlerrm not like 'handle:%' then raise; end if; end $$;
+select pg_temp.ok(true, 'too short address rejected');
 \echo ALL RULE TESTS PASSED

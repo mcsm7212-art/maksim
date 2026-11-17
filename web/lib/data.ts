@@ -77,6 +77,18 @@ export const listPros = cache(async (opts: { trade?: Trade | null; serviceId?: s
     (!opts.companySlug || p.company?.slug === opts.companySlug));
 });
 
+/** Short address → current handle of the pro (old handles still resolve), or null. */
+export const resolveHandle = cache(async (handle: string): Promise<string | null> => {
+  const h = handle.toLowerCase();
+  if (!/^[a-z0-9-]{2,40}$/.test(h)) return null;
+  if (!isLive()) return DEMO_PROS.some((p) => p.slug === h) ? h : null;
+  const sb = await supabaseServer();
+  const { data: cur } = await sb.from('pros').select('slug').eq('slug', h).maybeSingle();
+  if (cur) return cur.slug;
+  const { data: old } = await sb.from('pro_handles').select('pro:pros(slug)').eq('handle', h).maybeSingle();
+  return (old as { pro?: { slug?: string } } | null)?.pro?.slug ?? null;
+});
+
 export const getPro = cache(async (slug: string): Promise<Pro | null> => {
   if (!isLive()) return DEMO_PROS.find((p) => p.slug === slug) ?? null;
   const sb = await supabaseServer();

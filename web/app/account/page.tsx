@@ -69,7 +69,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <h3>{tr('My pro profile')}</h3>
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>{tr('Status')}: {tr(me.pro.status === 'verified' ? 'Public' : 'Waiting for verification')}</b><br />
-            <span className="mu sm">{tr('License check')}: {tr(proRow?.license_status ?? 'none')} · <Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link></span></span>
+            <span className="mu sm">{tr('License check')}: {tr(proRow?.license_status ?? 'none')} · <Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>
           {online
             ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● {proRow?.online_area ? tr('Online in {city}', { city: proRow.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
             : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={proRow?.online_area ?? proRow?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
