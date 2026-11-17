@@ -8,8 +8,12 @@ export default async function Join() {
   return (
     <section className="sec pad"><div className="in">
       <div className="eyebrow">{tr("For pros & companies")}</div>
-      <h2>{tr("Flat monthly subscription. No lead fees.")}</h2>
+      <h2>{tr("No lead fees. Free during the launch.")}</h2>
       <p className="mu" style={{ maxWidth: '62ch' }}>{tr("Clients choose you directly. A request goes only to you, never to five competitors. Your reviews, job counts and skills stay with you.")}</p>
+      <div className="note" style={{ margin: '14px 0 4px', maxWidth: '70ch' }}>
+        <b>{tr("Free during the launch")}</b><br />
+        {tr("Right now NovaFides charges nothing: no subscription, no lead fees, no card needed. A subscription will start only later, and only after we notify every pro by email and in the account at least 30 days in advance, with the exact start date. Pros who join now become Founding Pros and keep special terms.")}
+      </div>
       <div className="grid2" style={{ marginTop: 18 }}>
         <Link href="/join/pro" className="card trade"><span className="ic"><Icon name="tool" size={24} /></span><h3>{tr("Independent pro")}</h3>
           <span className="mu sm">{tr("You work for yourself. Set your own prices, schedule and service levels. CSLB license required for plumbing and electrical.")}</span>

@@ -622,7 +622,15 @@ export const ES: Record<string, string> = {
 "Scan: my work, reviews and online booking": "Escanee: mis trabajos, reseñas y reservas en línea",
 "Real photos of my jobs, verified license, honest reviews. Pick a time that suits you.": "Fotos reales de mis trabajos, licencia verificada, reseñas honestas. Elija la hora que le convenga.",
 "Save to contacts": "Guardar en contactos",
-"QR code": "Código QR"
+"QR code": "Código QR",
+"Founding Pro": "Profesional fundador",
+"Joined NovaFides during the launch": "Se unió a NovaFides durante el lanzamiento",
+"No lead fees. Free during the launch.": "Sin pago por clientes. Gratis durante el lanzamiento.",
+"Free during the launch": "Gratis durante el lanzamiento",
+"Right now NovaFides charges nothing: no subscription, no lead fees, no card needed. A subscription will start only later, and only after we notify every pro by email and in the account at least 30 days in advance, with the exact start date. Pros who join now become Founding Pros and keep special terms.": "Ahora NovaFides no cobra nada: sin suscripción, sin pago por clientes, sin tarjeta. Una suscripción empezará solo más adelante y solo después de avisar a cada profesional por correo y en su cuenta con al menos 30 días de anticipación y la fecha exacta. Quienes se unan ahora serán Profesionales fundadores y mantendrán condiciones especiales.",
+"Prices for pros": "Precios para profesionales",
+"During the launch NovaFides is free for pros and clients. When a subscription for pros is introduced, we will announce it at least 30 days in advance by email and in every pro account, with the exact start date and price. Nothing is charged without that notice. Pros who joined during the launch are Founding Pros and keep special terms. For clients, searching and booking stay free.": "Durante el lanzamiento NovaFides es gratis para profesionales y clientes. Cuando se introduzca una suscripción para profesionales, la anunciaremos con al menos 30 días de anticipación por correo y en cada cuenta, con la fecha exacta y el precio. No se cobra nada sin ese aviso. Quienes se unieron durante el lanzamiento son Profesionales fundadores y mantienen condiciones especiales. Para los clientes, buscar y reservar sigue siendo gratis.",
+"Your request goes only to the pro or company you choose. We never sell leads. Pros never pay per lead: when paid plans start, it will be one simple flat subscription.": "Su solicitud llega solo al profesional o empresa que elija. Nunca vendemos clientes. Los profesionales nunca pagan por cliente: cuando empiecen los planes de pago, será una sola suscripción fija y sencilla."
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1247,5 +1255,13 @@ export const RU: Record<string, string> = {
 "Scan: my work, reviews and online booking": "Наведите камеру: мои работы, отзывы и запись онлайн",
 "Real photos of my jobs, verified license, honest reviews. Pick a time that suits you.": "Настоящие фото моих работ, проверенная лицензия, честные отзывы. Выберите удобное время.",
 "Save to contacts": "Сохранить в контакты",
-"QR code": "QR-код"
+"QR code": "QR-код",
+"Founding Pro": "Мастер-основатель",
+"Joined NovaFides during the launch": "Присоединился к NovaFides на старте",
+"No lead fees. Free during the launch.": "Без платы за заявки. На старте бесплатно.",
+"Free during the launch": "На старте бесплатно",
+"Right now NovaFides charges nothing: no subscription, no lead fees, no card needed. A subscription will start only later, and only after we notify every pro by email and in the account at least 30 days in advance, with the exact start date. Pros who join now become Founding Pros and keep special terms.": "Сейчас NovaFides ничего не берёт: ни подписки, ни платы за заявки, карта не нужна. Подписка начнётся только позже и только после того, как мы минимум за 30 дней сообщим каждому мастеру по email и в кабинете точную дату начала. Мастера, которые присоединятся сейчас, становятся мастерами-основателями и сохраняют особые условия.",
+"Prices for pros": "Цены для мастеров",
+"During the launch NovaFides is free for pros and clients. When a subscription for pros is introduced, we will announce it at least 30 days in advance by email and in every pro account, with the exact start date and price. Nothing is charged without that notice. Pros who joined during the launch are Founding Pros and keep special terms. For clients, searching and booking stay free.": "На старте NovaFides бесплатен и для мастеров, и для клиентов. Когда появится подписка для мастеров, мы объявим о ней минимум за 30 дней по email и в кабинете каждого мастера, с точной датой начала и ценой. Без такого уведомления деньги не списываются. Мастера, присоединившиеся на старте, — мастера-основатели и сохраняют особые условия. Для клиентов поиск и запись остаются бесплатными.",
+"Your request goes only to the pro or company you choose. We never sell leads. Pros never pay per lead: when paid plans start, it will be one simple flat subscription.": "Заявка уходит только выбранному мастеру или компании. Мы не продаём заявки. Мастера никогда не платят за заявку: когда появится оплата, это будет одна простая фиксированная подписка."
 };

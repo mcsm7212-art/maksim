@@ -241,4 +241,8 @@ do $$ begin perform public.set_handle('mike'); raise exception 'FAIL: took old h
 select pg_temp.ok(true, 'nobody can take another pro''s old address');
 do $$ begin perform public.set_handle('a'); raise exception 'FAIL: short'; exception when others then if sqlerrm not like 'handle:%' then raise; end if; end $$;
 select pg_temp.ok(true, 'too short address rejected');
+-- 13) founding pros
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+update public.pros set founding_pro = false where id = auth.uid();
+select pg_temp.ok((select founding_pro from public.pros where id = auth.uid()), 'pros who joined at launch are Founding Pros and cannot remove or fake it');
 \echo ALL RULE TESTS PASSED

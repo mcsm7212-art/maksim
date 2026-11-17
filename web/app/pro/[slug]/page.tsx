@@ -64,6 +64,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               {pro.reviewCount > 0 && pro.rating != null
                 ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {tr(pro.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: pro.reviewCount })}</span>
                 : <span className="newbadge">{tr('New on NovaFides')}</span>}
+              {pro.founding && <span className="badge cu" title={tr('Joined NovaFides during the launch')}>★ {tr('Founding Pro')}</span>}
               {pro.verified.license && pro.license && <span className="badge ok">CSLB #{pro.license}</span>}
               {pro.verified.id && <span className="badge ok">{tr('ID checked')}</span>}
               {pro.verified.insured && <span className="badge ok">{tr('Insured')}</span>}

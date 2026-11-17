@@ -10,7 +10,7 @@ export default function HandleForm({ current, host }: { current: string; host: s
     <form action={action} className="list" style={{ gap: 8 }}>
       <label className="f">{t('Your short address')}
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span className="mu sm" style={{ whiteSpace: 'nowrap' }}>{host}/</span>
-          <input className="inp" name="handle" defaultValue={current} pattern="[A-Za-z0-9-]{3,30}" required maxLength={30} autoCapitalize="none" spellCheck={false} /></span></label>
+          <input className="inp" name="handle" defaultValue={current} pattern="[A-Za-z0-9\-]{3,30}" required maxLength={30} autoCapitalize="none" spellCheck={false} /></span></label>
       {state?.error && <span className="err">{t(state.error)}</span>}
       {state?.ok && <span className="okmsg">{t(state.ok)}</span>}
       <button className="btn sm" disabled={pending} style={{ alignSelf: 'flex-start' }}>{t('Save address')}</button>

@@ -70,6 +70,8 @@ export interface Pro {
   accent: string;
   base: Base;
   online: boolean;
+  /** Joined during the free launch period */
+  founding: boolean;
   /** City the pro is working in right now (when online) */
   onlineArea: string | null;
   responseMin: number | null;
