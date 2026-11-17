@@ -595,7 +595,8 @@ export const ES: Record<string, string> = {
 "Last sync": "Última sincronización",
 "{n} busy blocks in the next 30 days": "{n} bloques ocupados en los próximos 30 días",
 "Use the secret iCal address from Google, Apple iCloud or Outlook calendar.": "Use la dirección secreta iCal de Google, Apple iCloud u Outlook.",
-"That sign-in link did not work. Open the link on the same phone or computer, in the same browser, where you asked for it. Or ask for a new email below.": "Ese enlace no funcionó. Ábralo en el mismo teléfono o computadora, en el mismo navegador donde lo pidió, o pida un correo nuevo abajo."
+"That sign-in link did not work. Open the link on the same phone or computer, in the same browser, where you asked for it. Or ask for a new email below.": "Ese enlace no funcionó. Ábralo en el mismo teléfono o computadora, en el mismo navegador donde lo pidió, o pida un correo nuevo abajo.",
+"Too many sign-in emails were sent in the last hour. Please try again in an hour.": "Se enviaron demasiados correos de acceso en la última hora. Intente de nuevo en una hora."
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1193,5 +1194,6 @@ export const RU: Record<string, string> = {
 "Last sync": "Последняя синхронизация",
 "{n} busy blocks in the next 30 days": "занятых промежутков на 30 дней: {n}",
 "Use the secret iCal address from Google, Apple iCloud or Outlook calendar.": "Используйте секретный iCal-адрес из Google, Apple iCloud или Outlook.",
-"That sign-in link did not work. Open the link on the same phone or computer, in the same browser, where you asked for it. Or ask for a new email below.": "Ссылка для входа не сработала. Откройте её на том же телефоне или компьютере и в том же браузере, где запрашивали вход, или запросите новое письмо ниже."
+"That sign-in link did not work. Open the link on the same phone or computer, in the same browser, where you asked for it. Or ask for a new email below.": "Ссылка для входа не сработала. Откройте её на том же телефоне или компьютере и в том же браузере, где запрашивали вход, или запросите новое письмо ниже.",
+"Too many sign-in emails were sent in the last hour. Please try again in an hour.": "За последний час отправлено слишком много писем для входа. Попробуйте снова через час."
 };

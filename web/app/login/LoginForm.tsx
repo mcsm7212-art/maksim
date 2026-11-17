@@ -22,7 +22,7 @@ export default function LoginForm({ next, live }: { next: string; live: boolean 
       email, options: { emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`, data: name ? { full_name: name } : undefined },
     });
     setBusy(false);
-    if (error) setMsg(error.message); else setStep('code');
+    if (error) setMsg(/rate limit/i.test(error.message) ? t('Too many sign-in emails were sent in the last hour. Please try again in an hour.') : error.message); else setStep('code');
   }
   async function verify(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setMsg(null);
