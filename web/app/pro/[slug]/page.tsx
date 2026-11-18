@@ -13,6 +13,12 @@ import { dateLabel, slotLabel } from '@/lib/time';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
+import SaveButton from '@/components/SaveButton';
+import PostCard from '@/components/PostCard';
+import { getMe } from '@/lib/auth';
+import { supabaseServer } from '@/lib/supabase/server';
+import { colleaguesOf, mySaves, postsOf, saveCount } from '@/lib/social';
+import { recommendPro, unrecommendPro } from '@/app/social/actions';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -34,6 +40,9 @@ export default async function ProPage({ params, searchParams }: Props) {
   const slots = openSlots(pro).slice(0, 14);
   const first = pro.name.split(' ')[0];
   const stats = showStats(pro);
+  const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
+  const isOwner = me?.id === pro.id;
+  const myRec = me?.pro && !isOwner ? (await (await supabaseServer()).from('pro_recommendations').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data : null;
   const bookHref = (t?: string) => `/book?pro=${pro.slug}&tier=${tier}${svcId ? `&svc=${svcId}` : ''}${t ? `&t=${encodeURIComponent(t)}` : ''}`;
   const q = (patch: Record<string, string>) => `/pro/${pro.slug}?${new URLSearchParams({ tier, ...(svcId ? { svc: svcId } : {}), ...patch })}`;
   const sk = pro.skills;
@@ -77,6 +86,8 @@ export default async function ProPage({ params, searchParams }: Props) {
             <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>
           </div>
           <div className="chips lcta" style={{ marginTop: 0 }}>
+            {!isOwner && <SaveButton proId={pro.id} initial={saves.get(pro.id) ?? null} count={saved} />}
+            {isOwner && saved > 0 && <span className="badge cu">♥ {tr('{n} people saved you', { n: saved })}</span>}
             <a className="btn ghost sm" href={`/api/vcard/${pro.slug}`}>{tr('Save to contacts')}</a>
             <a className="btn ghost sm" href={`/api/qr/${pro.slug}?format=png`}>{tr('QR code')}</a>
           </div>
@@ -98,6 +109,32 @@ export default async function ProPage({ params, searchParams }: Props) {
           <h2>{tr('Work photos')} <small>{tr(pro.photos.length === 1 ? '{n} photo' : '{n} photos', { n: pro.photos.length })}</small></h2>
           {pro.photos.length ? <WorkPhotos photos={pro.photos} /> : <p className="mu">{tr('No work photos yet.')}</p>}
         </div>
+
+        {(posts.length > 0 || isOwner) && <div className="blk">
+          <h2>{tr('Posts')} <small><a href="/feed">{tr('Feed')} →</a></small></h2>
+          {isOwner && <p className="mu sm" style={{ marginTop: 0 }}>{tr('Share new work in the')} <a href="/feed">{tr('Feed')}</a>.</p>}
+          <div className="list">{posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={isOwner} />)}</div>
+        </div>}
+
+        {(colleagues.length > 0 || isOwner) && <div className="blk">
+          <h2>{tr('{name} recommends', { name: first })} <small>{tr('trusted colleagues')}</small></h2>
+          {isOwner && !colleagues.length && <p className="mu sm">{tr('Open another pro’s page and press “Recommend” to vouch for a colleague you trust: an electrician, a handyman, a drain specialist.')}</p>}
+          <div className="colls">{colleagues.map((c) => (
+            <div key={c.id} className="card coll" style={{ ['--acc' as string]: c.accent }}>
+              <a href={`/${c.slug}`} className="ava"><Figure name={c.name} accent={c.accent} photo={c.photoUrl} /></a>
+              <span style={{ minWidth: 0 }}><a href={`/${c.slug}`}><b>{c.name}</b></a><br /><span className="mu xs">{tr(TRADES[c.trade as keyof typeof TRADES]?.name ?? '')}{c.note ? ` · “${c.note}”` : ''}</span></span>
+              {isOwner && <form action={unrecommendPro} style={{ marginLeft: 'auto' }}><input type="hidden" name="colleague" value={c.id} /><input type="hidden" name="path" value={`/${pro.slug}`} /><button className="btn ghost sm" aria-label={tr('Remove')}>✕</button></form>}
+            </div>))}</div>
+        </div>}
+
+        {me?.pro && me.pro.status === 'verified' && !isOwner && !myRec && <div className="blk">
+          <form action={recommendPro} className="card formcard">
+            <b>{tr('Do you trust {name}? Recommend them on your page.', { name: first })}</b>
+            <input type="hidden" name="colleague" value={pro.id} /><input type="hidden" name="path" value={`/${pro.slug}`} />
+            <input className="inp" name="note" maxLength={140} placeholder={tr('Why? E.g. “My go-to electrician, always on time.”')} />
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Recommend')}</button>
+          </form>
+        </div>}
 
         <div className="blk">
           <h2>{tr('Services and prices')}</h2>

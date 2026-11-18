@@ -103,5 +103,25 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const vc=await (await fetch(B+'/api/vcard/max')).text();if(!vc.includes('FN:Max Solo')||vc.includes('555-0100'))throw new Error('vcard wrong: '+vc);
  const pp=await s.context().newPage();await pp.goto(B+'/account/card/print');if((await pp.locator('.sheet .bcard').count())!==20)throw new Error('print sheet must have 20 card sides');await pp.screenshot({path:D+'e_print.png',fullPage:true});await pp.close();await v3.close();
  step('business card: short address /max, old address redirects, QR, vCard (no private phone), print sheet of 10');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
+ // social: save, hide, my pros, posts, likes, recommendations, popular
+ const tom=sql("select slug from pros where display_name='Tom Tech'");
+ await c.goto(B+'/max');await c.click('button[aria-pressed=false]:has-text("Save")');await c.waitForSelector('button[aria-pressed=true]:has-text("Saved")');
+ if(sql("select count(*) from pro_saves where status='saved'")!=='1')throw new Error('save not stored');
+ await c.goto(B+'/pro/'+tom);await c.click('button:has-text("Hide")');await c.waitForSelector('text=Hidden from your search');
+ await c.goto(B+'/search?svc=faucet-replacement');const sr=await c.textContent('main');if(sr.includes('Tom Tech')||!sr.includes('Max Solo')||!sr.includes('My pro'))throw new Error('search did not hide/flag pros');
+ step('client saved Max (♥ My pro in search) and hid Tom from search');
+ await c.goto(B+'/my-pros');const mp=await c.textContent('main');if(!mp.includes('Max Solo')||!mp.includes('Book again')||!mp.includes('Tom Tech'))throw new Error('my pros page wrong');await c.screenshot({path:D+'e_mypros.png',fullPage:true});
+ step('My pros: saved Max with "Book again", Tom under Hidden');
+ await s.goto(B+'/feed');await s.fill('textarea[name=body]','Swapped an old faucet for a new pull-down in Redwood City.');await s.setInputFiles('.drop input >> nth=0',IMG('w1'));await s.waitForSelector('input[name=work_url]',{state:'attached'});
+ await s.click('button:has-text("Post")');await s.waitForSelector('text=Posted.');if(sql("select count(*) from posts")!=='1')throw new Error('post not stored');
+ step('pro posted new work with a photo');
+ await c.goto(B+'/feed?tab=following');await c.waitForSelector('text=pull-down in Redwood City');await c.click('.post button[aria-label=Like]');await c.waitForSelector('.post button[aria-pressed=true]');
+ if(sql("select count(*) from post_likes")!=='1')throw new Error('like not stored');if(sql("select count(*) from notifications where body like 'New post from%'")!=='1')throw new Error('saver not notified of post');
+ await c.screenshot({path:D+'e_feed.png',fullPage:true});step('client saw the post in "My pros" feed, liked it, got a notification');
+ await s.goto(B+'/pro/'+tom);await s.fill('input[name=note]','Great with water heaters, always on time.');await s.click('button:has-text("Recommend")');await s.waitForSelector('input[name=note]',{state:'detached'});
+ await s.goto(B+'/max');await s.waitForSelector('.colls >> text=Tom Tech');if(!(await s.textContent('main')).includes('1 people saved you')&&!(await s.textContent('main')).includes('people saved you'))throw new Error('owner save count missing');
+ if(sql("select count(*) from notifications where body like '%recommends you%'")!=='1')throw new Error('colleague not notified');
+ step('Max recommended Tom → shown on Max page, Tom notified');
+ sql("update pros set online_until=null");await c.goto(B+'/');const hm=await c.textContent('main');if(!hm.includes('Popular now')||!hm.includes('Max Solo'))throw new Error('popular section missing');step('home page: Max in Popular now (offline pros with recent jobs)');
  await o.goto(B+'/business');await o.screenshot({path:D+'e_business.png',fullPage:true});
 }catch(e){console.log('FAIL',e.message)}console.log(errs.length?errs.join('\n'):'no page errors');await b.close()})();

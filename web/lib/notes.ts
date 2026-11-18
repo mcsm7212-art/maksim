@@ -9,6 +9,8 @@ const PATTERNS: [RegExp, string][] = [
   [/^Your profile was not approved: (.+)\.$/, 'Your profile was not approved: {a}.'],
   [/^Your company was not approved: (.+)\.$/, 'Your company was not approved: {a}.'],
   [/^New invoice (\S+): (\$[\d.,]+)\.$/, 'New invoice {a}: {b}.'],
+  [/^New post from (.+)\.$/, 'New post from {a}.'],
+  [/^(.+) recommends you on their page\.$/, '{a} recommends you on their page.'],
 ];
 export function noteText(body: string, tr: T): string {
   const direct = tr(body);

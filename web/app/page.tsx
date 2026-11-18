@@ -4,11 +4,14 @@ import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
 import { TRADES, type Trade } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
+import { popularIds } from '@/lib/social';
 import { getT } from '@/lib/i18n';
 
 export default async function Home() {
   const pros = await listPros(); const t = await getT();
   const online = pros.filter((p) => p.online).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 4);
+  const pop = await popularIds(6);
+  const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
   return (
     <>
       <section className="hero pad"><div className="in">
@@ -35,6 +38,11 @@ export default async function Home() {
           <Link href="/online" className="btn red">{t('See who is online')}</Link>
         </div>
       </div></section>
+
+      {popular.length > 0 && <section className="sec pad"><div className="in">
+        <div className="eyebrow">{t('Most booked in the last 90 days')}</div><h2>{t('Popular now')}</h2>
+        <div className="list">{popular.map((p) => <ProCard key={p.id} pro={p} />)}</div>
+      </div></section>}
 
       {online.length > 0 && <section className="sec pad"><div className="in">
         <div className="eyebrow">{t('Online now')}</div><h2>{t('Available pros')}</h2>

@@ -29,7 +29,7 @@ for i in $(seq 1 60); do [ "$(PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres 
 cd "$WEB/supabase"
 PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -q -f migrations/0001_init.sql >/dev/null
 PGPASSWORD=postgres psql -h 127.0.0.1 -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q -f migrations/0002_storage.sql
-for f in migrations/000[3-9]_*.sql; do PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -q -f "$f"; done
+for f in $(ls migrations/*.sql | grep -v -e 0001_ -e 0002_); do PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -q -f "$f"; done
 PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -q -f seed.sql
 docker run -d --name nfrest --network host -e PGRST_DB_URI='postgres://authenticator:postgres@127.0.0.1:5432/postgres' -e PGRST_DB_SCHEMAS=public -e PGRST_DB_ANON_ROLE=anon -e PGRST_JWT_SECRET=$S -e PGRST_SERVER_PORT=3001 -e PGRST_SERVER_HOST=127.0.0.1 postgrest/postgrest:v12.2.3 >/dev/null
 fuser -k 54321/tcp >/dev/null 2>&1 || true; (node "$HERE/gateway.cjs" > "$OUT/gateway.log" 2>&1 &)

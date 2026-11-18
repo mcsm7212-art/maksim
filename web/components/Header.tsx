@@ -23,6 +23,8 @@ export default async function Header() {
             <Link href="/online">● {t('Online now')}</Link>
             {me?.role === 'admin' && <Link href="/admin">Admin</Link>}
             {me?.companies.some((c) => c.role !== 'technician') && <Link href="/business">{t('Business')}</Link>}
+            <Link href="/feed">{t('Feed')}</Link>
+            {me && <Link href="/my-pros">♥ {t('My pros')}</Link>}
             {me && <Link href="/messages">{t('Messages')}</Link>}
             {me ? <Link href="/account">{t('My account')}</Link> : <Link href="/login">{t('Sign in')}</Link>}
             {!me?.pro && !me?.companies.length && <Link href="/join">{t('For pros')}</Link>}

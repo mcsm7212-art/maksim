@@ -3,6 +3,7 @@ import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
 import { searchServices, serviceById, TIER_KEYS, TIERS, TRADES, usd, type Tier, type Trade } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
+import { mySaves } from '@/lib/social';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
 
@@ -19,7 +20,11 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   if (sp.online) pros = pros.filter((p) => p.online);
   // Handymen cannot take permit jobs or jobs over $1,000.
   if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman');
-  pros = [...pros].sort((a, b) => Number(b.online) - Number(a.online) || (b.rating ?? 0) - (a.rating ?? 0));
+  // My pros: hidden ones are left out, saved ones come first.
+  const saves = await mySaves();
+  pros = pros.filter((p) => saves.get(p.id) !== 'hidden');
+  const fav = (p: { id: string }) => Number(saves.get(p.id) === 'saved');
+  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.online) - Number(a.online) || (b.rating ?? 0) - (a.rating ?? 0));
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
@@ -51,7 +56,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
       </div>}
 
       <div className="list" style={{ marginTop: 22 }}>
-        {pros.map((p) => <ProCard key={p.id} pro={p} serviceId={svc?.id} tier={tier} />)}
+        {pros.map((p) => <ProCard key={p.id} pro={p} serviceId={svc?.id} tier={tier} saved={saves.get(p.id) === 'saved'} />)}
         {!pros.length && <div className="card empty">{tr('No pros match yet.')} <Link href="/ask">{tr('Describe your job')}</Link> {tr('and we will find someone.')}</div>}
       </div>
     </div></section>
