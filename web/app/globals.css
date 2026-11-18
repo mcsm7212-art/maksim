@@ -82,7 +82,6 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mu
 .trade h3{margin:0;font-size:22px}
 .trade .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#22170F;color:var(--cu-l)}
 .trade:hover{border-color:var(--cu)}
-.emerg{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;padding:16px 18px;border-color:rgba(229,96,77,.45);background:linear-gradient(110deg,rgba(229,96,77,.12),rgba(229,96,77,.02))}
 .trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:860px){.trust{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .trust div{padding:14px;font-size:13.5px}
@@ -386,3 +385,11 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .acct-menu form{border-top:1px solid var(--line);margin-top:4px;padding-top:4px}
 .acct-menu button{color:var(--mu)}
 @media (max-width:700px){.acct summary{padding:6px 9px}}
+/* home: urgent help */
+.urgent{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px;border-left:3px solid #C08A62}
+.urg-ic{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:rgba(192,138,98,.12);color:#E2B48C}
+.urg-txt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px}
+.urg-txt b{font-size:18px}
+.live{display:inline-flex;align-items:center;gap:7px;color:#7FD49B;font-weight:600}
+.live i{width:8px;height:8px;border-radius:50%;background:#3FBF6B;box-shadow:0 0 0 3px rgba(63,191,107,.18)}
+@media (max-width:700px){.urgent{align-items:flex-start}.urgent .urg-txt{min-width:0}.urgent .btn{width:100%;text-align:center}}

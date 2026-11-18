@@ -674,7 +674,14 @@ export const ES: Record<string, string> = {
 "{n} people saved you": "{n} personas lo guardaron",
 "You can post up to 3 times a day.": "Puede publicar hasta 3 veces al día.",
 "New post from {a}.": "Nueva publicación de {a}.",
-"{a} recommends you on their page.": "{a} lo recomienda en su página."
+"{a} recommends you on their page.": "{a} lo recomienda en su página.",
+"Urgent help": "Ayuda urgente",
+"Need help right now?": "¿Necesita ayuda ahora mismo?",
+"Burst pipe, power out, water heater leaking? See which verified pros are online and in which city.": "¿Tubería rota, sin luz, el calentador gotea? Vea qué profesionales verificados están en línea y en qué ciudad.",
+"{n} pro online now": "{n} profesional en línea ahora",
+"{n} pros online now": "{n} profesionales en línea ahora",
+"Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.": "¿Huele a gas? Salga primero de la casa y llame a PG&E al 1-800-743-5000 o al 911.",
+"Find pros online": "Buscar profesionales en línea"
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1351,5 +1358,12 @@ export const RU: Record<string, string> = {
 "{n} people saved you": "вас сохранили: {n}",
 "You can post up to 3 times a day.": "Публиковать можно до 3 раз в день.",
 "New post from {a}.": "Новый пост от {a}.",
-"{a} recommends you on their page.": "{a} рекомендует вас на своей странице."
+"{a} recommends you on their page.": "{a} рекомендует вас на своей странице.",
+"Urgent help": "Срочная помощь",
+"Need help right now?": "Нужна помощь прямо сейчас?",
+"Burst pipe, power out, water heater leaking? See which verified pros are online and in which city.": "Прорвало трубу, нет света, течёт водонагреватель? Посмотрите, какие проверенные мастера сейчас онлайн и в каком городе.",
+"{n} pro online now": "Сейчас онлайн: {n} мастер",
+"{n} pros online now": "Сейчас онлайн мастеров: {n}",
+"Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.": "Пахнет газом? Сначала выйдите из дома и позвоните в PG&E: 1-800-743-5000 или 911.",
+"Find pros online": "Найти мастеров онлайн"
 };

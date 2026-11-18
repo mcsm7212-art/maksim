@@ -10,6 +10,7 @@ import { getT } from '@/lib/i18n';
 export default async function Home() {
   const pros = await listPros(); const t = await getT();
   const online = pros.filter((p) => p.online).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 4);
+  const onlineCount = pros.filter((p) => p.online).length;
   const pop = await popularIds(6);
   const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
   return (
@@ -33,9 +34,16 @@ export default async function Home() {
       </div></section>
 
       <section className="pad" style={{ marginTop: 16 }}><div className="in">
-        <div className="card emerg">
-          <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Icon name="siren" size={26} /><span><b>{t('Emergency? Burst pipe, no power, gas smell?')}</b><br /><span className="mu sm">{t('See on the map which pros are online right now and in which city.')}</span></span></span>
-          <Link href="/online" className="btn red">{t('See who is online')}</Link>
+        <div className="card urgent">
+          <span className="urg-ic"><Icon name="bolt" size={22} /></span>
+          <div className="urg-txt">
+            <div className="eyebrow" style={{ margin: 0 }}>{t('Urgent help')}</div>
+            <b>{t('Need help right now?')}</b>
+            <span className="mu sm">{t('Burst pipe, power out, water heater leaking? See which verified pros are online and in which city.')}</span>
+            {onlineCount > 0 && <span className="live xs"><i />{onlineCount === 1 ? t('{n} pro online now', { n: onlineCount }) : t('{n} pros online now', { n: onlineCount })}</span>}
+            <span className="mu2 xs">{t('Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.')}</span>
+          </div>
+          <Link href="/online" className="btn">{t('Find pros online')}</Link>
         </div>
       </div></section>
 
