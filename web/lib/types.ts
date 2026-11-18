@@ -74,6 +74,10 @@ export interface Pro {
   founding: boolean;
   /** City the pro is working in right now (when online) */
   onlineArea: string | null;
+  /** Online now AND takes urgent calls */
+  urgent: boolean;
+  /** Extra call-out fee for urgent visits, if the pro set one */
+  urgentFee: number | null;
   responseMin: number | null;
   tripFee: number;
   rating: number | null;

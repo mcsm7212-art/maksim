@@ -22,6 +22,13 @@ export async function setOnline(f: FormData) {
   await sb.rpc('set_online', { hours: Number(s(f, 'hours')) || 0, area: s(f, 'area').slice(0, 60) || null });
   revalidatePath('/account');
 }
+export async function setUrgent(f: FormData) {
+  const { sb } = await need();
+  const take = s(f, 'take') === '1';
+  const raw = s(f, 'fee').replace(/[^\d.]/g, ''); const fee = raw ? Math.min(500, Math.max(0, Math.round(Number(raw)))) : null;
+  await sb.rpc('set_urgent', { take, fee });
+  revalidatePath('/account'); revalidatePath('/'); revalidatePath('/online');
+}
 export async function markRead() {
   const { me, sb } = await need();
   await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('user_id', me.id).is('read_at', null);

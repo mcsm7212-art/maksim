@@ -11,7 +11,7 @@ import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName, type T } from '@/lib/i18n-core';
 import { rateClient } from './reviews/actions';
-import { addPhotos, answerSwap, deletePhoto, markRead, setOnline, setStatus, submitReview } from './actions';
+import { addPhotos, answerSwap, deletePhoto, markRead, setOnline, setStatus, setUrgent, submitReview } from './actions';
 
 export const metadata = { title: 'My account' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,7 +33,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -75,6 +75,17 @@ export default async function Account({ searchParams }: { searchParams: Promise<
             : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={proRow?.online_area ?? proRow?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
                 {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
                 <input type="hidden" name="hours" value={4} /><button className="btn sm">{tr('Go online for 4 h')}</button></form>}
+        </div>
+        <div className="card bk urgent-set" style={{ marginBottom: 12 }}>
+          <span><b>⚡ {tr('Urgent calls')}: {tr(proRow?.urgent_ok ? 'on' : 'off')}</b><br />
+            <span className="mu sm">{proRow?.urgent_ok
+              ? (proRow?.urgent_fee != null ? tr('Clients see you as ready for urgent calls while you are online. Urgent call-out: +${fee}.', { fee: Number(proRow.urgent_fee) }) : tr('Clients see you as ready for urgent calls while you are online.'))
+              : tr('Turn on if you can come fast: you will show up first in “Urgent help” while you are online.')}</span></span>
+          {proRow?.urgent_ok
+            ? <form action={setUrgent}><input type="hidden" name="take" value="0" /><button className="btn ghost sm">{tr('Turn off')}</button></form>
+            : <form action={setUrgent} className="chips"><input type="hidden" name="take" value="1" />
+                <input className="inp" name="fee" inputMode="numeric" placeholder={tr('Extra fee, $ (optional)')} aria-label={tr('Extra fee for urgent call-out, $')} style={{ width: 190, padding: '7px 10px' }} />
+                <button className="btn sm">⚡ {tr('I take urgent calls')}</button></form>}
         </div>
         <h3>{tr('My work photos')} <span className="mu sm">({(portfolio ?? []).length})</span></h3>
         <div className="card formcard" style={{ marginBottom: 18 }}>

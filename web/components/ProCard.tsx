@@ -22,7 +22,7 @@ export default async function ProCard({ pro, serviceId, tier, saved }: { pro: Pr
       <span className="fig"><Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} /></span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <h3>{pro.name}</h3>{pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} />{tr('Online')}</span>}
+          <h3>{pro.name}</h3>{pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} />{tr('Online')}</span>}{pro.urgent && <span className="badge urg">⚡ {tr('Urgent calls')}</span>}
         </span>
         <span className="mu sm" style={{ display: 'block' }}>{tr(TRADES[pro.trade].name)} · {pro.company ? pro.company.name : tr('Independent')}{pro.area ? ` · ${pro.area}` : ''}{pro.years ? ` · ${tr('{n} yrs', { n: pro.years })}` : ''}</span>
         {pro.bio && <span className="sm" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginTop: 4 }}>{pro.bio}</span>}

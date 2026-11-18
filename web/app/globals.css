@@ -393,3 +393,4 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .live{display:inline-flex;align-items:center;gap:7px;color:#7FD49B;font-weight:600}
 .live i{width:8px;height:8px;border-radius:50%;background:#3FBF6B;box-shadow:0 0 0 3px rgba(63,191,107,.18)}
 @media (max-width:700px){.urgent{align-items:flex-start}.urgent .urg-txt{min-width:0}.urgent .btn{width:100%;text-align:center}}
+.badge.urg{background:rgba(192,138,98,.14);color:#E2B48C;border:1px solid rgba(192,138,98,.35)}

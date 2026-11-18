@@ -122,6 +122,15 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/max');await s.waitForSelector('.colls >> text=Tom Tech');if(!(await s.textContent('main')).includes('1 people saved you')&&!(await s.textContent('main')).includes('people saved you'))throw new Error('owner save count missing');
  if(sql("select count(*) from notifications where body like '%recommends you%'")!=='1')throw new Error('colleague not notified');
  step('Max recommended Tom → shown on Max page, Tom notified');
+ // urgent calls
+ await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
+ await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');
+ sql("update pros set online_until=now()+interval '2 hours' where display_name='Tom Tech'");
+ await c.goto(B+'/');const hu=await c.textContent('.urgent');if(!hu.includes('1 pro ready for urgent calls now'))throw new Error('home urgent count wrong: '+hu);
+ await c.click('.urgent a:has-text("Find urgent help")');await c.waitForURL(/urgent=1/);const ou=await c.textContent('main');if(!ou.includes('Max Solo')||ou.includes('Tom Tech'))throw new Error('urgent list wrong');
+ await c.screenshot({path:D+'e_urgent.png',fullPage:true});
+ await c.goto(B+'/max');await c.waitForSelector('text=+$75 call-out');
+ step('Max takes urgent calls (+$75) → home count, urgent map shows only Max, badge on his page');
  sql("update pros set online_until=null");await c.goto(B+'/');const hm=await c.textContent('main');if(!hm.includes('Popular now')||!hm.includes('Max Solo'))throw new Error('popular section missing');step('home page: Max in Popular now (offline pros with recent jobs)');
  await o.goto(B+'/business');await o.screenshot({path:D+'e_business.png',fullPage:true});
 }catch(e){console.log('FAIL',e.message)}console.log(errs.length?errs.join('\n'):'no page errors');await b.close()})();

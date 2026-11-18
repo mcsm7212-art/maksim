@@ -11,6 +11,7 @@ export default async function Home() {
   const pros = await listPros(); const t = await getT();
   const online = pros.filter((p) => p.online).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 4);
   const onlineCount = pros.filter((p) => p.online).length;
+  const urgentCount = pros.filter((p) => p.urgent).length;
   const pop = await popularIds(6);
   const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
   return (
@@ -40,10 +41,12 @@ export default async function Home() {
             <div className="eyebrow" style={{ margin: 0 }}>{t('Urgent help')}</div>
             <b>{t('Need help right now?')}</b>
             <span className="mu sm">{t('Burst pipe, power out, water heater leaking? See which verified pros are online and in which city.')}</span>
-            {onlineCount > 0 && <span className="live xs"><i />{onlineCount === 1 ? t('{n} pro online now', { n: onlineCount }) : t('{n} pros online now', { n: onlineCount })}</span>}
+            {urgentCount > 0
+              ? <span className="live xs"><i />{t(urgentCount === 1 ? '{n} pro ready for urgent calls now' : '{n} pros ready for urgent calls now', { n: urgentCount })}</span>
+              : onlineCount > 0 && <span className="live xs"><i />{onlineCount === 1 ? t('{n} pro online now', { n: onlineCount }) : t('{n} pros online now', { n: onlineCount })}</span>}
             <span className="mu2 xs">{t('Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.')}</span>
           </div>
-          <Link href="/online" className="btn">{t('Find pros online')}</Link>
+          <Link href={urgentCount > 0 ? '/online?urgent=1' : '/online'} className="btn">{t(urgentCount > 0 ? 'Find urgent help' : 'Find pros online')}</Link>
         </div>
       </div></section>
 

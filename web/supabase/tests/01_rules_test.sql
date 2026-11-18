@@ -279,4 +279,15 @@ do $$ begin insert into public.pro_recommendations (pro_id, colleague_id) values
 select pg_temp.ok(true, 'nobody can recommend on behalf of another pro');
 select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.popular_pros(8)) >= 1, 'popular pros list works for visitors');
+-- 15) urgent calls
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select public.set_urgent(true, 75);
+select pg_temp.ok((select urgent_ok and urgent_fee = 75 from public.pros where id = auth.uid()), 'a pro turns on urgent calls with a call-out fee');
+do $$ begin perform public.set_urgent(true, 9999); raise exception 'FAIL: huge urgent fee';
+  exception when check_violation then null; end $$;
+select pg_temp.ok(true, 'urgent fee is capped at $500');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select public.set_urgent(true, 10);
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pros where urgent_ok) = 1, 'a client cannot switch on urgent calls for anyone; visitors can see who takes them');
 \echo ALL RULE TESTS PASSED

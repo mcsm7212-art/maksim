@@ -78,6 +78,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               {pro.verified.id && <span className="badge ok">{tr('ID checked')}</span>}
               {pro.verified.insured && <span className="badge ok">{tr('Insured')}</span>}
               {pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} /> {tr('Online now')}</span>}
+              {pro.urgent && <span className="badge urg">⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</span>}
             </div>
           </div>
           <div className="cta2 lcta">
