@@ -6,12 +6,15 @@ import { getT } from '@/lib/i18n';
 import { Suspense } from 'react';
 import LangSwitch from './LangSwitch';
 import AccountMenu from './AccountMenu';
+import NavLink from './NavLink';
+import NavProgress from './NavProgress';
 
 export default async function Header() {
   const me = await getMe(); const t = await getT();
   return (
     <>
       {!isLive() && <div className="demo">{t('Demo mode: sample pros, sign-up turns on when the database is connected.')}</div>}
+      <Suspense><NavProgress /></Suspense>
       <header className="bar pad">
         <div className="in">
           <Link href="/" className="logo" aria-label="NovaFides Marketplace home">
@@ -19,11 +22,11 @@ export default async function Header() {
             <span><b>Nova<span>Fides</span></b><small>MARKETPLACE</small></span>
           </Link>
           <nav className="nav" aria-label="Main">
-            <Link href="/search">{t('Find a pro')}</Link>
-            <Link href="/companies">{t('Companies')}</Link>
-            <Link href="/online">● {t('Online now')}</Link>
-            <Link href="/feed">{t('Feed')}</Link>
-            {!me && <Link href="/join">{t('For pros')}</Link>}
+            <NavLink href="/search">{t('Find a pro')}</NavLink>
+            <NavLink href="/companies">{t('Companies')}</NavLink>
+            <NavLink href="/online">● {t('Online now')}</NavLink>
+            <NavLink href="/feed">{t('Feed')}</NavLink>
+            {!me && <NavLink href="/join">{t('For pros')}</NavLink>}
           </nav>
           <div className="hdr-me">
             {me && <Link href="/my-pros" className="ico" title={t('My pros')} aria-label={t('My pros')}>♥</Link>}

@@ -394,3 +394,24 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .live i{width:8px;height:8px;border-radius:50%;background:#3FBF6B;box-shadow:0 0 0 3px rgba(63,191,107,.18)}
 @media (max-width:700px){.urgent{align-items:flex-start}.urgent .urg-txt{min-width:0}.urgent .btn{width:100%;text-align:center}}
 .badge.urg{background:rgba(192,138,98,.14);color:#E2B48C;border:1px solid rgba(192,138,98,.35)}
+/* ===== motion: calm, quick feedback on every click ===== */
+.navbar-progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:100;background:linear-gradient(90deg,#8A5A36,#E2B48C,#C08A62);box-shadow:0 0 8px rgba(226,180,140,.6);opacity:0;pointer-events:none}
+.navbar-progress.run{opacity:1;width:82%;transition:width 6s cubic-bezier(.1,.7,.2,1),opacity .15s}
+.navbar-progress.done{opacity:0;width:100%;transition:width .2s ease-out,opacity .35s .15s}
+.pagefade{animation:pagein .32s cubic-bezier(.2,.7,.2,1) both}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+a.card,.card.trade,.card.pc,.coll,.post{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+a.card:hover,.card.pc:hover{transform:translateY(-2px);border-color:rgba(192,138,98,.55);box-shadow:0 10px 26px rgba(0,0,0,.35),0 0 0 1px rgba(192,138,98,.12)}
+a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-duration:.06s}
+.btn,.chip,.nav a,.hdr-me .ico,.acct summary,.langs a{transition:transform .14s ease,background-color .18s ease,color .18s ease,border-color .18s ease,filter .18s ease,box-shadow .18s ease}
+.btn:hover{filter:brightness(1.08);box-shadow:0 4px 16px rgba(192,138,98,.25)}
+.btn.ghost:hover{box-shadow:none;filter:none;border-color:rgba(192,138,98,.55)}
+.btn:active,.chip:active,.nav a:active,.hdr-me .ico:active,.acct summary:active,.langs a:active{transform:scale(.96);transition-duration:.06s}
+.chip:hover{border-color:rgba(192,138,98,.55);color:var(--ink)}
+.nav a{position:relative}
+.nav a[aria-current="page"]{color:var(--ink)}
+.nav a[aria-current="page"]::after{content:"";position:absolute;left:25%;right:25%;bottom:2px;height:2px;border-radius:2px;background:linear-gradient(90deg,#C08A62,#E2B48C)}
+.acct-menu{animation:menuin .16s ease-out both;transform-origin:top right}
+@keyframes menuin{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+@media (hover:none){a.card:hover,.card.pc:hover{transform:none;box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.pagefade,.acct-menu{animation:none}a.card,.card.pc,.btn,.chip,.nav a{transition:none}a.card:hover,.card.pc:hover,.btn:active,.chip:active{transform:none}.navbar-progress{display:none}}
