@@ -3,7 +3,7 @@
   --bg:#0C0C0E; --bg2:#121215; --card:#16161A; --card2:#1C1C21; --line:#2A2622; --ink:#F3EDE7; --mu:#A89C91; --mu2:#7A7068;
   --cu:#B57A50; --cu-l:#E2B48C; --ok:#3CCB7F; --warn:#F0A04B; --red:#E5604D; --acc:#B57A50;
   --foil:linear-gradient(100deg,#E9C3A0,#B57A50 40%,#7C4B2E 72%,#D4A27C);
-  --fd:"Sora","Inter",system-ui,sans-serif; --fb:"Inter",system-ui,sans-serif; --fn:"Barlow Condensed","Sora",sans-serif;
+  --fd:"Sora","Inter",system-ui,sans-serif; --fb:"Inter",system-ui,sans-serif; --fn:"Barlow Condensed","Oswald","Sora",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -415,3 +415,13 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 @keyframes menuin{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
 @media (hover:none){a.card:hover,.card.pc:hover{transform:none;box-shadow:none}}
 @media (prefers-reduced-motion:reduce){.pagefade,.acct-menu{animation:none}a.card,.card.pc,.btn,.chip,.nav a{transition:none}a.card:hover,.card.pc:hover,.btn:active,.chip:active{transform:none}.navbar-progress{display:none}}
+/* pro page: game-style hero */
+.phero2{padding-top:10px}
+.phero2 .pco{font-size:clamp(46px,6.2vw,80px);overflow-wrap:normal}
+.fig-sil.cut img{height:94%;bottom:3%}
+.fig-sil.cut.big::before{content:"";position:absolute;inset:auto 10% 0 10%;height:55%;background:radial-gradient(50% 60% at 50% 100%,color-mix(in srgb,var(--acc) 30%,transparent),transparent 75%);pointer-events:none}
+.figcol .fig-sil:not(.cut) img{-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-composite:intersect;filter:none}
+.pricebox2{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.pricebox2 .big{font-size:clamp(38px,8vw,52px);line-height:1}
+.pricebox2 .cta2{max-width:520px}
+@media (max-width:760px){.pricebox2{align-items:stretch}.pricebox2 .cta2{max-width:none}}

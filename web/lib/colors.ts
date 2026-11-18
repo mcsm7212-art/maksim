@@ -15,3 +15,20 @@ export function accentFromUniform(uniform: string | null | undefined): string {
 }
 export function baseFor(accent: string): Base { return accent.toUpperCase() === COPPER ? 'dark' : 'graphite'; }
 export const isHex = (s: unknown): s is string => typeof s === 'string' && /^#[0-9a-f]{6}$/i.test(s);
+
+/** Short colour word for the label next to the pro's figure, e.g. "BLUE". */
+export function colorWord(hex: string): string {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return 'COPPER';
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (d < 0.12) return mx > 0.7 ? 'SILVER' : 'GRAPHITE';
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360;
+  if (h < 9 || h >= 340) return 'RED';
+  if (h < 28) return 'TERRACOTTA';
+  if (h < 40) return d < 0.45 ? 'SAND' : 'COPPER';
+  if (h < 65) return 'GOLD';
+  if (h < 160) return 'GREEN';
+  if (h < 200) return 'TEAL';
+  if (h < 255) return 'BLUE';
+  return 'VIOLET';
+}

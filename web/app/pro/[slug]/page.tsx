@@ -8,6 +8,7 @@ import WorkPhotos from '@/components/WorkPhotos';
 import { startChat } from '@/app/messages/actions';
 import { serviceById, TIERS, TRADES, usd, type Tier } from '@/lib/catalog';
 import { getPro, openSlots } from '@/lib/data';
+import { colorWord } from '@/lib/colors';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
 import { dateLabel, slotLabel } from '@/lib/time';
 import { getLang } from '@/lib/i18n';
@@ -40,6 +41,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   const slots = openSlots(pro).slice(0, 14);
   const first = pro.name.split(' ')[0];
   const stats = showStats(pro);
+  const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id, tier) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
   const isOwner = me?.id === pro.id;
   const myRec = me?.pro && !isOwner ? (await (await supabaseServer()).from('pro_recommendations').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data : null;
@@ -56,44 +58,62 @@ export default async function ProPage({ params, searchParams }: Props) {
 
   return (
     <div className={`themed ${pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
-      <div className="pad"><div className="in" style={{ maxWidth: 860, paddingBottom: 40 }}>
+      <div className="pad"><div className="in" style={{ maxWidth: 1040, paddingBottom: 40 }}>
 
-        <div className="lhead">
-          <span className="ava"><Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} /></span>
-          <div>
-            <div className="eyerow"><i />{tr(TRADES[pro.trade].name)}</div>
-            <h1>{pro.name}</h1>
-            <div className="sm">{pro.company ? <>{tr('Technician at')} <Link href={`/company/${pro.company.slug}`}>{pro.company.name}</Link></> : tr('Independent pro')}</div>
-            <div className="meta">
-              {pro.area && <span><Icon name="pin" size={14} /> {pro.area}</span>}
-              {pro.years > 0 && <span>{tr('{n} years experience', { n: pro.years })}</span>}
-              {pro.languages.length > 0 && <span>{pro.languages.join(', ')}</span>}
-            </div>
-            <div className="trustrow">
-              {pro.reviewCount > 0 && pro.rating != null
-                ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {tr(pro.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: pro.reviewCount })}</span>
-                : <span className="newbadge">{tr('New on NovaFides')}</span>}
-              {pro.founding && <span className="badge cu" title={tr('Joined NovaFides during the launch')}>★ {tr('Founding Pro')}</span>}
-              {pro.verified.license && pro.license && <span className="badge ok">CSLB #{pro.license}</span>}
-              {pro.verified.id && <span className="badge ok">{tr('ID checked')}</span>}
-              {pro.verified.insured && <span className="badge ok">{tr('Insured')}</span>}
-              {pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} /> {tr('Online now')}</span>}
-              {pro.urgent && <span className="badge urg">⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</span>}
-            </div>
+        <div className="ph3 phero2">
+          <div style={{ minWidth: 0 }}>
+            <div className="eyerow"><i />{tr('Your pro. Their reputation.')}</div>
+            <h1 className="pname">{pro.name}</h1>
+            {pro.company
+              ? <Link className="pco" href={`/company/${pro.company.slug}`}>{pro.company.name.toUpperCase()}<br />{tr(TRADES[pro.trade].name).toUpperCase()}<b>.</b></Link>
+              : <span className="pco">{tr('INDEPENDENT')}<br />{tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN' } as const)[pro.trade])}<b>.</b></span>}
+            <p className="ptag">{tr('Behind every rating is a job.')}<br />{tr('Behind every job is a person.')}</p>
+            {pro.area && <div className="locline"><Icon name="pin" size={18} /> {pro.area} · San Francisco Bay Area</div>}
+            {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}</div>}
+            {pro.urgent && <div className="badge urg" style={{ marginTop: 8 }}>⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</div>}
+            {stats
+              ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: '#E2B48C' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
+              : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: '#E2B48C' }}>{tr('Founding Pro')}</b></div></div>}
           </div>
-          <div className="cta2 lcta">
+          <div className="figcol">
+            <div className="lbl">{tr(TRADES[pro.trade].name).toUpperCase()} / {tr(colorWord(pro.accent))}</div>
+            <Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} figure={pro.figureUrl} big />
+          </div>
+        </div>
+
+        <div className="kp3">
+          <div>{pro.reviewCount > 0 && pro.rating != null
+            ? <><span className="num">{pro.rating.toFixed(1)}</span><small><span className="stars">★★★★★</span><br />{tr(pro.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: pro.reviewCount })}</small></>
+            : <><span className="num">0</span><small>{tr('No reviews yet')}</small></>}</div>
+          <div>{stats
+            ? <><span className="num">{pro.jobs}</span><small>{tr('jobs on NovaFides')}</small></>
+            : <><span className="num">{pro.years || '—'}</span><small>{tr('years of experience')}</small></>}</div>
+          <div><span className="num">{pro.responseMin ?? '—'}{pro.responseMin != null && <span style={{ fontSize: '.45em' }}> {tr('min')}</span>}</span><small>{tr('typical response')}</small></div>
+        </div>
+
+        <div className="tchips">
+          {pro.verified.license && pro.license && <span className="tchip"><Icon name="shield" size={16} /> CSLB #{pro.license}</span>}
+          {pro.verified.id && <span className="tchip">{tr('ID checked')}</span>}
+          {pro.verified.insured && <span className="tchip">{tr('Insured')}</span>}
+          {pro.languages.length > 0 && <span className="tchip">{pro.languages.join(', ')}</span>}
+          {pro.company && <span className="tchip">{tr('Technician at')} {pro.company.name}</span>}
+        </div>
+
+        <div className="pricebox2">
+          {fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
+          <div className="cta2" style={{ flex: 1 }}>
             <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })} <Icon name="arrow" /></Link>
             <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link>
             <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>
           </div>
-          <div className="chips lcta" style={{ marginTop: 0 }}>
-            {!isOwner && <SaveButton proId={pro.id} initial={saves.get(pro.id) ?? null} count={saved} />}
-            {isOwner && saved > 0 && <span className="badge cu">♥ {tr('{n} people saved you', { n: saved })}</span>}
-            <a className="btn ghost sm" href={`/api/vcard/${pro.slug}`}>{tr('Save to contacts')}</a>
-            <a className="btn ghost sm" href={`/api/qr/${pro.slug}?format=png`}>{tr('QR code')}</a>
-          </div>
-          {sp.chat === 'demo' && <p className="note" style={{ gridColumn: '1/-1' }}>{tr('Demo mode: chat turns on when the database is connected.')}</p>}
         </div>
+        <div className="chips" style={{ marginTop: 12 }}>
+          {!isOwner && <SaveButton proId={pro.id} initial={saves.get(pro.id) ?? null} count={saved} />}
+          {isOwner && saved > 0 && <span className="badge cu">♥ {tr('{n} people saved you', { n: saved })}</span>}
+          <a className="btn ghost sm" href={`/api/vcard/${pro.slug}`}>{tr('Save to contacts')}</a>
+          <a className="btn ghost sm" href={`/api/qr/${pro.slug}?format=png`}>{tr('QR code')}</a>
+        </div>
+        {sp.chat === 'demo' && <p className="note">{tr('Demo mode: chat turns on when the database is connected.')}</p>}
 
         {(pro.bio || pro.experience) && <div className="blk">
           <h2>{tr('About {name}', { name: first })}</h2>

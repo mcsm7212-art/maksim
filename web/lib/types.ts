@@ -66,6 +66,8 @@ export interface Pro {
   license: string | null;
   verified: { license: boolean; id: boolean; insured: boolean };
   photoUrl: string | null;
+  /** Full-height cutout (transparent background) for the big figure on the pro page */
+  figureUrl: string | null;
   uniform: string | null;
   accent: string;
   base: Base;

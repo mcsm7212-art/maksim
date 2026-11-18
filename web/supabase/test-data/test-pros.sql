@@ -58,3 +58,8 @@ on conflict do nothing;
 -- Two of them online now (12 h) so the map and "Urgent help" have something to show; Marcus takes urgent calls.
 update public.pros set online_until = now() + interval '12 hours', online_area = area where id in ('7e570000-0000-4000-8000-000000000002','7e570000-0000-4000-8000-000000000003');
 update public.pros set urgent_ok = true, urgent_fee = 75 where id = '7e570000-0000-4000-8000-000000000003';
+
+-- Full-height figures and glow colours taken from their clothes.
+update public.pros p set figure_url = '/test-pros/f' || right(p.id::text, 1) || '.webp', accent = v.acc
+from (values ('1','#C99F6E'),('2','#C68A62'),('3','#4F86C6'),('4','#D0603F'),('5','#C67643')) v(n, acc)
+where p.id::text = '7e570000-0000-4000-8000-00000000000' || v.n;
