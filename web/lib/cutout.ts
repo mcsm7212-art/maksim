@@ -4,8 +4,7 @@
 // classes 0 background, 1 hair, 2 body skin, 3 face skin, 4 clothes, 5 accessories.
 import type { ImageSegmenter } from '@mediapipe/tasks-vision';
 
-const VER = '1.2.2';
-const WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VER}/wasm`;
+const WASM = '/mediapipe'; // copied from node_modules at build time (scripts/copy-mediapipe.mjs)
 const MODEL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite';
 
 let seg: Promise<ImageSegmenter> | null = null;

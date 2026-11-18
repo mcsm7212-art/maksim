@@ -123,7 +123,6 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select count(*) from notifications where body like '%recommends you%'")!=='1')throw new Error('colleague not notified');
  step('Max recommended Tom → shown on Max page, Tom notified');
  // full-height photo: background removed in the browser, glow colour from clothes
- await s.route(/cdn\.jsdelivr\.net\/npm\/@mediapipe\/tasks-vision@[^/]+\/wasm\/(.+)$/,r=>{const f=r.request().url().split('/wasm/')[1];r.fulfill({path:require('path').join(process.cwd(),'node_modules/@mediapipe/tasks-vision/wasm/',f),contentType:f.endsWith('.wasm')?'application/wasm':'text/javascript'})});
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});
  await s.click('.figmaker button:has-text("Save")');await s.waitForSelector('.figmaker .okmsg');
