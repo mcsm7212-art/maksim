@@ -425,3 +425,9 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .pricebox2 .big{font-size:clamp(38px,8vw,52px);line-height:1}
 .pricebox2 .cta2{max-width:520px}
 @media (max-width:760px){.pricebox2{align-items:stretch}.pricebox2 .cta2{max-width:none}}
+.figmaker-grid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;align-items:start}
+.figmaker-stage{position:relative;height:380px;border-radius:14px;overflow:hidden;background:#0C0C0E;border:1px solid var(--line);display:grid;place-items:center}
+.figmaker-stage .fig-sil{position:absolute;inset:0}
+.figmaker-stage .lbl{position:absolute;left:10px;bottom:8px;font-size:10px;letter-spacing:.2em;color:var(--mu);display:flex;gap:6px;align-items:center}
+.figmaker-stage .lbl::before{content:"";width:6px;height:6px;background:var(--acc)}
+@media (max-width:620px){.figmaker-grid{grid-template-columns:1fr}.figmaker-stage{height:340px}}

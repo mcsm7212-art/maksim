@@ -72,7 +72,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (!me) redirect('/login?next=/account/profile');
   if (!me.pro) redirect('/join/pro');
   const sb = await supabaseServer();
-  const { data: cur } = await sb.from('pros').select('trade, photo_url').eq('id', me.id).single();
+  const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent').eq('id', me.id).single();
   const trade = cur!.trade as Trade;
   const name = str(f, 'name', 60);
   const tiers = TIER_KEYS.filter((t) => f.get(`tier_${t}`)) as Tier[];
@@ -92,7 +92,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((x) => x.trim()).filter(Boolean),
-    insured: Boolean(f.get('insured')), uniform_color: uniform, accent: accentFromUniform(uniform),
+    insured: Boolean(f.get('insured')), uniform_color: uniform, accent: uniform || !cur!.figure_url ? accentFromUniform(uniform) : cur!.accent, // the full-height photo sets its own glow colour
     photo_url: newPhoto && ownPhotoUrl(newPhoto, me.id) ? newPhoto : cur!.photo_url,
   }).eq('id', me.id);
   if (error) return { error: error.message };

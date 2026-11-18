@@ -1,3 +1,5 @@
+import { TRADES } from '@/lib/catalog';
+import FigureMaker from '@/components/FigureMaker';
 import { getT } from '@/lib/i18n';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -30,6 +32,8 @@ export default async function EditProfile() {
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow"><Link href="/account">{tr("My account")}</Link> {tr("· Profile")}</div><h2>{tr("Edit your profile")}</h2>
       <p className="mu sm">{tr("Work photos are on the")} <Link href="/account">{tr("account page")}</Link>. <Link href={`/pro/${p.slug}`}>{tr("View my public page")}</Link></p>
+      <FigureMaker name={p.display_name} initial={p.figure_url ?? null} accent={p.accent || '#C08A62'} trade={TRADES[p.trade as keyof typeof TRADES].name} />
+      <div style={{ height: 18 }} />
       <ProForm initial={initial} />
     </div></section>
   );

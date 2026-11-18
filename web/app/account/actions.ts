@@ -3,6 +3,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
+import { isLive } from '@/lib/supabase/config';
+import { ownPhotoUrl } from '@/lib/photos';
+import { isHex } from '@/lib/colors';
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? '');
 async function need() { const me = await getMe(); if (!me) redirect('/login?next=/account'); return { me, sb: await supabaseServer() }; }
@@ -63,4 +66,18 @@ export async function deletePhoto(f: FormData) {
   const { sb } = await need();
   await sb.from('pro_photos').delete().eq('id', s(f, 'id'));
   revalidatePath('/account');
+}
+
+/** Full-height cutout for the pro page and its glow colour (picked from the clothes). Empty url removes the figure. */
+export async function saveFigure(f: FormData): Promise<{ error?: string; ok?: string }> {
+  if (!isLive()) return { error: 'Demo mode: nothing was saved. Connect the database to accept real sign-ups.' };
+  const { me, sb } = await need();
+  if (!me.pro) return { error: 'Only pros can do this.' };
+  const url = s(f, 'figure_url').slice(0, 500);
+  if (url && !ownPhotoUrl(url, me.id)) return { error: 'Upload the photo again.' };
+  const accent = isHex(f.get('accent')) ? String(f.get('accent')) : null;
+  const { error } = await sb.from('pros').update(url ? { figure_url: url, ...(accent ? { accent } : {}) } : { figure_url: null }).eq('id', me.id);
+  if (error) return { error: error.message };
+  revalidatePath('/account/profile'); revalidatePath(`/pro/${me.pro.slug}`);
+  return { ok: url ? 'Saved. This is how clients see you now.' : 'Removed.' };
 }

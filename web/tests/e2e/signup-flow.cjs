@@ -8,7 +8,7 @@ async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...d
   await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
-const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2
+const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person
 async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'));await p.waitForSelector('input[name=photo_url]',{state:'attached'})}
 (async()=>{sql('truncate auth.users, public.companies, public.notifications cascade');sql("insert into storage.buckets (id, name, public) values ('photos','photos',true) on conflict do nothing");await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});const b=await chromium.launch();try{
  // company owner
@@ -122,6 +122,14 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/max');await s.waitForSelector('.colls >> text=Tom Tech');if(!(await s.textContent('main')).includes('1 people saved you')&&!(await s.textContent('main')).includes('people saved you'))throw new Error('owner save count missing');
  if(sql("select count(*) from notifications where body like '%recommends you%'")!=='1')throw new Error('colleague not notified');
  step('Max recommended Tom → shown on Max page, Tom notified');
+ // full-height photo: background removed in the browser, glow colour from clothes
+ await s.route(/cdn\.jsdelivr\.net\/npm\/@mediapipe\/tasks-vision@[^/]+\/wasm\/(.+)$/,r=>{const f=r.request().url().split('/wasm/')[1];r.fulfill({path:require('path').join(process.cwd(),'node_modules/@mediapipe/tasks-vision/wasm/',f),contentType:f.endsWith('.wasm')?'application/wasm':'text/javascript'})});
+ if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
+ await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});
+ await s.click('.figmaker button:has-text("Save")');await s.waitForSelector('.figmaker .okmsg');
+ const fa=sql("select coalesce(figure_url,'')||' '||accent from pros where display_name='Max Solo'");if(!fa.includes('/figure-')||!/#[0-9A-F]{6}$/.test(fa))throw new Error('figure not saved: '+fa);
+ await s.goto(B+'/max');await s.waitForSelector('.figcol .fig-sil.cut img');
+ step('pro uploaded a full-height photo → background removed in the browser, glow colour '+fa.slice(-7)+' from clothes, shown on the page');
  // urgent calls
  await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
  await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');

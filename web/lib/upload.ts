@@ -27,3 +27,14 @@ export async function uploadPhotos(files: File[], prefix: string): Promise<strin
   }
   return urls;
 }
+
+/** Uploads one ready-made image (e.g. a transparent WebP cutout) without re-encoding. Returns its public URL. */
+export async function uploadBlob(blob: Blob, prefix: string, ext = 'webp'): Promise<string> {
+  const sb = supabaseBrowser();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error('Please sign in again.');
+  const path = `${user.id}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: blob.type || `image/${ext}` });
+  if (error) throw new Error(`Upload failed: ${error.message}`);
+  return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
+}

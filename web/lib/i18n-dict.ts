@@ -723,7 +723,21 @@ export const ES: Record<string, string> = {
 "years of experience": "años de experiencia",
 "min": "min",
 "typical response": "respuesta típica",
-"Starting at": "Desde"
+"Starting at": "Desde",
+"Full-height photo for your page": "Foto de cuerpo entero para su página",
+"Take a photo standing, head to shoes, in your work clothes, against a plain wall. We remove the background and light you up in the colour of your clothes. The photo is processed on your phone.": "Tómese una foto de pie, de la cabeza a los zapatos, con su ropa de trabajo, frente a una pared lisa. Quitamos el fondo y lo iluminamos con el color de su ropa. La foto se procesa en su teléfono.",
+"No full-height photo yet": "Aún no hay foto de cuerpo entero",
+"Choose another photo": "Elegir otra foto",
+"Choose a full-height photo": "Elegir una foto de cuerpo entero",
+"Removing the background… (the first time takes up to a minute)": "Quitando el fondo… (la primera vez tarda hasta un minuto)",
+"Stand farther back? We need you in full height, head to shoes.": "¿Puede alejarse un poco? Necesitamos verlo de cuerpo entero, de la cabeza a los zapatos.",
+"Could not find a person in this photo.": "No encontramos a una persona en esta foto.",
+"Glow colour": "Color del brillo",
+"From my clothes": "De mi ropa",
+"Saved. This is how clients see you now.": "Guardado. Así lo ven ahora los clientes.",
+"Removed.": "Eliminado.",
+"Upload the photo again.": "Suba la foto otra vez.",
+"Only pros can do this.": "Solo los profesionales pueden hacer esto."
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1449,5 +1463,19 @@ export const RU: Record<string, string> = {
 "years of experience": "лет опыта",
 "min": "мин",
 "typical response": "обычно отвечает",
-"Starting at": "От"
+"Starting at": "От",
+"Full-height photo for your page": "Фото в полный рост для вашей страницы",
+"Take a photo standing, head to shoes, in your work clothes, against a plain wall. We remove the background and light you up in the colour of your clothes. The photo is processed on your phone.": "Сфотографируйтесь стоя, с головы до обуви, в рабочей одежде, на фоне ровной стены. Мы уберём фон и подсветим вас в цвет вашей одежды. Фото обрабатывается прямо на вашем телефоне.",
+"No full-height photo yet": "Фото в полный рост пока нет",
+"Choose another photo": "Выбрать другое фото",
+"Choose a full-height photo": "Выбрать фото в полный рост",
+"Removing the background… (the first time takes up to a minute)": "Убираем фон… (в первый раз — до минуты)",
+"Stand farther back? We need you in full height, head to shoes.": "Отойдите подальше: нужно фото в полный рост, с головы до обуви.",
+"Could not find a person in this photo.": "На этом фото не удалось найти человека.",
+"Glow colour": "Цвет подсветки",
+"From my clothes": "По моей одежде",
+"Saved. This is how clients see you now.": "Сохранено. Так вас теперь видят клиенты.",
+"Removed.": "Удалено.",
+"Upload the photo again.": "Загрузите фото ещё раз.",
+"Only pros can do this.": "Это доступно только мастерам."
 };
