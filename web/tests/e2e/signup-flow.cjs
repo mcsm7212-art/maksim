@@ -63,7 +63,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  // client books solo pro by slot
  await c.goto(B+'/search?svc=faucet-replacement');await c.click('text=Max Solo');await c.waitForURL(/pro\//);if((await c.locator('.works img').count())!==2)throw new Error('work photos not on public page');step('public page shows real photo + 2 work photos');await c.screenshot({path:D+'e_pro.png',fullPage:true});
  await c.click('button:has-text("Message Max")');await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);
- await s.goto(B+'/messages');await s.click('text=Anna Client');await s.waitForSelector('text=kitchen faucet');await s.fill('textarea[name=body]','Yes, pick any open time on my page.');await s.click('button:has-text("Send")');await s.waitForTimeout(800);
+ await s.goto(B+'/messages');await s.click('text=Anna Client');await s.waitForSelector('text=kitchen faucet');await s.fill('textarea[name=body]','Yes, pick any open time on my page.');await s.click('button:text-is("Send")');await s.waitForTimeout(800);
  await c.reload();await c.waitForSelector('text=pick any open time');
  await c.setInputFiles('label[aria-label="Attach photos"] input',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});await c.fill('textarea[name=body]','This is the faucet.');await c.click('button:has-text("Send")');await c.waitForTimeout(1000);
  await s.reload();await s.waitForSelector('img[alt=Photo]');step('client and pro chatted, photo sent in chat');await c.screenshot({path:D+'e_chat.png',fullPage:true});
@@ -182,6 +182,26 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const az=await c.getAttribute('a:has-text("Amazon")','href');if(!az.includes('tag=testtag-20'))throw new Error('amazon link has no partner tag: '+az);
  await c.screenshot({path:D+'e_part.png',fullPage:true});
  step('find a part: Max recorded a Grohe 47678000; client photographed a part → part number, Amazon link with partner tag, Max as installer');
+ // order flow: quote in chat → accept → pick time → visit → done → client confirms → problem → admin answers
+ const conv=sql("select c.id from conversations c join pros p on p.id=c.pro_id where p.display_name='Max Solo' and c.client_id=(select id from auth.users where email='client@test.local')");
+ await s.goto(B+'/messages/'+conv);await s.click('button:has-text("Send a quote")');await s.fill('.quoteform input[name=title]','Replace shower cartridge');
+ await s.fill('.quoteform .qline >> nth=0 >> input[name=label]','Labor');await s.fill('.quoteform .qline >> nth=0 >> input[name=amount]','250');
+ await s.fill('.quoteform .qline >> nth=1 >> input[name=label]','Grohe cartridge 47678000');await s.fill('.quoteform .qline >> nth=1 >> input[name=amount]','120');
+ await s.fill('.quoteform textarea[name=includes]','Parts, cleanup, 1-year warranty on labor');await s.click('.quoteform button:has-text("Send quote")');await s.waitForSelector('text=Quote sent.');
+ await c.goto(B+'/messages/'+conv);await c.waitForSelector('.quote >> text=$370.00');await c.click('.quote button:has-text("Accept quote")');await c.waitForURL(/\/orders\/[0-9a-f-]{36}/);const ourl=c.url();
+ await c.waitForSelector('text=Price agreed: pick a time');await c.check('.slotpick input >> nth=0');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Send time to the pro")');await c.waitForSelector('text=Waiting for the pro to confirm the visit');
+ await s.goto(ourl);for(const b of ['Confirm visit','On my way','Start work','Job done']){await s.click('button:has-text("'+b+'")');await s.waitForTimeout(700);}
+ await s.waitForSelector('text=Waiting for the client to confirm');
+ await c.goto(ourl);await c.click('button:has-text("Confirm the job is complete")');await c.waitForSelector('text=Job complete');
+ if(sql("select price_estimate::int||' '||(client_confirmed_at is not null) from bookings where id='"+ourl.split('/').pop()+"'")!=='370 true')throw new Error('order not stored right');
+ await c.click('summary:has-text("Report a problem")');await c.selectOption('select[name=kind]','quality');await c.fill('details textarea[name=body]','The shower still drips a little.');await c.click('button:has-text("Send to NovaFides")');await c.waitForSelector('text=Under review');
+ await a.goto(B+'/admin');await a.fill('form:has-text("The shower still drips") textarea[name=resolution]','Max will come back on Friday to fix it at no charge.');await a.click('form:has-text("The shower still drips") button:has-text("Mark answered")');await a.waitForTimeout(800);
+ await c.goto(ourl);await c.waitForSelector('text=Max will come back on Friday');await c.screenshot({path:D+'e_order.png',fullPage:true});
+ step('order: Max sent a $370 quote in chat → client accepted, picked a time → visit → done → client confirmed → problem answered by admin');
+ if(!(await c.locator('.bnav a[href="/orders"]').isVisible()))throw new Error('bottom nav missing on phone');
+ await c.goto(B+'/max');await c.click('summary:has-text("What NovaFides checked")');await c.waitForSelector('text=is active in the official CSLB database');
+ await s.goto(B+'/max');await s.click('button:has-text("Pin to my page")');await s.waitForSelector('.badge:has-text("Pinned")');
+ step('phone bottom menu, "What NovaFides checked" panel, pinned post');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});

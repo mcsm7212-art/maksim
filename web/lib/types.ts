@@ -65,6 +65,8 @@ export interface Pro {
   languages: string[];
   license: string | null;
   verified: { license: boolean; id: boolean; insured: boolean };
+  /** When NovaFides checked each item (ISO), if known */
+  checkedAt: { license: string | null; id: string | null; insured: string | null };
   photoUrl: string | null;
   /** Full-height cutout (transparent background) for the big figure on the pro page */
   figureUrl: string | null;

@@ -37,6 +37,7 @@ function mapPro(p: Row, stats?: Row): Pro {
     area: p.area ?? '', bio: p.bio ?? '', experience: p.experience ?? '', skillTags: p.skills ?? [],
     photos: (p.pro_photos ?? []).filter((x: Row) => x.kind === 'portfolio' || x.public).sort((a: Row, b: Row) => b.created_at.localeCompare(a.created_at)).map((x: Row) => ({ id: x.id, url: x.url, caption: x.caption })), languages: p.languages ?? [], license: company?.license ?? p.license_no,
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },
+    checkedAt: { license: p.license_checked_at ?? null, id: p.id_checked_at ?? null, insured: p.insurance_checked_at ?? null },
     photoUrl: p.photo_url, figureUrl: p.figure_url ?? null, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
     online: Boolean(p.online_until && new Date(p.online_until) > new Date()), onlineArea: p.online_area ?? null,
     accepting: p.accepting !== false || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })), pausedUntil: p.paused_until ?? null,

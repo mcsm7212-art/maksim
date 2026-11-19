@@ -420,4 +420,48 @@ insert into public.job_parts (booking_id, pro_id, brand, part_no, name) values (
 select pg_temp.act(null);
 select pg_temp.ok((select exact from public.parts_lookup(array['G47678000'], null, null)) and (select exact from public.parts_lookup(array['47-678-000'], null, null)) and (select count(*) from public.parts_lookup(array['678000'], null, null)) = 1 and (select count(*) from public.parts_lookup(array['999'], null, null)) = 0, 'part number lookup ignores spaces, dashes and a brand prefix');
 select pg_temp.ok((select count(*) from public.parts_lookup('{}', 'GROHE', 'shower pressure balance cartridge')) = 1, 'lookup by brand and part words works for visitors');
+-- 20) quotes in chat → agreed price → time → done → client confirms; problem reports
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+insert into public.conversations (id, client_id, pro_id) values ('91000000-0000-0000-0000-000000000001', auth.uid(), '00000000-0000-0000-0000-0000000000a1');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+create temp table qv (n int, id uuid);
+grant all on qv to authenticated;
+insert into qv select 1, public.send_quote('91000000-0000-0000-0000-000000000001', 'Replace shower cartridge',
+  '[{"kind":"labor","label":"Labor","amount":250},{"kind":"material","label":"Cartridge","amount":120},{"kind":"discount","label":"First visit","amount":20}]', 'Old part removed', null, null, 'shower-valve-cartridge-replacement');
+select pg_temp.ok((select total from public.quotes where id = (select id from qv where n = 1)) = 350, 'quote total is computed by the server (discount subtracted)');
+insert into qv select 2, public.send_quote('91000000-0000-0000-0000-000000000001', 'Replace shower cartridge + stops', '[{"kind":"labor","label":"Labor","amount":300},{"kind":"material","label":"Cartridge and stops","amount":150}]');
+select pg_temp.ok((select status from public.quotes where id = (select id from qv where n = 1)) = 'replaced' and (select version from public.quotes where id = (select id from qv where n = 2)) = 2, 'a new quote is a new version; the old one stays as replaced');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.ok((select count(*) from public.quotes) = 0, 'other people cannot see a quote');
+do $$ begin perform public.accept_quote((select id from qv where n = 2)); raise exception 'FAIL: stranger accepted';
+  exception when others then if sqlerrm not like 'not your quote%' then raise; end if; end $$;
+select pg_temp.ok(true, 'only the client can accept a quote');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+do $$ begin perform public.accept_quote((select id from qv where n = 1)); raise exception 'FAIL: accepted old version';
+  exception when others then if sqlerrm not like 'quote is no longer open%' then raise; end if; end $$;
+insert into qv select 3, public.accept_quote((select id from qv where n = 2));
+select pg_temp.ok((select status = 'needs_time' and price_estimate = 450 from public.bookings where id = (select id from qv where n = 3)), 'accepting creates a job with the agreed price that still needs a time');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+do $$ begin perform public.set_booking_status((select id from qv where n = 3), 'confirmed'); raise exception 'FAIL: confirmed without time';
+  exception when others then if sqlerrm not like '%not picked a time%' then raise; end if; end $$;
+select pg_temp.ok(true, 'the pro cannot confirm before the client picks a time');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select public.set_booking_time((select id from qv where n = 3), now() + interval '3 days', '100 Main St, San Carlos');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select public.set_booking_status((select id from qv where n = 3), 'confirmed');
+select public.set_booking_status((select id from qv where n = 3), 'done');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select public.confirm_done((select id from qv where n = 3));
+select pg_temp.ok((select client_confirmed_at is not null from public.bookings where id = (select id from qv where n = 3)), 'the client confirms the finished job');
+insert into public.problems (booking_id, reporter_id, kind, body) values ((select id from qv where n = 3), auth.uid(), 'quality', 'The shower still drips.');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok((select count(*) from public.problems) = 1 and (select count(*) from public.notifications where body like 'A problem was reported%') = 1, 'the pro sees the problem report and is notified');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.ok((select count(*) from public.problems) = 0, 'outsiders cannot see problem reports');
+-- 21) trust fields, pinned posts, colleague notifications
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+update public.pros set insured = true where id = auth.uid();
+select pg_temp.ok((select not insured and insurance_claimed from public.pros where id = auth.uid()), 'a pro cannot give themselves the Insured badge (only a claim)');
+update public.posts set pinned = true where pro_id = auth.uid();
+select pg_temp.ok((select count(*) from public.posts where pinned) = 3, 'a pro pins up to 3 posts') ;
 \echo ALL RULE TESTS PASSED

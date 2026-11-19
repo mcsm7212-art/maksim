@@ -39,7 +39,8 @@ export async function createPost(_p: SocialState, f: FormData): Promise<SocialSt
   const photos = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 6);
   if (!body && !photos.length) return { error: 'Add a photo or a few words about the job.' };
   const sb = await supabaseServer();
-  const { error } = await sb.from('posts').insert({ pro_id: me.id, body, photos });
+  const tag = ['work', 'tip', 'question', 'partner'].includes(String(f.get('tag'))) ? String(f.get('tag')) : 'work';
+  const { error } = await sb.from('posts').insert({ pro_id: me.id, body, photos, tag });
   if (error) return { error: error.message.startsWith('post limit') ? 'You can post up to 3 times a day.' : error.message };
   refresh('/feed', `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
   return { ok: 'Posted.' };
@@ -77,4 +78,11 @@ export async function deleteComment(f: FormData) {
   const me = await signedIn('/feed'); if (!me) return;
   await (await supabaseServer()).from('post_comments').delete().eq('id', Number(f.get('id')));
   refresh(String(f.get('path') ?? '/feed'), '/feed');
+}
+
+export async function togglePin(f: FormData) {
+  const me = await signedIn('/feed'); if (!me?.pro) return;
+  const { error } = await (await supabaseServer()).from('posts').update({ pinned: f.get('on') === '1' }).eq('id', String(f.get('id'))).eq('pro_id', me.id);
+  refresh('/feed', `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
+  if (error?.message.includes('pin limit')) redirect(`/pro/${me.pro.slug}?pin=limit`);
 }

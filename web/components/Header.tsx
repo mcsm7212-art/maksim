@@ -33,7 +33,7 @@ export default async function Header() {
           </nav>
           <div className="hdr-me">
             {me && <Link href="/my-pros" className="ico" title={t('My pros')} aria-label={t('My pros')}>♥</Link>}
-            {me && <Link href="/messages" className="ico" title={t('Messages')} aria-label={t('Messages')}>
+            {me && <Link href="/messages" className="ico ico-chat" title={t('Messages')} aria-label={t('Messages')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
             </Link>}
             {me ? <AccountMenu label={t('My account')} signOut={t('Sign out')} links={[

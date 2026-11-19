@@ -1,3 +1,5 @@
+import { resolveProblem } from '@/app/orders/actions';
+import { PROBLEM_KINDS } from '@/lib/orders';
 import { getLang, getT } from '@/lib/i18n';
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
@@ -21,11 +23,12 @@ export default async function Admin() {
   if (!me) redirect('/login?next=/admin');
   if (me.role !== 'admin') redirect('/');
   const sb = await supabaseServer();
-  const [{ data: pros }, { data: cos }, { data: reports }, { count: live }] = await Promise.all([
-    sb.from('pros').select('id, slug, display_name, trade, license_no, photo_url, area, years_exp, insured, created_at, company:companies(name, license_no)').eq('status', 'pending').order('created_at'),
+  const [{ data: pros }, { data: cos }, { data: reports }, { count: live }, { data: problems }] = await Promise.all([
+    sb.from('pros').select('id, slug, display_name, trade, license_no, photo_url, area, years_exp, insured, insurance_claimed, created_at, company:companies(name, license_no)').eq('status', 'pending').order('created_at'),
     sb.from('companies').select('id, slug, name, trade, license_no, city, owner_id, created_at').eq('status', 'pending').order('created_at'),
     sb.from('review_reports').select('id, reason, details, created_at, review:reviews(id, body, punctuality, workmanship, cleanliness, communication, pricing, author_name, pro:pros(display_name, slug))').eq('status', 'open').order('created_at'),
     sb.from('pros').select('id', { count: 'exact', head: true }).eq('status', 'verified'),
+    sb.from('problems').select('*').eq('status', 'open').order('created_at'),
   ]);
   return (
     <section className="sec pad"><div className="in">
@@ -50,7 +53,7 @@ export default async function Admin() {
               <div className="chips">
                 <label className="chk"><input type="checkbox" name="license_ok" defaultChecked={!lic} /> {tr("License active and name matches")}</label>
                 <label className="chk"><input type="checkbox" name="id_ok" /> {tr("ID matches photo")}</label>
-                <label className="chk"><input type="checkbox" name="insured_ok" defaultChecked={p.insured} /> {tr("Insurance seen")}</label>
+                <label className="chk"><input type="checkbox" name="insured_ok" defaultChecked={p.insured} /> {tr("Insurance seen")}{p.insurance_claimed && <span className="mu xs"> · {tr("the pro says they are insured")}</span>}</label>
               </div>
               <input className="inp" name="reason" placeholder={tr('Reason if rejecting (sent to the pro)')} />
               <div className="chips"><button className="btn sm">{tr("Approve")}</button><button className="btn ghost sm" formAction={rejectPro}>{tr("Reject")}</button></div>
@@ -87,6 +90,18 @@ export default async function Admin() {
           </form>
         ))}
         {!(reports ?? []).length && <div className="card empty">{tr("No open reports.")}</div>}
+      </div>
+
+      <h3 style={{ marginTop: 28 }}>{tr('Problems on orders')} ({(problems ?? []).length})</h3>
+      <div className="list">
+        {(problems ?? []).map((p: any) => (
+          <form key={p.id} action={resolveProblem} className="card formcard"><input type="hidden" name="id" value={p.id} />
+            <span><b>{tr(PROBLEM_KINDS[p.kind as keyof typeof PROBLEM_KINDS] ?? p.kind)}</b> · <Link href={`/orders/${p.booking_id}`}>{tr('Open order')}</Link> <span className="mu xs">· {new Date(p.created_at).toLocaleString('en-US')}</span></span>
+            <span className="sm" style={{ whiteSpace: 'pre-wrap' }}>{p.body}</span>
+            <textarea className="inp" name="resolution" maxLength={1000} placeholder={tr('Answer to both sides (they will see it on the order)')} style={{ minHeight: 60 }} />
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Mark answered')}</button>
+          </form>))}
+        {!(problems ?? []).length && <div className="card empty">{tr('No open problems.')}</div>}
       </div>
     </div></section>
   );

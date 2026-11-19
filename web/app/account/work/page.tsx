@@ -25,6 +25,7 @@ export default async function Work() {
     sb.from('pro_contacts').select('colleague:pros!pro_contacts_colleague_id_fkey(id, slug, display_name, trade, photo_url, accent)').eq('pro_id', me.id).order('created_at'),
   ]);
   const p: any = pRow ?? {};
+  const mutual = new Set(((await sb.rpc('added_me')).data ?? []) as string[]);
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
   const accepting = p.accepting || (p.paused_until && p.paused_until <= today);
   const rule = (d: number) => (rules ?? []).find((r: any) => r.weekday === d);
@@ -72,7 +73,7 @@ export default async function Work() {
         {(contacts ?? []).filter((c: any) => c.colleague).map((c: any) => (
           <div key={c.colleague.id} className="card coll" style={{ ['--acc' as string]: c.colleague.accent ?? '#B57A50' }}>
             <span className="post-ava"><Figure name={c.colleague.display_name} accent={c.colleague.accent ?? '#B57A50'} photo={c.colleague.photo_url} /></span>
-            <span style={{ minWidth: 0 }}><Link href={`/${c.colleague.slug}`}><b>{c.colleague.display_name}</b></Link><br /><span className="mu xs">{tr(TRADES[c.colleague.trade as Trade]?.name ?? '')}</span></span>
+            <span style={{ minWidth: 0 }}><Link href={`/${c.colleague.slug}`}><b>{c.colleague.display_name}</b></Link>{mutual.has(c.colleague.id) && <span className="badge ok" style={{ marginLeft: 6 }}>⇄ {tr('Mutual')}</span>}<br /><span className="mu xs">{tr(TRADES[c.colleague.trade as Trade]?.name ?? '')}</span></span>
             <form action={toggleColleague} style={{ marginLeft: 'auto' }}><input type="hidden" name="id" value={c.colleague.id} /><input type="hidden" name="on" value="0" /><button className="btn ghost sm">{tr('Remove')}</button></form>
           </div>))}
         {!(contacts ?? []).length && <div className="card empty">{tr('Open a colleague’s page and press “+ Add to my colleagues”. You can also find colleagues in the')} <Link href="/lounge">{tr('Pro Lounge')}</Link>.</div>}

@@ -6,11 +6,12 @@ import { uploadPhotos } from '@/lib/upload';
 import Icon from '@/components/Icon';
 import { useLang, useT } from '@/components/I18n';
 import { sendMessage } from '../actions';
+import QuoteCard, { type QuoteView } from '@/components/QuoteCard';
 
 const CONTACT = /(\d{3}[\s.)-]*\d{3}[\s.-]*\d{4})|([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})|(https?:\/\/|www\.)/i;
 type Msg = { id: number; body: string; photo: string | null; mine: boolean; at: string; flagged: boolean; who: string };
 
-export default function Thread({ id, messages, booked }: { id: string; messages: Msg[]; booked: boolean }) {
+export default function Thread({ id, messages, booked, quotes = [], role = 'client', quoteForm }: { id: string; messages: Msg[]; booked: boolean; quotes?: QuoteView[]; role?: 'client' | 'pro'; quoteForm?: React.ReactNode }) {
   const router = useRouter(); const t = useT(); const lang = useLang();
   const [text, setText] = useState('');
   const [photos, setPhotos] = useState<{ url: string; preview: string }[]>([]);
@@ -28,12 +29,12 @@ export default function Thread({ id, messages, booked }: { id: string; messages:
   }
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { const t = setInterval(() => router.refresh(), 5000); return () => clearInterval(t); }, [router]);
-  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [messages.length]);
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [messages.length, quotes.length]);
   const warn = !booked && CONTACT.test(text);
   return (
     <>
       <div className="list" style={{ gap: 8, marginBottom: 14 }}>
-        {messages.map((m) => (
+        {[...messages.map((m) => ({ at: m.at, m, q: null as QuoteView | null })), ...quotes.map((q) => ({ at: q.at, m: null as Msg | null, q }))].sort((a, b) => a.at.localeCompare(b.at)).map(({ m, q }) => q ? <QuoteCard key={`q${q.id}`} q={q} role={role} /> : m && (
           <div key={m.id} style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '82%' }}>
             <div className="card" style={{ padding: m.photo ? 6 : '10px 14px', borderRadius: 16, background: m.mine ? '#22170F' : undefined, borderColor: m.mine ? 'var(--cu)' : undefined, whiteSpace: 'pre-wrap' }}>
               {m.photo && <a href={m.photo} target="_blank" rel="noreferrer"><img src={m.photo} alt="Photo" style={{ display: 'block', maxWidth: '100%', width: 260, borderRadius: 12 }} /></a>}
@@ -42,9 +43,10 @@ export default function Thread({ id, messages, booked }: { id: string; messages:
             <div className="mu2 xs" style={{ textAlign: m.mine ? 'right' : 'left', marginTop: 2 }}>{m.mine ? t('You') : m.who} · {new Date(m.at).toLocaleString(lang === 'ru' ? 'ru-RU' : lang === 'es' ? 'es-US' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}{m.flagged && ` · ${t('contact details shared before booking')}`}</div>
           </div>
         ))}
-        {!messages.length && <p className="mu">{t('Describe the job, ask about price or time. You can send photos.')}</p>}
+        {!messages.length && !quotes.length && <p className="mu">{t('Describe the job, ask about price or time. You can send photos.')}</p>}
         <div ref={end} />
       </div>
+      {quoteForm && <div style={{ marginBottom: 10 }}>{quoteForm}</div>}
       <form action={async (f) => { const r = await sendMessage(f); if (r?.error) { setErr(t(r.error)); return; } setText(''); setPhotos([]); router.refresh(); }} className="list" style={{ gap: 8, position: 'sticky', bottom: 0, background: 'var(--bg)', paddingBlock: 10 }}>
         <input type="hidden" name="id" value={id} />
         {photos.map((p) => <input key={p.url} type="hidden" name="photo_url" value={p.url} />)}

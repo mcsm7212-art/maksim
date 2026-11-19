@@ -87,7 +87,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         <div className="kp3">
           <div>{pro.reviewCount > 0 && pro.rating != null
             ? <><span className="num">{pro.rating.toFixed(1)}</span><small><span className="stars">★★★★★</span><br />{tr(pro.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: pro.reviewCount })}</small></>
-            : <><span className="num">0</span><small>{tr('No reviews yet')}</small></>}</div>
+            : <><span className="num" style={{ fontSize: 'clamp(26px,5vw,36px)' }}>{tr('Just joined')}</span><small>{tr('on NovaFides, no reviews yet')}</small></>}</div>
           <div>{stats
             ? <><span className="num">{pro.jobs}</span><small>{tr('jobs on NovaFides')}</small></>
             : <><span className="num">{pro.years || '—'}</span><small>{tr('years of experience')}</small></>}</div>
@@ -102,6 +102,20 @@ export default async function ProPage({ params, searchParams }: Props) {
           {pro.company && <span className="tchip">{tr('Technician at')} {pro.company.name}</span>}
         </div>
 
+        <details className="card trustinfo">
+          <summary>🛡 {tr('What NovaFides checked')}</summary>
+          <ul>
+            {pro.trade !== 'handyman' && <li className={pro.verified.license ? 'y' : 'n'}><b>{tr('CSLB license')}</b>: {pro.verified.license && pro.license
+              ? <>{tr('license #{n} is active in the official CSLB database', { n: pro.license })}{pro.checkedAt.license && ` · ${tr('checked {date}', { date: dateLabel(pro.checkedAt.license, lang) })}`} · <a href={`https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/LicenseDetail.aspx?LicNum=${pro.license}`} target="_blank" rel="noreferrer">{tr('check on cslb.ca.gov')}</a></>
+              : tr('not checked yet')}</li>}
+            <li className={pro.verified.id ? 'y' : 'n'}><b>{tr('Identity')}</b>: {pro.verified.id ? <>{tr('a NovaFides admin compared the photo with a government ID')}{pro.checkedAt.id && ` · ${dateLabel(pro.checkedAt.id, lang)}`}</> : tr('not checked yet')}</li>
+            <li className={pro.verified.insured ? 'y' : 'n'}><b>{tr('Insurance')}</b>: {pro.verified.insured ? <>{tr('a NovaFides admin saw the insurance document')}{pro.checkedAt.insured && ` · ${dateLabel(pro.checkedAt.insured, lang)}`}</> : tr('not confirmed')}</li>
+            <li className="i"><b>{tr('Reviews')}</b>: {tr('only from clients with a finished NovaFides job; negative reviews are never deleted')}</li>
+            <li className="i"><b>{tr('Experience and skills')}</b>: {tr('written by the pro')}</li>
+            {pro.founding && <li className="i"><b>{tr('Founding Pro')}</b>: {tr('joined NovaFides during the launch')}</li>}
+          </ul>
+          <span className="mu xs">{tr('A check confirms the item at that date. It is not a guarantee of future work; if something goes wrong, use “Report a problem” in the order.')}</span>
+        </details>
         {!pro.accepting && <div className="note" style={{ marginTop: 16 }}>{pro.pausedUntil ? tr('{name} is not taking new jobs until {date}. You can still send a message.', { name: first, date: dateLabel(pro.pausedUntil + 'T12:00:00', lang) }) : tr('{name} is not taking new jobs right now. You can still send a message.', { name: first })}</div>}
         <div className="pricebox2">
           {fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
@@ -213,7 +227,7 @@ export default async function ProPage({ params, searchParams }: Props) {
           {!stats && <p className="mu xs" style={{ marginTop: 14 }}>{tr('Level and detailed skill scores appear after {jobs} jobs and {reviews} reviews on NovaFides.', { jobs: STATS_MIN_JOBS, reviews: STATS_MIN_REVIEWS })}</p>}
         </div>
       </div></div>
-      <div className="stick3"><span><span className="mu xs" style={{ display: 'block' }}>{pro.name}</span>{pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('New')}</span>}</span><Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })}</Link></div>
+      <div className="stick3"><span><span className="mu xs" style={{ display: 'block' }}>{pro.name}</span>{pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('New')}</span>}</span>{pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
     </div>
   );
 }

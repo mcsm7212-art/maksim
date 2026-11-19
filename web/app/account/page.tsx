@@ -15,7 +15,7 @@ import { addJobPart, addPhotos, answerSwap, deleteJobPart, deletePhoto, hideJobP
 
 export const metadata = { title: 'My account' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const STATUS: Record<string, string> = { assigning: 'Office is assigning a technician', requested: 'Waiting for the pro to confirm', confirmed: 'Confirmed', on_the_way: 'Pro is on the way', in_progress: 'Work in progress', done: 'Done', cancelled: 'Cancelled' };
+const STATUS: Record<string, string> = { needs_time: 'Price agreed: pick a time', assigning: 'Office is assigning a technician', requested: 'Waiting for the pro to confirm', confirmed: 'Confirmed', on_the_way: 'Pro is on the way', in_progress: 'Work in progress', done: 'Done', cancelled: 'Cancelled' };
 const SKILLS = [['punctuality', 'Punctuality'], ['workmanship', 'Workmanship'], ['cleanliness', 'Cleanliness'], ['communication', 'Communication'], ['pricing', 'Pricing transparency']];
 const when = (b: any, tr: T) => b.starts_at ? slotLabel(b.starts_at, tr).join(' · ') : b.day_pref ? `${tr('Preferred')}: ${tr(b.day_pref === 'week' ? 'this week' : b.day_pref === 'today' ? 'today' : 'tomorrow')}` : tr('Time to be agreed');
 const PRO_FIELDS = 'id, slug, display_name, accent, photo_url';
@@ -106,7 +106,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <div className="list" style={{ marginBottom: 26 }}>
           {(jobs ?? []).map((b: any) => (
             <div key={b.id} className="card bk">
-              <span><span className="status">{tr(STATUS[b.status])}</span><h3>{svc(b.service_id)} · {tr(TIERS[b.tier as Tier].name)}</h3>
+              <span><span className="status">{tr(STATUS[b.status] ?? b.status)}</span> <Link className="xs" href={`/orders/${b.id}`}>{tr('Open order')} →</Link><h3>{svc(b.service_id)} · {tr(TIERS[b.tier as Tier].name)}</h3>
                 <span className="mu sm">{when(b, tr)} · {b.address}{b.client?.full_name ? ` · ${b.client.full_name}` : ''}</span>
                 {b.notes && <span className="mu xs" style={{ display: 'block' }}>“{b.notes}”</span>}</span>
               <span className="chips">
@@ -160,7 +160,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
       <div className="list">
         {(mine ?? []).map((b: any) => (
           <div key={b.id} className="card formcard">
-            <div><span className="status">{tr(STATUS[b.status])}</span>
+            <div><span className="status">{tr(STATUS[b.status] ?? b.status)}</span> <Link className="xs" href={`/orders/${b.id}`}>{tr('Open order')} →</Link>
               <h3 style={{ margin: '4px 0' }}>{svc(b.service_id)} · {tr(TIERS[b.tier as Tier].name)}{b.price_estimate ? ` · ~${usd(b.price_estimate)}` : ''}</h3>
               <span className="mu sm">{when(b, tr)}{b.company ? ` · ${b.company.name}` : ''}</span></div>
             {b.pro ? <div className="sm">{tr('Your pro')}: <Link href={`/pro/${b.pro.slug}`}><b>{b.pro.display_name}</b></Link>{b.chosen_by === 'office' && <span className="mu xs"> · {tr('assigned by the office')}</span>}</div>

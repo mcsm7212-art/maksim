@@ -4,6 +4,9 @@ import Header from '@/components/Header';
 import { I18nProvider } from '@/components/I18n';
 import { getLang, getT } from '@/lib/i18n';
 import { getTheme } from '@/lib/theme';
+import BottomNav from '@/components/BottomNav';
+import { getMe } from '@/lib/auth';
+import { actionCount } from '@/lib/order-count';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,6 +18,7 @@ export const viewport: Viewport = { themeColor: '#0C0C0E', width: 'device-width'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang(); const t = await getT(); const theme = await getTheme();
+  const me = await getMe(); const act = me ? await actionCount(me.id) : 0;
   return (
     <html lang={lang} data-theme={theme}>
       <head>
@@ -31,6 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <span>© {new Date().getFullYear()} NovaFides Marketplace · Bay Area</span>
           <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link></span>
         </div></footer>
+        <BottomNav signedIn={Boolean(me)} act={act} />
         </I18nProvider>
       </body>
     </html>

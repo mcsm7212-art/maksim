@@ -10,6 +10,8 @@ export default function PostForm() {
   return (
     <form action={action} className="card formcard" key={state?.ok ? Date.now() : 'f'}>
       <b>{t('Share your work')}</b>
+      <div className="chips">{([['work', 'Finished work'], ['tip', 'Tip'], ['question', 'Question'], ['partner', 'Looking for a partner']] as const).map(([v, l], i) => (
+        <label key={v} className="chip" style={{ cursor: 'pointer' }}><input type="radio" name="tag" value={v} defaultChecked={i === 0} style={{ marginRight: 6 }} />{t(l)}</label>))}</div>
       <textarea className="inp" name="body" maxLength={1000} placeholder={t('What did you do today? E.g. “Replaced a 50-gal water heater in San Carlos, new expansion tank and shut-off.”')} style={{ minHeight: 70 }} />
       <PhotoPicker name="work_url" prefix="post" max={6} label={t('Add photos')} />
       {state?.error && <span className="err">{t(state.error)}</span>}
