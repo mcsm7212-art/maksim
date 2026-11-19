@@ -1,6 +1,7 @@
 // Service catalog, shared by the server and the browser. Source: data/services.json (copied by scripts/sync-catalog.mjs).
 import raw from './services.json';
 import esRaw from './services-es.json';
+import { rank } from './search';
 
 export type Trade = 'plumbing' | 'electrical' | 'handyman' | 'construction';
 export type Tier = 'economy' | 'standard' | 'premium';
@@ -51,21 +52,10 @@ export const roundPrice = (n: number) => (n < 200 ? Math.round(n / 5) * 5 : n < 
 export const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 export const marketMid = (s: Service) => (s.lo + s.hi) / 2;
 
-const SYN: [string, string][] = [['hot water heater', 'water heater'], ['water tank', 'water heater'], ['garburator', 'garbage disposal'], ['disposal', 'garbage disposal'], ['tap', 'faucet'], ['drip', 'faucet'], ['clog', 'drain'], ['clogged', 'drain'], ['blocked', 'drain'], ['rooter', 'drain'], ['leaking', 'leak'], ['socket', 'outlet'], ['plug', 'outlet'], ['gfi', 'gfci'], ['tesla', 'ev charger'], ['electric car', 'ev charger'], ['ev', 'ev charger'], ['tv', 'tv wall mounting'], ['television', 'tv wall mounting'], ['ikea', 'furniture assembly'], ['assemble', 'assembly'], ['fan', 'ceiling fan'], ['light', 'light fixture'], ['lamp', 'light fixture'], ['power out', 'troubleshooting'], ['no power', 'troubleshooting'], ['no hot water', 'water heater repair'], ['toilet running', 'running toilet'], ['paint', 'paint'], ['hole in wall', 'drywall'], ['shelf', 'shelves'], ['gas smell', 'gas leak'], ['sewer', 'sewer'], ['shower', 'shower']];
 
 export function searchServices(query: string, trade?: Trade | null, limit = 8): Service[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const qs = [...new Set([q, ...SYN.filter(([a]) => new RegExp(`\\b${a}\\b`).test(q)).map(([, b]) => b)])];
-  const toks = [...new Set(qs.join(' ').split(/\s+/).filter((w) => w.length >= 3))];
-  return SERVICES.filter((s) => !trade || s.trade === trade)
-    .map((s) => {
-      const nm = s.name.toLowerCase(); const hay = `${nm} ${s.group} ${s.ru} ${s.es} ${s.groupEs}`.toLowerCase();
-      let sc = 0;
-      qs.forEach((x, i) => { if (nm.includes(x)) sc += i ? 9 : 14; else if (hay.includes(x)) sc += 4; });
-      toks.forEach((t) => { if (nm.includes(t)) sc += 3; });
-      if (sc && /repair|replacement|installation/.test(nm)) sc += 0.5;
-      return [sc, s] as const;
-    })
-    .filter(([sc]) => sc > 0).sort((a, b) => b[0] - a[0]).slice(0, limit).map(([, s]) => s);
+  return rank(SERVICES.filter((s) => !trade || s.trade === trade), query).slice(0, limit).map((h) => h.s);
+}
+export function searchRanked(query: string, trade?: Trade | null, limit = 8) {
+  return rank(SERVICES.filter((s) => !trade || s.trade === trade), query).slice(0, limit);
 }

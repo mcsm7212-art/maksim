@@ -8,7 +8,7 @@ async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...d
   await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
-const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person; start the app with NOVAFIDES_TEST_VISION=fake AMAZON_ASSOCIATE_TAG=testtag-20
+const IMG=n=>__dirname+'/'+n+'.jpg';
 async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'));await p.waitForSelector('input[name=photo_url]',{state:'attached'})}
 (async()=>{sql('truncate auth.users, public.companies, public.notifications cascade');sql("insert into storage.buckets (id, name, public) values ('photos','photos',true) on conflict do nothing");await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});const b=await chromium.launch();try{
  // company owner
@@ -26,7 +26,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const s=await user(b,'solo@test.local','Max Solo');await s.goto(B+'/join/pro');await s.fill('input[name=name]','Max Solo');await s.fill('input[name=license]','1121547');await avatar(s);
  await s.fill('textarea[name=experience]','Nine years as a plumber, four on my own.');await s.fill('input[name=skills]','Water heaters, Repipes, Leak detection');
  await s.setInputFiles('.drop input >> nth=1',[IMG('w1'),IMG('w2')]);await s.waitForFunction(()=>document.querySelectorAll('input[name=work_url]').length===2);
- await s.check('input[name=tier_premium]');await s.check('input[name=svc_faucet-replacement]');await s.fill('input[name=price_faucet-replacement]','400');await s.check('input[name=day_0]',{force:true});await s.check('input[name=day_6]',{force:true});
+ await s.check('input[name=svc_faucet-replacement]');await s.fill('input[name=price_faucet-replacement]','400');await s.check('input[name=day_0]',{force:true});await s.check('input[name=day_6]',{force:true});
  await s.click('button:has-text("Create my profile")');await s.waitForURL(/account/);step('solo pro registered');
  for(const n of ['Tom Tech','Max Solo']){await a.goto(B+'/admin');const f=a.locator(`form:has-text("${n}")`);await f.locator('input[name=id_ok]').check();await f.locator('input[name=license_ok]').check();await f.locator('button:has-text("Approve")').click();await a.waitForTimeout(800)}
  if(sql("select count(*) from pros where status='verified' and id_verified")!=='2')throw new Error('admin approve pros failed');step('admin approved both pros (license + ID)');
@@ -45,14 +45,14 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  // client: request a visit
  const c=await user(b,'client@test.local','Anna Client',true);step('client signed in');
  await c.goto(B+'/companies');await c.click('text=Peninsula Pipe Co');await c.click('text=Request a visit');await c.selectOption('select[name=svc]','faucet-replacement');
- await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Request a visit")');await c.waitForURL(/account\?booked/);
+ await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Request a visit")');await c.waitForURL(/orders\/[0-9a-f-]{36}/);await c.goto(B+'/account');
  if(!(await c.content()).includes('The office will assign a technician'))throw new Error('no pending assignment shown');step('client requested a visit, waits for assignment');
  // office assigns
  await o.goto(B+'/business');await o.selectOption('select[name=pro]',{label:'Tom Tech'});await o.fill('input[name=time]','2030-03-04T10:00');await o.click('button:has-text("Save")');await o.waitForTimeout(800);
  await c.reload();const ct=await c.content();if(!ct.includes('Tom Tech')||!ct.includes('assigned by the office'))throw new Error('assigned tech not visible to client');step('office assigned Tom → client sees him + notification');
  await c.screenshot({path:D+'e_client.png',fullPage:true});
  // day board: second visit request assigned for today, then moved through statuses from the board
- await c.goto(B+'/company/peninsula-pipe-co');await c.click('text=Request a visit');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Request a visit")');await c.waitForURL(/account\?booked/);
+ await c.goto(B+'/company/peninsula-pipe-co');await c.click('text=Request a visit');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Request a visit")');await c.waitForURL(/orders\/[0-9a-f-]{36}/);await c.goto(B+'/account');
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date());
  await o.goto(B+'/business/board');await o.waitForSelector('text=Waiting for a technician (1)');
  await o.selectOption('.formcard select[name=pro]',{label:'Tom Tech'});await o.fill('.formcard input[name=time]',today+'T23:00');await o.click('button:has-text("Assign")');await o.waitForTimeout(900);
@@ -67,7 +67,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.reload();await c.waitForSelector('text=pick any open time');
  await c.setInputFiles('label[aria-label="Attach photos"] input',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});await c.fill('textarea[name=body]','This is the faucet.');await c.click('button:has-text("Send")');await c.waitForTimeout(1000);
  await s.reload();await s.waitForSelector('img[alt=Photo]');step('client and pro chatted, photo sent in chat');await c.screenshot({path:D+'e_chat.png',fullPage:true});
- await c.goto(B+'/pro/max-solo?svc=faucet-replacement');await c.click('.slots a >> nth=0');await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Send booking request")');await c.waitForURL(/account\?booked/);step('client booked solo pro for a slot');
+ await c.goto(B+'/pro/max-solo?svc=faucet-replacement');await c.click('.slots a >> nth=0');await c.fill('input[name=address]','100 Main St, Redwood City');await c.click('button:has-text("Send booking request")');await c.waitForURL(/orders\/[0-9a-f-]{36}/);await c.goto(B+'/account');step('client booked solo pro for a slot');
  // pro flows job to done
  await s.goto(B+'/account');await s.click('button:has-text("Confirm")');await s.waitForTimeout(700);
  await s.setInputFiles('text=Add BEFORE photos >> xpath=ancestor::label//input',IMG('w1'));await s.waitForSelector('form:has(input[name=kind][value=before]) input[name=work_url]',{state:'attached'});await s.click('button:has-text("Save job photos")');await s.waitForTimeout(700);
@@ -202,6 +202,26 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/max');await c.click('summary:has-text("What NovaFides checked")');await c.waitForSelector('text=is active in the official CSLB database');
  await s.goto(B+'/max');await s.click('button:has-text("Pin to my page")');await s.waitForSelector('.badge:has-text("Pinned")');
  step('phone bottom menu, "What NovaFides checked" panel, pinned post');
+ // client path: search in 3 languages, estimate with photos to one pro, "I have the same", demo profile, My home, phone header
+ await c.goto(B+'/search?q='+encodeURIComponent('течёт под раковиной'));await c.waitForSelector('text=What needs doing?');await c.waitForSelector('a.chip:has-text("Under-sink leak repair")');
+ await c.goto(B+'/search');await c.fill('.sbox input','inodoro tapado');await c.click('.sbox-go');await c.waitForURL(/svc=clogged-toilet/);
+ step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
+ await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
+ await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});
+ const sum=await c.textContent('.summary');if(!sum.includes('Max Solo')||!sum.includes('Redwood City'))throw new Error('summary wrong: '+sum);
+ await c.click('button:has-text("Send to Max")');await c.waitForURL(/messages\/[0-9a-f-]{36}\?sent=estimate/);await c.waitForSelector('text=Kitchen faucet drips');await c.waitForSelector('img[alt=Photo]');
+ step('estimate: one pro, city only, photo attached, summary showed who gets it → lands in chat with the pro');
+ await c.goto(B+'/feed');await c.click('.post a:has-text("I have the same") >> nth=0');await c.waitForURL(/ref=post/);await c.waitForSelector('.refwork');
+ await c.selectOption('select[name=city]','San Carlos');await c.fill('textarea[name=notes]','Same problem in my kitchen.');await c.click('button:has-text("Send to Max")');await c.waitForURL(/sent=estimate/);
+ if(sql("select count(*) from work_requests where post_id is not null")!=='1')throw new Error('work request not stored');
+ await s.goto(B+'/feed');await s.waitForSelector('text=1 requests from this work');
+ step('"I have the same" under Max\'s post → request with the example attached; Max sees 1 request from this work');
+ const tomSlug=sql("select slug from pros where display_name='Tom Tech'");sql("update pros set is_demo=true where display_name='Tom Tech'");
+ await c.goto(B+'/pro/'+tomSlug);await c.waitForSelector('text=Demo profile');if(await c.locator('.stick3 a:has-text("Pick a time")').count())throw new Error('demo profile bookable');sql("update pros set is_demo=false where display_name='Tom Tech'");
+ await c.goto(B+'/my-home');await c.waitForSelector('.homejob >> text=Grohe');await c.waitForSelector('.homejob a:has-text("Call again")');
+ if(!(await c.locator('.more summary').isVisible())||(await c.locator('.bar .nav').isVisible()))throw new Error('phone header not compact');
+ await c.screenshot({path:D+'e_home.png',fullPage:true});
+ step('demo profile cannot be booked; My home lists the finished job with the installed Grohe part; phone header is one row with ⋯');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});

@@ -6,7 +6,7 @@ import { priceFor } from '@/components/ProCard';
 import SkillPassport, { type SkillRow } from '@/components/SkillPassport';
 import WorkPhotos from '@/components/WorkPhotos';
 import { startChat } from '@/app/messages/actions';
-import { serviceById, TIERS, TRADES, usd, type Tier } from '@/lib/catalog';
+import { serviceById, TRADES, usd } from '@/lib/catalog';
 import { getPro, openSlots } from '@/lib/data';
 import { colorWord } from '@/lib/colors';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
@@ -38,18 +38,19 @@ export default async function ProPage({ params, searchParams }: Props) {
   if (!pro) notFound();
   const lang = await getLang(); const tr = makeT(lang); const theme = await getTheme();
   const svcLabel = (name: string) => svcName(SERVICES.find((x) => x.name === name), lang) || name;
-  const tier: Tier = sp.tier && pro.tiers.includes(sp.tier as Tier) ? (sp.tier as Tier) : pro.tiers.includes('standard') ? 'standard' : pro.tiers[0];
   const svcId = sp.svc && pro.services.some((s) => s.id === sp.svc) ? sp.svc : undefined;
   const slots = openSlots(pro).slice(0, 14);
   const first = pro.name.split(' ')[0];
   const stats = showStats(pro);
-  const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id, tier) ?? 1e9)) : null;
+  const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
   const isOwner = me?.id === pro.id;
   const isColleague = me?.pro && !isOwner ? Boolean((await (await supabaseServer()).from('pro_contacts').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data) : false;
   const myRec = me?.pro && !isOwner ? (await (await supabaseServer()).from('pro_recommendations').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data : null;
-  const bookHref = (t?: string) => `/book?pro=${pro.slug}&tier=${tier}${svcId ? `&svc=${svcId}` : ''}${t ? `&t=${encodeURIComponent(t)}` : ''}`;
-  const q = (patch: Record<string, string>) => `/pro/${pro.slug}?${new URLSearchParams({ tier, ...(svcId ? { svc: svcId } : {}), ...patch })}`;
+  const bookHref = (t?: string) => `/book?pro=${pro.slug}${svcId ? `&svc=${svcId}` : ''}${t ? `&t=${encodeURIComponent(t)}` : ''}`;
+  const estHref = `/book?pro=${pro.slug}&estimate=1${svcId ? `&svc=${svcId}` : ''}`;
+  const q = (patch: Record<string, string>) => `/pro/${pro.slug}?${new URLSearchParams({ ...(svcId ? { svc: svcId } : {}), ...patch })}`;
+  const selSvc = svcId ? serviceById(svcId) : undefined; const selPrice = svcId ? priceFor(pro, svcId) : null;
   const sk = pro.skills;
   const rows: SkillRow[] = stats && sk ? [
     { key: 'p', name: tr('Punctuality'), icon: 'clock', score: sk.punctuality, desc: tr('Arrives within the agreed time window and warns in advance about any change.'), sample: tr('{n}% on-time score', { n: Math.round(sk.punctuality * 20) }) },
@@ -63,6 +64,7 @@ export default async function ProPage({ params, searchParams }: Props) {
     <div className={`themed ${theme === 'light' ? 'light' : pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
       <div className="pad"><div className="in" style={{ maxWidth: 1040, paddingBottom: 40 }}>
 
+        {pro.isDemo && <div className="note demo-note" style={{ marginTop: 12 }}>🧪 <b>{tr('Demo profile')}</b> · {tr('This is an example profile. It shows how NovaFides works; requests cannot be sent to it.')} <Link href="/search">{tr('Find a pro')}</Link></div>}
         <div className="ph3 phero2">
           <div style={{ minWidth: 0 }}>
             <div className="eyerow"><i />{tr('Your pro. Their reputation.')}</div>
@@ -116,13 +118,16 @@ export default async function ProPage({ params, searchParams }: Props) {
           </ul>
           <span className="mu xs">{tr('A check confirms the item at that date. It is not a guarantee of future work; if something goes wrong, use “Report a problem” in the order.')}</span>
         </details>
-        {!pro.accepting && <div className="note" style={{ marginTop: 16 }}>{pro.pausedUntil ? tr('{name} is not taking new jobs until {date}. You can still send a message.', { name: first, date: dateLabel(pro.pausedUntil + 'T12:00:00', lang) }) : tr('{name} is not taking new jobs right now. You can still send a message.', { name: first })}</div>}
+        {!pro.accepting && !pro.isDemo && <div className="note" style={{ marginTop: 16 }}>{pro.pausedUntil ? tr('{name} is not taking new jobs until {date}. You can still send a message.', { name: first, date: dateLabel(pro.pausedUntil + 'T12:00:00', lang) }) : tr('{name} is not taking new jobs right now. You can still send a message.', { name: first })}</div>}
         <div className="pricebox2">
-          {fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
+          {selSvc && selPrice != null
+            ? <div className="selprice"><div className="mu">{svcName(selSvc, lang)}</div><div className="big num">≈ {usd(selPrice)}</div>
+                <div className="mu xs">{tr('Trip fee {fee}, credited if you hire.', { fee: usd(pro.tripFee) })}{pro.urgent && pro.urgentFee ? ` · ${tr('Urgent visit +{fee}', { fee: usd(pro.urgentFee) })}` : ''} · <a href="#prices">{tr('What is included')}</a></div></div>
+            : fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
           <div className="cta2" style={{ flex: 1 }}>
             {pro.accepting && <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })} <Icon name="arrow" /></Link>}
-            {pro.accepting && <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link>}
-            <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>
+            {pro.accepting && <Link className="btn ghost" href={estHref}>{tr('Ask for estimate')}</Link>}
+            {!pro.isDemo && <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>}
           </div>
         </div>
         <div className="chips" style={{ marginTop: 12 }}>
@@ -178,15 +183,12 @@ export default async function ProPage({ params, searchParams }: Props) {
           </form>
         </div>}
 
-        <div className="blk">
+        <div className="blk" id="prices">
           <h2>{tr('Services and prices')}</h2>
-          {pro.tiers.length > 1 && <div className="seg" role="group" aria-label={tr('Service level')} style={{ marginBottom: 6 }}>
-            {pro.tiers.map((t) => <Link key={t} href={q({ tier: t })} scroll={false} aria-pressed={t === tier}>{tr(TIERS[t].name)}</Link>)}
-          </div>}
-          <p className="mu xs" style={{ margin: '4px 0 6px' }}>{tr(TIERS[tier].name)}: {tr(TIERS[tier].blurb)} {tr('Trip fee {fee}, credited if you hire.', { fee: usd(pro.tripFee) })}</p>
+          <p className="mu xs" style={{ margin: '4px 0 6px' }}>{tr('Typical price for the job. The exact price is in the quote before work starts.')} {tr('Trip fee {fee}, credited if you hire.', { fee: usd(pro.tripFee) })}</p>
           {pro.services.map((s) => {
             const sv = serviceById(s.id); if (!sv) return null;
-            return <Link key={s.id} className="prow" href={q({ svc: s.id })} scroll={false} aria-current={s.id === svcId}><span>{svcName(sv, lang)}</span><b>{usd(priceFor(pro, s.id, tier) ?? 0)}</b></Link>;
+            return <Link key={s.id} className="prow" href={q({ svc: s.id })} scroll={false} aria-current={s.id === svcId}><span>{svcName(sv, lang)}</span><b>{usd(priceFor(pro, s.id) ?? 0)}</b></Link>;
           })}
         </div>
 
@@ -216,7 +218,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               return (
                 <div key={r.id} className="card rv">
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}><b>{r.who}</b>{stars(avg)}</div>
-                  <div className="mu xs">{svcLabel(r.service)} · {tr(TIERS[r.tier].name)} · {dateLabel(r.date, lang)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('Resolved with the pro')}</span>}</div>
+                  <div className="mu xs">{svcLabel(r.service)} · {dateLabel(r.date, lang)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('Resolved with the pro')}</span>}</div>
                   <div>{r.text}</div>
                   {r.reply && <div className="reply"><b className="xs" style={{ display: 'block', color: 'var(--acc)' }}>{tr('Reply from {name}', { name: first })}</b>{r.reply}</div>}
                 </div>
@@ -227,7 +229,7 @@ export default async function ProPage({ params, searchParams }: Props) {
           {!stats && <p className="mu xs" style={{ marginTop: 14 }}>{tr('Level and detailed skill scores appear after {jobs} jobs and {reviews} reviews on NovaFides.', { jobs: STATS_MIN_JOBS, reviews: STATS_MIN_REVIEWS })}</p>}
         </div>
       </div></div>
-      <div className="stick3"><span><span className="mu xs" style={{ display: 'block' }}>{pro.name}</span>{pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('New')}</span>}</span>{pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
+      <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo ? <span className="badge p">{tr('Demo profile')}</span> : pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
     </div>
   );
 }

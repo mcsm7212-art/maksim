@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { serviceById, TIERS, type Tier } from '@/lib/catalog';
+import { serviceById } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { slotLabel } from '@/lib/time';
@@ -49,7 +49,7 @@ export default async function Business({ searchParams }: { searchParams: Promise
           <div key={b.id} className="card formcard">
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
               <span><span className="status">{tr(STATUS[b.status])}</span>
-                <h3 style={{ margin: '4px 0' }}>{svcName(serviceById(b.service_id ?? ''), lang) || tr('Estimate visit')} · {tr(TIERS[b.tier as Tier].name)}</h3>
+                <h3 style={{ margin: '4px 0' }}>{svcName(serviceById(b.service_id ?? ''), lang) || tr('Estimate visit')}</h3>
                 <span className="mu sm">{b.starts_at ? slotLabel(b.starts_at, tr).join(' · ') : `${tr('Preferred')}: ${tr(b.day_pref === 'week' ? 'this week' : b.day_pref ?? 'any day')}`} · {b.address} · {b.client?.full_name || tr('Client')}{b.client?.phone ? ` · ${b.client.phone}` : ''}</span>
                 {b.notes && <span className="mu xs" style={{ display: 'block' }}>“{b.notes}”</span>}</span>
               <span className="sm">{b.pro ? <>{tr('Tech:')} <b>{b.pro.display_name}</b><br /><span className="mu xs">{tr(b.chosen_by === 'client' ? 'Chosen by client: changes need their OK' : 'Assigned by office')}</span></> : <span className="badge p">{tr("Unassigned")}</span>}</span>

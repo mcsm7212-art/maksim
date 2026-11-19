@@ -1,22 +1,24 @@
 import Link from 'next/link';
 import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
-import { searchServices, serviceById, TIER_KEYS, TIERS, TRADES, usd, type Tier, type Trade } from '@/lib/catalog';
+import { searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
 import { mySaves } from '@/lib/social';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
 
 export const metadata = { title: 'Find a pro' };
+const DIAG: Record<string, string> = { plumbing: 'plumbing-diagnostic-visit', electrical: 'electrical-diagnostic-visit', handyman: 'small-repairs-hourly' };
 type SP = Promise<Record<string, string | undefined>>;
 
 export default async function Search({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams; const lang = await getLang(); const tr = makeT(lang);
   const svc = sp.svc ? serviceById(sp.svc) : undefined;
   const trade = (svc?.trade ?? (sp.trade && sp.trade in TRADES ? sp.trade : null)) as Trade | null;
-  const tier = (sp.tier && TIER_KEYS.includes(sp.tier as Tier) ? sp.tier : null) as Tier | null;
-  const matches = !svc && sp.q ? searchServices(sp.q, trade) : [];
-  let pros = await listPros({ trade, serviceId: svc?.id, tier });
+  const matches = !svc && sp.q ? searchRanked(sp.q, trade, 4).map((h) => h.s) : [];
+  // Not sure which job? Show the pros of the most likely trade, not everyone.
+  const guess = (!trade && matches[0]?.trade) as Trade | undefined;
+  let pros = await listPros({ trade: trade ?? guess ?? null, serviceId: svc?.id });
   if (sp.online) pros = pros.filter((p) => p.online);
   // Handymen cannot take permit jobs or jobs over $1,000.
   if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman');
@@ -41,22 +43,22 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         {(Object.keys(TRADES) as Trade[]).map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={link({ trade: t, svc: null })}>{tr(TRADES[t].name)}</Link>)}
         <Link className="chip" aria-pressed={Boolean(sp.online)} href={link({ online: sp.online ? null : '1' })}>● {tr('Online now')}</Link>
       </div>
-      <div className="chips" style={{ marginTop: 10 }}>
-        <Link className="chip" aria-pressed={!tier} href={link({ tier: null })}>{tr('Any level')}</Link>
-        {TIER_KEYS.map((t) => <Link key={t} className="chip" aria-pressed={tier === t} href={link({ tier: t })} title={tr(TIERS[t].blurb)}>{tr(TIERS[t].name)}</Link>)}
-      </div>
-      {svc && <p className="mu sm" style={{ marginTop: 12 }}>{tr('Bay Area typical price: {lo}–{hi} (Standard).', { lo: usd(svc.lo), hi: usd(svc.hi) })} {svc.permit && tr('Permit usually required.')} {tier && tr(TIERS[tier].blurb)}</p>}
+      {svc && <p className="mu sm" style={{ marginTop: 12 }}>{tr('Bay Area typical price: {lo}–{hi}.', { lo: usd(svc.lo), hi: usd(svc.hi) })} {svc.permit && tr('Permit usually required.')}</p>}
 
-      {matches.length > 0 && <div style={{ marginTop: 18 }}>
-        <div className="mu sm" style={{ marginBottom: 8 }}>{tr('Did you mean:')}</div>
-        <div className="chips">{matches.map((m) => <Link key={m.id} className="chip" href={link({ svc: m.id, q: null })}>{svcName(m, lang)}</Link>)}</div>
+      {matches.length > 0 && <div className="card" style={{ marginTop: 18, padding: 16 }}>
+        <b>{tr('What needs doing?')}</b>
+        <div className="chips" style={{ marginTop: 10 }}>{matches.map((m) => <Link key={m.id} className="chip" href={link({ svc: m.id, q: null, trade: null })}>{svcName(m, lang)}</Link>)}
+          {DIAG[matches[0].trade] && <Link className="chip" href={link({ svc: DIAG[matches[0].trade], q: null, trade: null })}>{tr('Not sure yet: diagnostic visit')}</Link>}</div>
+        {guess && <p className="mu xs" style={{ margin: '10px 0 0' }}>{tr('Showing {trade} pros below.', { trade: tr(TRADES[guess].name).toLowerCase() })}</p>}
       </div>}
-      {sp.q && !matches.length && !svc && <div className="note" style={{ marginTop: 18 }}>
-        {tr('Not in our catalog yet.')} <Link href={`/ask${trade ? `?trade=${trade}` : ''}`}>{tr('Describe your job')}</Link> {tr('with photos and ask up to 3 pros for an estimate.')}
+      {sp.q && !matches.length && !svc && <div className="card" style={{ marginTop: 18, padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <b>{tr('We did not find this exact job.')}</b>
+        <span className="mu sm">{tr('Try other words, pick a trade above, or describe the problem with a photo: pros will tell you what it is.')}</span>
+        <div className="chips"><Link className="btn sm" href={`/ask?${new URLSearchParams({ ...(trade ? { trade } : {}), q: sp.q })}`}>{tr('Describe the problem')}</Link><Link className="btn ghost sm" href="/questions">{tr('Ask the pros')}</Link></div>
       </div>}
 
       <div className="list" style={{ marginTop: 22 }}>
-        {pros.map((p) => <ProCard key={p.id} pro={p} serviceId={svc?.id} tier={tier} saved={saves.get(p.id) === 'saved'} />)}
+        {pros.map((p) => <ProCard key={p.id} pro={p} serviceId={svc?.id} saved={saves.get(p.id) === 'saved'} />)}
         {!pros.length && <div className="card empty">{tr('No pros match yet.')} <Link href="/ask">{tr('Describe your job')}</Link> {tr('and we will find someone.')}</div>}
       </div>
     </div></section>

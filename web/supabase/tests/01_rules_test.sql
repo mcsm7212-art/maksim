@@ -464,4 +464,19 @@ update public.pros set insured = true where id = auth.uid();
 select pg_temp.ok((select not insured and insurance_claimed from public.pros where id = auth.uid()), 'a pro cannot give themselves the Insured badge (only a claim)');
 update public.posts set pinned = true where pro_id = auth.uid();
 select pg_temp.ok((select count(*) from public.posts where pinned) = 3, 'a pro pins up to 3 posts') ;
+-- 22) demo profiles cannot be booked; work requests are private to the two sides
+select pg_temp.act(null);
+reset role;
+update public.pros set is_demo = true where id = '00000000-0000-0000-0000-0000000000a2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+do $$ begin insert into public.bookings (client_id, pro_id, service_id, chosen_by, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000a2', 'faucet-replacement', 'client', now() + interval '5 days');
+  raise exception 'FAIL: booked a demo profile';
+exception when others then if sqlerrm not like 'demo profile%' then raise; end if; end $$;
+select pg_temp.ok(true, 'demo profiles cannot be booked');
+insert into public.work_requests (client_id, pro_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000a1');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.ok((select count(*) from public.work_requests) = 0, 'others cannot see who asked a pro');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+update public.pros set is_demo = false where id = auth.uid();
+select pg_temp.ok((select is_demo from public.pros where id = auth.uid()), 'a pro cannot remove the demo label');
 \echo ALL RULE TESTS PASSED

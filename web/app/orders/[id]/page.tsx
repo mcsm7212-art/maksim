@@ -17,8 +17,8 @@ import { dateLabel, slotLabel } from '@/lib/time';
 export const dynamic = 'force-dynamic';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export default async function Order({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function Order({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ sent?: string }> }) {
+  const { id } = await params; const sent = (await searchParams).sent;
   if (!isLive()) redirect('/orders');
   const me = await getMe(); if (!me) redirect(`/login?next=/orders/${id}`);
   const tr = await getT(); const lang = await getLang(); const sb = await supabaseServer();
@@ -40,6 +40,7 @@ export default async function Order({ params }: { params: Promise<{ id: string }
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow"><Link href="/orders">{tr('Orders')}</Link></div>
+      {sent && <div className="note" style={{ marginBottom: 12 }}>✓ {tr(o.status === 'assigning' ? 'Request sent. The office picks a technician; you will see who is coming here.' : 'Request sent. This is not a confirmed visit yet: the pro confirms the time and you get a notification.')}</div>}
       <h2 style={{ marginBottom: 4 }}>{svc}</h2>
       <div className="mu sm">{role === 'client' ? <>{tr('Your pro')}: {o.pro ? <Link href={`/pro/${o.pro.slug}`}>{o.pro.display_name}</Link> : o.company?.name}</> : tr('Client')}
         {o.starts_at && ` · ${slotLabel(o.starts_at, tr).join(' · ')}`}{o.address && role === 'pro' && ['confirmed', 'on_the_way', 'in_progress', 'done'].includes(o.status) ? ` · ${o.address}` : ''}</div>
@@ -75,6 +76,9 @@ export default async function Order({ params }: { params: Promise<{ id: string }
         <div className="list">{(qs ?? []).slice().reverse().map((q: any) => <QuoteCard key={q.id} role={role} inOrder q={{ id: q.id, conv: q.conversation_id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes, validUntil: q.valid_until, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }} />)}</div>
         {role === 'pro' && conv?.id && !['done', 'cancelled'].includes(o.status) && <p className="mu xs">{tr('Scope changed? Send a new version of the quote in the chat: the client accepts it and the agreed price updates.')}</p>}</>}
 
+      {(o.notes || (o.photos ?? []).length > 0) && <><h3 style={{ marginTop: 22 }}>{tr('Request')}</h3>
+        {o.notes && <p className="sm" style={{ whiteSpace: 'pre-wrap', marginTop: 0 }}>{o.notes}</p>}
+        {(o.photos ?? []).length > 0 && <div className="jobstrip">{o.photos.map((u: string) => <a key={u} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" /></a>)}</div>}</>}
       {(photos ?? []).length > 0 && <><h3 style={{ marginTop: 22 }}>{tr('Photos')}</h3>
         <div className="jobstrip">{(photos ?? []).map((p: any) => <a key={p.id} href={p.url} target="_blank" rel="noreferrer"><img src={p.url} alt={p.kind} /></a>)}</div></>}
 

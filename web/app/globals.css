@@ -398,8 +398,9 @@ input[type=color]{border:1px solid var(--line)!important;border-radius:10px;padd
 .navbar-progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:100;background:linear-gradient(90deg,#8A5A36,#E2B48C,#C08A62);box-shadow:0 0 8px rgba(226,180,140,.6);opacity:0;pointer-events:none}
 .navbar-progress.run{opacity:1;width:82%;transition:width 6s cubic-bezier(.1,.7,.2,1),opacity .15s}
 .navbar-progress.done{opacity:0;width:100%;transition:width .2s ease-out,opacity .35s .15s}
-.pagefade{animation:pagein .32s cubic-bezier(.2,.7,.2,1) both}
-@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* fade only: a transform here would break every position:fixed bar inside the page */
+.pagefade{animation:pagein .28s ease-out backwards}
+@keyframes pagein{from{opacity:0}to{opacity:1}}
 a.card,.card.trade,.card.pc,.coll,.post{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
 a.card:hover,.card.pc:hover{transform:translateY(-2px);border-color:rgba(192,138,98,.55);box-shadow:0 10px 26px rgba(0,0,0,.35),0 0 0 1px rgba(192,138,98,.12)}
 a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-duration:.06s}
@@ -565,3 +566,39 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
   [data-theme="light"] a.card:hover,[data-theme="light"] .card.pc:hover{background-image:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(192,138,98,.10),transparent 45%);box-shadow:0 12px 30px rgba(60,40,20,.12),0 0 0 1px rgba(192,138,98,.22)}
 }
 @media (prefers-reduced-motion:reduce){a.card:hover,.card.pc:hover,.card.trade:hover{transform:none}}
+.sbox .sbox-go{position:absolute;right:56px;top:8px;height:40px;padding:0 16px;border-radius:12px}
+.sbox .inp{padding-right:150px}
+@media (max-width:520px){.sbox .sbox-go{padding:0 12px}.sbox .inp{padding-right:132px}}
+.summary{padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-color:color-mix(in srgb,var(--cu) 50%,var(--line))}
+.summary dl{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;margin:0;font-size:14px}
+.summary dt{color:var(--mu)}.summary dd{margin:0}
+.refwork{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;align-items:center;padding:12px}
+.refwork img{width:88px;height:88px;object-fit:cover;border-radius:12px}
+/* phone header: one row — logo · ♥ · account · ⋯ */
+.more{display:none;position:relative}
+.more summary{list-style:none;cursor:pointer;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-size:20px;line-height:1;color:var(--ink)}
+.more summary::-webkit-details-marker{display:none}
+.more-menu .more-row{display:flex;gap:8px;align-items:center;padding:8px 6px 4px;border-top:1px solid var(--line);margin-top:4px}
+@media (max-width:760px){
+  .bar .in{flex-wrap:nowrap;gap:8px;padding-block:8px}
+  .bar .nav{display:none}
+  .more{display:block}
+  .hdr-me{margin-left:auto;gap:4px}
+  .hdr-me > .langs,.hdr-me > .themebtn,.hdr-me > .soundbtn{display:none}
+  .logo img{width:32px;height:32px}.logo b{font-size:17px}.logo small{display:none}
+  .acct summary{max-width:140px;overflow:hidden;text-overflow:ellipsis}
+}
+/* phones: compact trade tiles */
+@media (max-width:620px){
+  .grid4{grid-template-columns:1fr 1fr!important;gap:8px}
+  .grid4 .trade{padding:12px;gap:6px}
+  .grid4 .trade h3{font-size:16px;margin:0}
+  .grid4 .trade > .mu.sm,.grid4 .trade > .xs{display:none}
+  .grid4 .trade .ic{width:34px;height:34px}
+  .hero{padding-block:22px 14px}
+  .hero p{font-size:15px}
+}
+.homejob{padding:16px;display:flex;flex-direction:column;gap:10px}
+.homejob-head{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center}
+.homejob .post-ava{width:52px;height:52px}
+.btn.same{background-image:none;background:color-mix(in srgb,var(--cu) 22%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--cu) 60%,transparent)}

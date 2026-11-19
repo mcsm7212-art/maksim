@@ -8,8 +8,12 @@ import { dateLabel } from '@/lib/time';
 import Figure from './Figure';
 import LikeButton from './LikeButton';
 import Comments from './Comments';
+import { supabaseServer } from '@/lib/supabase/server';
+import { isLive } from '@/lib/supabase/config';
 
-export default function PostCard({ p, tr, lang, mine, meId = null, path = '/feed', full }: { p: PostView; tr: T; lang: string; mine?: boolean; meId?: string | null; path?: string; full?: boolean }) {
+export default async function PostCard({ p, tr, lang, mine, meId = null, path = '/feed', full }: { p: PostView; tr: T; lang: string; mine?: boolean; meId?: string | null; path?: string; full?: boolean }) {
+  // the pro sees how many people asked them after seeing this work
+  const asked = mine && isLive() ? (await (await supabaseServer()).from('work_requests').select('id', { count: 'exact', head: true }).eq('post_id', p.id)).count ?? 0 : 0;
   return (
     <article className="card post" id={`post-${p.id}`} style={{ ['--acc' as string]: p.pro.accent }}>
       <header className="post-head">
@@ -22,7 +26,8 @@ export default function PostCard({ p, tr, lang, mine, meId = null, path = '/feed
       <footer className="chips" style={{ alignItems: 'center' }}>
         <LikeButton postId={p.id} liked={p.liked} count={p.likes} />
         <Link className="btn ghost sm" href={`/feed/${p.id}`}>💬 {p.comments.length}</Link>
-        <Link className="btn ghost sm" href={`/book?pro=${p.pro.slug}`}>{tr('Book {name}', { name: p.pro.name.split(' ')[0] })}</Link>
+        {!mine && <Link className="btn sm same" href={`/book?pro=${p.pro.slug}&estimate=1&ref=post:${p.id}`}>🙋 {tr('I have the same')}</Link>}
+        {mine && asked > 0 && <span className="badge cu">🙋 {tr('{n} requests from this work', { n: asked })}</span>}
         {mine && <form action={togglePin}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="on" value={p.pinned ? '0' : '1'} /><button className="btn ghost sm">📌 {tr(p.pinned ? 'Unpin' : 'Pin to my page')}</button></form>}
         {mine && <form action={deletePost}><input type="hidden" name="id" value={p.id} /><button className="btn ghost sm">{tr('Delete')}</button></form>}
       </footer>

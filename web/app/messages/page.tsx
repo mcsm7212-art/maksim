@@ -9,7 +9,7 @@ import { makeT } from '@/lib/i18n-core';
 
 export const metadata = { title: 'Messages' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export default async function Messages() {
+export default async function Messages({ searchParams }: { searchParams: Promise<{ sent?: string }> }) {
   const lang = await getLang(); const tr = makeT(lang);
   if (!isLive()) return <section className="sec pad"><div className="in"><h2>{tr('Messages')}</h2><p className="mu">{tr('Demo mode: chat turns on when the database is connected.')}</p></div></section>;
   const me = await getMe();
@@ -31,6 +31,7 @@ export default async function Messages() {
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow">{tr('Chat')}</div><h2>{tr('Messages')}</h2>
+      {(await searchParams).sent === 'ask' && <div className="note">✓ {tr('Sent only to the pros you chose. Each answers in their own chat below.')}</div>}
       <div className="list">
         {(data ?? []).map((c: any) => {
           const iAmClient = c.client_id === me.id;

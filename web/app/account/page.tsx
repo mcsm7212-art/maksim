@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { SERVICES, serviceById, TIERS, usd, type Tier } from '@/lib/catalog';
+import { SERVICES, serviceById, usd } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
@@ -106,7 +106,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <div className="list" style={{ marginBottom: 26 }}>
           {(jobs ?? []).map((b: any) => (
             <div key={b.id} className="card bk">
-              <span><span className="status">{tr(STATUS[b.status] ?? b.status)}</span> <Link className="xs" href={`/orders/${b.id}`}>{tr('Open order')} →</Link><h3>{svc(b.service_id)} · {tr(TIERS[b.tier as Tier].name)}</h3>
+              <span><span className="status">{tr(STATUS[b.status] ?? b.status)}</span> <Link className="xs" href={`/orders/${b.id}`}>{tr('Open order')} →</Link><h3>{svc(b.service_id)}</h3>
                 <span className="mu sm">{when(b, tr)} · {b.address}{b.client?.full_name ? ` · ${b.client.full_name}` : ''}</span>
                 {b.notes && <span className="mu xs" style={{ display: 'block' }}>“{b.notes}”</span>}</span>
               <span className="chips">
@@ -161,7 +161,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         {(mine ?? []).map((b: any) => (
           <div key={b.id} className="card formcard">
             <div><span className="status">{tr(STATUS[b.status] ?? b.status)}</span> <Link className="xs" href={`/orders/${b.id}`}>{tr('Open order')} →</Link>
-              <h3 style={{ margin: '4px 0' }}>{svc(b.service_id)} · {tr(TIERS[b.tier as Tier].name)}{b.price_estimate ? ` · ~${usd(b.price_estimate)}` : ''}</h3>
+              <h3 style={{ margin: '4px 0' }}>{svc(b.service_id)}{b.price_estimate ? ` · ~${usd(b.price_estimate)}` : ''}</h3>
               <span className="mu sm">{when(b, tr)}{b.company ? ` · ${b.company.name}` : ''}</span></div>
             {b.pro ? <div className="sm">{tr('Your pro')}: <Link href={`/pro/${b.pro.slug}`}><b>{b.pro.display_name}</b></Link>{b.chosen_by === 'office' && <span className="mu xs"> · {tr('assigned by the office')}</span>}</div>
               : <div className="mu sm">{tr('The office will assign a technician. You will see who is coming here.')}</div>}

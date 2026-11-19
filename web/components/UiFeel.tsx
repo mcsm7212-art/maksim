@@ -23,25 +23,29 @@ function tick(volume: number) {
 }
 const INTERACTIVE = 'a, button, summary, label.chip, [role="button"], input[type="checkbox"], input[type="radio"], select';
 
-export default function UiFeel() {
+export default function UiFeel({ engine = true }: { engine?: boolean }) {
   const t = useT();
   const [on, setOn] = useState(false);
-  useEffect(() => { try { setOn(localStorage.getItem('nf_sound') === '1'); } catch { /* private mode */ } }, []);
+  useEffect(() => {
+    try { setOn(localStorage.getItem('nf_sound') === '1'); } catch { /* private mode */ }
+    const sync = (e: Event) => setOn((e as CustomEvent<boolean>).detail);
+    window.addEventListener('nf-sound', sync); return () => window.removeEventListener('nf-sound', sync);
+  }, []);
 
   // Light that follows the mouse on cards (desktop only; CSS uses --mx/--my).
   useEffect(() => {
-    if (!matchMedia('(hover: hover)').matches) return;
+    if (!engine || !matchMedia('(hover: hover)').matches) return;
     const move = (e: PointerEvent) => {
       const el = (e.target as HTMLElement).closest<HTMLElement>('.card, .btn'); if (!el) return;
       const r = el.getBoundingClientRect(); el.style.setProperty('--mx', `${e.clientX - r.left}px`); el.style.setProperty('--my', `${e.clientY - r.top}px`);
     };
     document.addEventListener('pointermove', move, { passive: true });
     return () => document.removeEventListener('pointermove', move);
-  }, []);
+  }, [engine]);
 
   // Sounds, only when turned on.
   useEffect(() => {
-    if (!on) return;
+    if (!on || !engine) return;
     let last: Element | null = null; let lastAt = 0;
     const over = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return;
@@ -54,9 +58,9 @@ export default function UiFeel() {
     };
     document.addEventListener('pointerover', over, { passive: true }); document.addEventListener('pointerdown', down, { passive: true });
     return () => { document.removeEventListener('pointerover', over); document.removeEventListener('pointerdown', down); };
-  }, [on]);
+  }, [on, engine]);
 
-  const flip = () => { const next = !on; setOn(next); try { localStorage.setItem('nf_sound', next ? '1' : '0'); } catch { /* ignore */ } if (next) tick(0.09); };
+  const flip = () => { const next = !on; setOn(next); try { localStorage.setItem('nf_sound', next ? '1' : '0'); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent('nf-sound', { detail: next })); if (next) tick(0.09); };
   return (
     <button type="button" className="ico soundbtn" onClick={flip} aria-pressed={on} title={t(on ? 'Sounds: on' : 'Sounds: off')} aria-label={t(on ? 'Sounds: on' : 'Sounds: off')}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

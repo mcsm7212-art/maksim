@@ -1,7 +1,5 @@
--- NovaFides: the whole database in one file (migrations 0001-0019 + service catalog).
+-- NovaFides: the whole database in one file (migrations 0001-0020 + service catalog).
 -- Paste into Supabase → SQL Editor → New query → Run. Run it once, on an empty project.
-
--- ===== migrations/0001_init.sql =====
 -- NovaFides marketplace: initial schema
 -- Roles: client, pro (independent or company technician), company (owner/manager accounts).
 -- Row Level Security is on for every table. Writes that change several rows at once
@@ -631,8 +629,6 @@ $$;
 grant execute on function public.invite_info(text) to authenticated;
 
 grant execute on function public.accept_invite(text) to authenticated;
-
--- ===== migrations/0002_storage.sql =====
 -- Photo storage (Supabase only). Public bucket; each user writes only inside a folder named after their user id.
 insert into storage.buckets (id, name, public) values ('photos', 'photos', true) on conflict (id) do nothing;
 create policy photos_read on storage.objects for select using (bucket_id = 'photos');
@@ -642,8 +638,6 @@ create policy photos_update_own on storage.objects for update to authenticated
   using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy photos_delete_own on storage.objects for delete to authenticated
   using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
-
--- ===== migrations/0003_simple_profiles.sql =====
 -- Launch version of pro profiles: pros describe their experience and skills and upload work photos.
 -- Levels, job counters and the skill passport stay hidden until a pro has enough real jobs and reviews (see lib/levels.ts).
 
@@ -695,8 +689,6 @@ create policy pro_photos_delete on public.pro_photos for delete using (pro_id = 
 
 grant select on public.pro_photos to anon, authenticated;
 grant insert, update, delete on public.pro_photos to authenticated;
-
--- ===== migrations/0004_edit_profiles.sql =====
 -- Pros can stop offering a service without losing its verified job count.
 alter table public.pro_services add column if not exists active boolean not null default true;
 
@@ -822,8 +814,6 @@ drop policy conversations_read on public.conversations;
 create policy conversations_read on public.conversations for select using (
   client_id = auth.uid() or pro_id = auth.uid() or (company_id is not null and public.is_company_staff(company_id)) or public.is_admin()
 );
-
--- ===== migrations/0005_chat_photos_and_online.sql =====
 -- Photos in chat: a message can be a photo with an optional caption.
 alter table public.messages add column if not exists photo_url text;
 alter table public.messages drop constraint if exists messages_body_check;
@@ -841,8 +831,6 @@ language sql security definer set search_path = public as $$
   where id = auth.uid();
 $$;
 grant execute on function public.set_online(int, text) to authenticated;
-
--- ===== migrations/0006_invoices.sql =====
 -- Invoices: the pro or the company office bills the client for a booking. NovaFides does not take payments;
 -- the invoice shows how to pay (Zelle, card link, check...) and the pro marks it paid.
 create sequence if not exists public.invoice_no start 1001;
@@ -928,8 +916,6 @@ create policy invoices_insert on public.invoices for insert with check (public.c
 create policy invoices_update on public.invoices for update using (public.can_bill(booking_id)) with check (public.can_bill(booking_id));
 grant select, insert, update on public.invoices to authenticated;
 grant usage on sequence public.invoice_no to authenticated;
-
--- ===== migrations/0007_calendar.sql =====
 -- Calendar sync without OAuth:
 --  1) export: each pro gets a secret iCal feed URL with their NovaFides jobs (Google / Apple / Outlook subscribe to it);
 --  2) import: a pro pastes the secret iCal address of their own calendar; we store only busy time ranges (no titles).
@@ -982,8 +968,6 @@ language sql stable security definer set search_path = public as $$
     and b.status in ('requested', 'confirmed', 'on_the_way', 'in_progress', 'done');
 $$;
 grant execute on function public.calendar_feed(text) to anon, authenticated;
-
--- ===== migrations/0008_grants.sql =====
 -- Explicit table permissions for the API roles. Newer Supabase projects no longer grant these automatically.
 -- Row Level Security (enabled on every table) still decides which rows each user may read or change.
 grant usage on schema public to anon, authenticated;
@@ -993,8 +977,6 @@ grant usage, select on all sequences in schema public to authenticated;
 grant execute on all functions in schema public to anon, authenticated;
 -- notify() writes notifications for others; keep it callable only from the database's own functions.
 revoke execute on function public.notify(uuid, text, text) from public, anon, authenticated;
-
--- ===== migrations/0009_handles_cards.sql =====
 -- Short addresses (novafides.com/max) and business cards.
 -- The pro's handle is pros.slug. Old handles are kept here so printed cards and QR codes keep working after a change.
 create table public.pro_handles (
@@ -1036,8 +1018,6 @@ begin
 end;
 $$;
 grant execute on function public.set_handle(text) to authenticated;
-
--- ===== migrations/0010_founding_pros.sql =====
 -- Launch period: NovaFides charges nothing. Every pro who joins before the subscription start date is a Founding Pro
 -- and keeps that mark (and the special terms announced with the start date). When billing is announced, a later
 -- migration sets the default to false so new pros are no longer founding.
@@ -1058,8 +1038,6 @@ end;
 $$;
 create trigger pros_protect_founding before insert or update on public.pros
   for each row execute function public.protect_founding();
-
--- ===== migrations/0011_social.sql =====
 -- Social features: saved / hidden pros ("My pros"), pro posts with likes (feed), colleague recommendations, popular pros.
 
 -- "My pros": a user saves a pro (also follows their posts) or hides a pro from their search.
@@ -1173,8 +1151,6 @@ $$;
 grant select, insert, update, delete on public.pro_saves, public.posts, public.post_likes, public.pro_recommendations to authenticated;
 grant select on public.posts, public.post_likes, public.pro_recommendations to anon;
 grant execute on function public.save_counts(uuid[]), public.popular_pros(int) to anon, authenticated;
-
--- ===== migrations/0012_urgent.sql =====
 -- Urgent calls: a pro says "I take urgent calls" (optionally with an extra call-out fee).
 -- Clients see the pro as ready for urgent calls only while the pro is also online.
 alter table public.pros add column if not exists urgent_ok boolean not null default false;
@@ -1190,12 +1166,8 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.set_urgent(boolean, numeric) from public, anon;
 grant execute on function public.set_urgent(boolean, numeric) to authenticated;
-
--- ===== migrations/0013_figure.sql =====
 -- Full-height photo of the pro on a transparent background, shown big on their page with a glow in their clothing colour.
 alter table public.pros add column if not exists figure_url text check (figure_url is null or char_length(figure_url) <= 500);
-
--- ===== migrations/0014_community.sql =====
 -- Community: comments on posts, questions answered by verified pros, and the pros-only Lounge.
 -- Names shown next to comments/questions are saved when written: pros by their public name,
 -- everyone else by first name + last initial ("Anna C."), so clients never expose their full name.
@@ -1440,8 +1412,6 @@ begin
   return new;
 end;
 $$;
-
--- ===== migrations/0015_pro_controls_neighbors.sql =====
 -- 1) Construction becomes a fourth trade (CSLB B, General Building Contractor).
 -- 2) Pros can pause new jobs ("not taking jobs now", optionally until a date).
 -- 3) Pros keep a colleague list and choose who may message them: all pros, only colleagues, or nobody.
@@ -1669,8 +1639,6 @@ begin
   return new;
 end;
 $$;
-
--- ===== migrations/0016_photo_search.sql =====
 -- Photo search: a client photographs a problem, AI recognizes the job, and we show pros who have done it,
 -- with their photos of that kind of job. Job photos (before/after) stay private unless the pro shows them
 -- on their page; the client of that job can always hide them again.
@@ -1729,8 +1697,6 @@ begin
 end;
 $$;
 grant execute on function public.photo_search_quota(text, int) to anon, authenticated;
-
--- ===== migrations/0017_job_parts.sql =====
 -- Parts that pros installed on NovaFides jobs: NovaFides' own parts database.
 -- "Max replaced this exact Grohe cartridge 3 times" — no client details are stored or shown.
 create table if not exists public.job_parts (
@@ -1787,8 +1753,6 @@ language sql stable security definer set search_path = public as $$
   from m group by pro_id order by bool_or(exact) desc, count(*) desc limit 20;
 $$;
 grant execute on function public.parts_lookup(text[], text, text) to anon, authenticated;
-
--- ===== migrations/0018_quotes_orders.sql =====
 -- Quotes in chat and a clear order flow:
 --   pro sends a quote in the chat → client accepts (price agreed) → client picks a time (visit requested)
 --   → pro confirms → on the way → in progress → pro marks done → client confirms the job is complete.
@@ -2036,8 +2000,6 @@ create trigger problems_after_update before update on public.problems for each r
 drop index if exists public.bookings_no_double;
 create unique index bookings_no_double on public.bookings (pro_id, starts_at)
   where status not in ('cancelled', 'done') and pro_id is not null and starts_at is not null;
-
--- ===== migrations/0019_trust_social.sql =====
 -- Trust badges with dates, insurance only confirmed by NovaFides, pinned posts and post types, colleague notifications.
 
 -- ───────── when each check was done ─────────
@@ -2103,8 +2065,58 @@ language sql stable security definer set search_path = public as $$
   select pro_id from public.pro_contacts where colleague_id = auth.uid();
 $$;
 grant execute on function public.added_me() to authenticated;
+-- Demo profiles, photos on the first request, and "I have the same problem" requests from a pro's work example.
 
--- ===== seed.sql =====
+-- Demo (example) profiles: clearly labeled, never bookable, never counted as available.
+alter table public.pros add column if not exists is_demo boolean not null default false;
+update public.pros set is_demo = true where id::text like '7e570000-0000-4000-8000-00000000000_';
+create or replace function public.booking_needs_open_pro() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.pro_id is not null and exists (select 1 from public.pros where id = new.pro_id and is_demo) then
+    raise exception 'demo profile: this is an example profile and cannot be booked';
+  end if;
+  if new.pro_id is not null and not public.pro_accepting(new.pro_id) then
+    raise exception 'pro not accepting: this pro is not taking new jobs right now';
+  end if;
+  return new;
+end;
+$$;
+-- only an admin marks or unmarks a demo profile
+create or replace function public.protect_demo() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  -- signed-in users other than admins cannot change it; the database owner (SQL editor, migrations) can
+  if auth.uid() is not null and not public.is_admin() then new.is_demo := old.is_demo; end if;
+  return new;
+end;
+$$;
+drop trigger if exists pros_protect_demo on public.pros;
+create trigger pros_protect_demo before update of is_demo on public.pros for each row execute function public.protect_demo();
+
+-- Photos sent with a booking request (up to 6).
+alter table public.bookings add column if not exists photos text[] not null default '{}';
+alter table public.bookings drop constraint if exists bookings_photos_check;
+alter table public.bookings add constraint bookings_photos_check check (cardinality(photos) <= 6);
+
+-- "I have the same problem": a request that started from one of the pro's work examples.
+create table if not exists public.work_requests (
+  id bigint generated always as identity primary key,
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  pro_id uuid not null references public.pros (id) on delete cascade,
+  post_id uuid references public.posts (id) on delete set null,
+  photo_id uuid references public.pro_photos (id) on delete set null,
+  conversation_id uuid references public.conversations (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists work_requests_pro_idx on public.work_requests (pro_id, created_at desc);
+alter table public.work_requests enable row level security;
+drop policy if exists work_requests_read on public.work_requests;
+create policy work_requests_read on public.work_requests for select using (client_id = auth.uid() or pro_id = auth.uid() or public.is_admin());
+drop policy if exists work_requests_insert on public.work_requests;
+create policy work_requests_insert on public.work_requests for insert with check (client_id = auth.uid() and client_id <> pro_id);
+grant select, insert on public.work_requests to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
 -- generated by scripts/gen-seed.mjs; do not edit by hand
 insert into public.services (id, trade, group_name, name, price_low, price_high, unit, needs_permit, emergency, handyman_ok) values
 ('faucet-replacement','plumbing','Faucets & Sinks','Faucet replacement',250,450,'job',false,false,true),

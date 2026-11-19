@@ -96,7 +96,7 @@ function build(s: Seed, i: number): Pro {
     experience: ex.exp, skillTags: ex.skills, photos: ex.photos.map((c, k) => ({ id: `${slug}-p${k}`, url: `demo:${trade}`, caption: c })),
     license: company ? company.license : license,
     verified: { license: true, id: true, insured: true }, checkedAt: { license: null, id: null, insured: null }, photoUrl: null, uniform, accent,
-    base: company ? company.base : baseFor(accent), figureUrl: null, accepting: true, pausedUntil: null, online, onlineArea: online ? area : null, urgent: online && (rating >= 4.7 || slug.length % 2 === 0), urgentFee: online ? 75 : null, founding: true, responseMin: resp, tripFee: 95,
+    base: company ? company.base : baseFor(accent), figureUrl: null, isDemo: false, accepting: true, pausedUntil: null, online, onlineArea: online ? area : null, urgent: online && (rating >= 4.7 || slug.length % 2 === 0), urgentFee: online ? 75 : null, founding: true, responseMin: resp, tripFee: 95,
     rating: launchRating, reviewCount: reviews.length, jobs: launchJobs,
     skills: { punctuality: sk(0), workmanship: sk(0.04), cleanliness: sk(-0.03), communication: sk(0), pricing: sk(-0.02) },
     services: services.map((x) => ({ ...x, jobs: 0 })), reviews,

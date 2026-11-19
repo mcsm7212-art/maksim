@@ -49,7 +49,7 @@ export default async function MyPros() {
           {r.lastJob && <><br /><span className="mu xs">{tr('Last')}: {r.lastJob.service ?? tr('Estimate visit')} · {dateLabel(r.lastJob.date, lang)}</span></>}</span>
       </span>
       <span className="chips">
-        {r.status !== 'hidden' && <Link className="btn sm" href={`/book?pro=${r.slug}${r.lastJob?.serviceId ? `&svc=${r.lastJob.serviceId}&tier=${r.lastJob.tier}` : ''}`}>{tr(r.lastJob ? 'Book again' : 'Book')}</Link>}
+        {r.status !== 'hidden' && <Link className="btn sm" href={`/book?pro=${r.slug}${r.lastJob?.serviceId ? `&svc=${r.lastJob.serviceId}` : ''}`}>{tr(r.lastJob ? 'Book again' : 'Book')}</Link>}
         <SaveButton proId={r.id} initial={r.status} count={0} compact />
       </span>
     </div>

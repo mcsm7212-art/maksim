@@ -12,7 +12,7 @@ import { getT } from '@/lib/i18n';
 
 export const metadata = { title: 'Chat' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export default async function Chat({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ q?: string }> }) {
+export default async function Chat({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ q?: string; sent?: string }> }) {
   if (!isLive()) redirect('/messages');
   const me = await getMe();
   const { id } = await params;
@@ -40,7 +40,7 @@ export default async function Chat({ params, searchParams }: { params: Promise<{
     quoteForm = <QuoteForm conv={id} services={SERVICES.filter((s) => s.trade === pr?.trade).map((s) => ({ id: s.id, label: svcName(s, lang) }))}
       jobs={(open ?? []).map((b: any) => ({ id: b.id, label: `${svcName(SERVICES.find((s) => s.id === b.service_id), lang) || 'Job'}${b.starts_at ? ' · ' + new Date(b.starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}` }))} />;
   }
-  const qErr = (await searchParams).q;
+  const spx = await searchParams; const qErr = spx.q;
   const iAmClient = cc.client_id === me.id; const tr = await getT();
   const peerName = cc.peer_id ? ((await sb.rpc('public_name', { uid: iAmClient ? cc.peer_id : cc.client_id })).data as string) : null;
   const other = peerName ? peerName : iAmClient ? (cc.pro?.display_name ?? tr('{name} office', { name: cc.company?.name })) : (cc.client?.full_name || tr('Client'));
@@ -52,6 +52,7 @@ export default async function Chat({ params, searchParams }: { params: Promise<{
       {link && <p className="sm" style={{ marginTop: 0 }}><Link href={link}>{tr('Profile')}</Link> · <Link href={`/book?${cc.pro ? `pro=${cc.pro.slug}` : `company=${cc.company.slug}`}`}>{tr('Book')}</Link></p>}
       {cc.peer_id && <p className="mu xs" style={{ marginTop: 0 }}>{tr('Neighbor chat.')} <Link href="/neighbors">{tr('Neighbors')}</Link></p>}
       {qErr && <p className="err">{tr(qErr)}</p>}
+      {spx.sent === 'estimate' && <div className="note">✓ {tr('Sent to {name} only. They answer here or send a quote you can accept.', { name: other })}</div>}
       <Thread id={id} booked={(bk ?? []).length > 0 || Boolean(cc.peer_id)} quotes={quotes} role={iAmPro ? 'pro' : 'client'} quoteForm={quoteForm}
         messages={(msgs ?? []).map((m: any) => ({ id: m.id, body: m.body, photo: m.photo_url, mine: m.sender_id === me.id, at: m.created_at, flagged: m.flagged, who: other }))} />
     </div></section>

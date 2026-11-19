@@ -39,9 +39,10 @@ function mapPro(p: Row, stats?: Row): Pro {
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },
     checkedAt: { license: p.license_checked_at ?? null, id: p.id_checked_at ?? null, insured: p.insurance_checked_at ?? null },
     photoUrl: p.photo_url, figureUrl: p.figure_url ?? null, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
-    online: Boolean(p.online_until && new Date(p.online_until) > new Date()), onlineArea: p.online_area ?? null,
-    accepting: p.accepting !== false || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })), pausedUntil: p.paused_until ?? null,
-    urgent: Boolean(p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),
+    online: Boolean(!p.is_demo && p.online_until && new Date(p.online_until) > new Date()), onlineArea: p.online_area ?? null,
+    isDemo: Boolean(p.is_demo),
+    accepting: !p.is_demo && ((p.accepting !== false) || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }))), pausedUntil: p.paused_until ?? null,
+    urgent: Boolean(!p.is_demo && p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),
     rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), jobs: Number(s?.jobs ?? 0),
     skills: s?.rating != null ? {
       punctuality: s.punctuality / 20, workmanship: s.workmanship / 20, cleanliness: s.cleanliness / 20, communication: s.communication / 20, pricing: s.pricing / 20,

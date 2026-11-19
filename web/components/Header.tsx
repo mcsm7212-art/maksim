@@ -10,6 +10,8 @@ import ThemeToggle from './ThemeToggle';
 import UiFeel from './UiFeel';
 import { getTheme } from '@/lib/theme';
 import NavLink from './NavLink';
+import MoreMenu from './MoreMenu';
+import Link2 from 'next/link';
 import NavProgress from './NavProgress';
 
 export default async function Header() {
@@ -40,6 +42,8 @@ export default async function Header() {
             {me ? <AccountMenu label={t('My account')} signOut={t('Sign out')} links={[
               { href: '/account', text: t('My account') },
               { href: '/my-pros', text: '♥ ' + t('My pros') },
+              { href: '/my-home', text: '🏠 ' + t('My home') },
+              { href: '/orders', text: t('Orders') },
               { href: '/messages', text: t('Messages') },
               ...(me.pro ? [{ href: '/lounge', text: t('Pro Lounge') }, { href: '/account/work', text: t('Work & chat settings') }] : []),
               { href: '/neighbors', text: t('Neighbors') },
@@ -50,6 +54,15 @@ export default async function Header() {
             <UiFeel />
             <ThemeToggle initial={theme} />
             <Suspense><LangSwitch /></Suspense>
+            <MoreMenu>
+              <Link2 href="/companies">{t('Companies')}</Link2>
+              <Link2 href="/online">● {t('Online now')}</Link2>
+              <Link2 href="/feed">{t('Feed')}</Link2>
+              <Link2 href="/questions">{t('Questions')}</Link2>
+              <Link2 href="/photo">📷 {t('Search by photo')}</Link2>
+              {!me?.pro && <Link2 href="/join">{t('For pros')}</Link2>}
+              <div className="more-row"><UiFeel engine={false} /><ThemeToggle initial={theme} /><Suspense><LangSwitch /></Suspense></div>
+            </MoreMenu>
           </div>
         </div>
       </header>

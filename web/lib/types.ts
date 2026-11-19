@@ -78,6 +78,8 @@ export interface Pro {
   founding: boolean;
   /** City the pro is working in right now (when online) */
   onlineArea: string | null;
+  /** Example profile for the launch: labeled, never bookable, never counted as available */
+  isDemo: boolean;
   /** Taking new jobs (a pause with an end date ends by itself) */
   accepting: boolean;
   /** Paused until this date (YYYY-MM-DD), if the pro set one */

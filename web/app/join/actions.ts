@@ -1,7 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { serviceById, slugify, TIER_KEYS, TRADES, type Tier, type Trade } from '@/lib/catalog';
+import { serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -24,7 +24,7 @@ async function uniqueSlug(table: 'pros' | 'companies', base: string) {
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
   const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
-  const tiers = TIER_KEYS.filter((t) => f.get(`tier_${t}`)) as Tier[];
+  const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
   const days = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`));
   const start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00';
   const services = [...f.keys()].filter((k) => k.startsWith('svc_')).map((k) => k.slice(4))
@@ -34,7 +34,6 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!(trade in TRADES)) return { error: 'Choose your trade.' };
   if (trade !== 'handyman' && !invite && license.length < 6) return { error: `A CSLB ${TRADES[trade].license} license number is required for ${TRADES[trade].name.toLowerCase()}.` };
-  if (!tiers.length) return { error: 'Choose at least one service level.' };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
   if (!isLive()) return { demo: true };
@@ -75,14 +74,13 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent').eq('id', me.id).single();
   const trade = cur!.trade as Trade;
   const name = str(f, 'name', 60);
-  const tiers = TIER_KEYS.filter((t) => f.get(`tier_${t}`)) as Tier[];
+  const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
   const days = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`));
   const start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00';
   const services = [...f.keys()].filter((k) => k.startsWith('svc_')).map((k) => k.slice(4))
     .filter((id) => serviceById(id)?.trade === trade)
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
-  if (!tiers.length) return { error: 'Choose at least one service level.' };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
   const newPhoto = str(f, 'photo_url', 500);

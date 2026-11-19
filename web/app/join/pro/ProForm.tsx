@@ -1,6 +1,6 @@
 'use client';
 import { useActionState, useMemo, useState } from 'react';
-import { marketMid, roundPrice, SERVICES, TIER_KEYS, TIERS, TRADES, usd, type Trade } from '@/lib/catalog';
+import { marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/catalog';
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import PhotoPicker from '@/components/PhotoPicker';
@@ -73,13 +73,9 @@ export default function ProForm({ invite, companyName, initial }: { invite?: str
         <span className="mu xs">{tt("Only your own work. No faces of clients, house numbers or addresses in the photos.")}</span>
       </div>}
 
-      <div className="card formcard">
-        <h3 style={{ margin: 0 }}>{tt("Service levels")}</h3>
-        {TIER_KEYS.map((t) => <label key={t} className="chk"><input type="checkbox" name={`tier_${t}`} defaultChecked={I ? I.tiers.includes(t) : t === 'standard'} /><span><b>{tt(TIERS[t].name)}</b> <span className="mu sm">· {tt(TIERS[t].blurb)} {tt('Price')} ×{TIERS[t].multiplier}</span></span></label>)}
-      </div>
 
       <div className="card formcard">
-        <h3 style={{ margin: 0 }}>{tt("Services and your Standard prices")}</h3>
+        <h3 style={{ margin: 0 }}>{tt("Services and your prices")}</h3>
         <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>
         {groups.map(([g, list]) => (
           <details key={g} className="grp" open={I ? list.some((x) => x.id in I.services) : g === groups[0][0]}>

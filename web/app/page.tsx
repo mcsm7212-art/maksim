@@ -25,18 +25,7 @@ export default async function Home() {
         <SearchBox />
       </div></section>
 
-      <section className="pad"><div className="in grid3 grid4">
-        {(Object.keys(TRADES) as Trade[]).map((k) => (
-          <Link key={k} href={`/search?trade=${k}`} className="card trade">
-            <span className="ic"><Icon name={TRADES[k].icon} size={24} /></span>
-            <h3>{t(TRADES[k].name)}</h3>
-            <span className="mu sm">{t(TRADES[k].blurb)}</span>
-            <span className="xs mu2" style={{ marginTop: 'auto' }}>{TRADES[k].license ? t('CSLB {lic} license checked', { lic: TRADES[k].license }) : t('No license needed for small jobs')}</span>
-          </Link>
-        ))}
-      </div></section>
-
-      <section className="pad" style={{ marginTop: 16 }}><div className="in">
+      <section className="pad" style={{ marginTop: 4 }}><div className="in">
         <div className="card urgent">
           <span className="urg-ic"><Icon name="bolt" size={22} /></span>
           <div className="urg-txt">
@@ -51,6 +40,17 @@ export default async function Home() {
           <Link href={urgentCount > 0 ? '/online?urgent=1' : '/online'} className="btn">{t(urgentCount > 0 ? 'Find urgent help' : 'Find pros online')}</Link>
         </div>
       </div></section>
+      <section className="pad" style={{ marginTop: 16 }}><div className="in grid3 grid4">
+        {(Object.keys(TRADES) as Trade[]).map((k) => (
+          <Link key={k} href={`/search?trade=${k}`} className="card trade">
+            <span className="ic"><Icon name={TRADES[k].icon} size={24} /></span>
+            <h3>{t(TRADES[k].name)}</h3>
+            <span className="mu sm">{t(TRADES[k].blurb)}</span>
+            <span className="xs mu2" style={{ marginTop: 'auto' }}>{TRADES[k].license ? t('Needs a CSLB {lic} license: each pro shows if it is checked', { lic: TRADES[k].license }) : t('No license needed for small jobs')}</span>
+          </Link>
+        ))}
+      </div></section>
+
 
       <section className="sec pad"><div className="in">
         <div className="eyebrow">{t('Free answers from verified pros')}</div><h2>{t('Ask the pros')}</h2>
