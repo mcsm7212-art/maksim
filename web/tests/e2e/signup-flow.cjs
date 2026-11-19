@@ -4,11 +4,11 @@ const sql=q=>execSync(`PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -tAc "$
 async function code(email){for(let i=0;i<20;i++){const r=await (await fetch('http://127.0.0.1:54324/api/v1/search?query=to:'+encodeURIComponent(email))).json();
   if(r.messages&&r.messages.length){const m=await (await fetch('http://127.0.0.1:54324/api/v1/message/'+r.messages[0].ID)).json();const c=(m.Text||m.HTML).match(/\b(\d{6})\b/);if(c)return c[1]}await new Promise(r=>setTimeout(r,500))}throw new Error('no mail for '+email)}
 async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...devices['iPhone 13']}:{viewport:{width:1200,height:900}});const p=await c.newPage();
-  p.on('pageerror',e=>errs.push(email+' '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(email+' console '+m.text().slice(0,200))});
+  p.on('pageerror',e=>errs.push(email+' '+p.url()+' '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(email+' console '+m.text().slice(0,200))});
   await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
-const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person
+const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person; start the app with NOVAFIDES_TEST_VISION=fake
 async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'));await p.waitForSelector('input[name=photo_url]',{state:'attached'})}
 (async()=>{sql('truncate auth.users, public.companies, public.notifications cascade');sql("insert into storage.buckets (id, name, public) values ('photos','photos',true) on conflict do nothing");await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});const b=await chromium.launch();try{
  // company owner
@@ -165,6 +165,15 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/');if(!(await c.textContent('main')).includes('Construction'))throw new Error('construction trade missing on home');
  const cs=await c.goto(B+'/search?trade=construction');if(!(await c.textContent('main')).includes('Construction'))throw new Error('construction search');
  step('construction is a fourth trade on the home page and in search');
+ // photo search: pro shows job photos, client searches by photo, client can hide photos of their home
+ await s.goto(B+'/account');await s.click('button:has-text("Show these photos on my page")');await s.waitForSelector('button:has-text("Shown on my page")');
+ if(sql("select count(*) from pro_photos where public and service_id='faucet-replacement'")!=='2')throw new Error('job photos not public/tagged: '+sql("select count(*) from pro_photos where public"));
+ await c.goto(B+'/');await c.click('.sbox-cam');await c.waitForURL(/\/photo/);await c.setInputFiles('.photosearch input[type=file]',IMG('w2'));await c.waitForURL(/\/photo\?svc=/);
+ await c.waitForSelector('text=Pros who do this');const ph=await c.textContent('main');if(!ph.includes('Max Solo')||!ph.includes('Water is leaking')||!ph.includes('Looks urgent'))throw new Error('photo search results wrong');
+ if((await c.locator('.jobstrip img').count())<1)throw new Error('no job photos in photo search');await c.screenshot({path:D+'e_photo.png',fullPage:true});
+ await c.goto(B+'/account');await c.click('button:has-text("Keep them private")');await c.waitForTimeout(800);
+ if(sql("select count(*) from pro_photos where public")!=='0')throw new Error('client could not hide job photos');
+ step('photo search: Max showed his before/after photos, client found him by a photo of the leak; client then hid the photos of their home');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});

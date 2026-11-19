@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { serviceById, TIERS, usd, type Tier } from '@/lib/catalog';
+import { SERVICES, serviceById, TIERS, usd, type Tier } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
@@ -11,7 +11,7 @@ import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName, type T } from '@/lib/i18n-core';
 import { rateClient } from './reviews/actions';
-import { addPhotos, answerSwap, deletePhoto, markRead, setOnline, setStatus, setUrgent, submitReview } from './actions';
+import { addPhotos, answerSwap, deletePhoto, hideJobPhotos, markRead, publishJobPhotos, setOnline, setStatus, setUrgent, submitReview } from './actions';
 
 export const metadata = { title: 'My account' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,13 +33,13 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
   const [{ data: portfolio }, { data: jobPhotos }] = await Promise.all([
     me.pro ? sb.from('pro_photos').select('id, url, caption').eq('pro_id', me.id).eq('kind', 'portfolio').order('created_at', { ascending: false }) : Promise.resolve({ data: [] as any[] }),
-    bookingIds.length ? sb.from('pro_photos').select('id, url, kind, booking_id').in('booking_id', bookingIds) : Promise.resolve({ data: [] as any[] }),
+    bookingIds.length ? sb.from('pro_photos').select('id, url, kind, booking_id, public, client_hidden').in('booking_id', bookingIds) : Promise.resolve({ data: [] as any[] }),
   ]);
   const { data: myRatings } = me.pro ? await sb.from('client_ratings').select('booking_id').eq('pro_id', me.id) : { data: [] as any[] };
   const rated = new Set((myRatings ?? []).map((r: any) => r.booking_id));
@@ -95,7 +95,10 @@ export default async function Account({ searchParams }: { searchParams: Promise<
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.url} alt="" style={{ aspectRatio: '1', objectFit: 'cover', display: 'block', width: '100%' }} /><button className="btn ghost sm" style={{ width: '100%', borderRadius: 0 }}>{tr('Delete')}</button></form>
             ))}</div>}
-          <form action={addPhotos} className="list"><PhotoPicker name="work_url" prefix="work" max={24} label={tr('Add work photos')} /><button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save photos')}</button></form>
+          <form action={addPhotos} className="list"><PhotoPicker name="work_url" prefix="work" max={24} label={tr('Add work photos')} />
+            <select className="inp" name="service" defaultValue="" style={{ width: 'auto' }} aria-label={tr('What job is this?')}><option value="">{tr('What job is this? (helps photo search)')}</option>
+              {SERVICES.filter((s) => s.trade === proRow?.trade).map((s) => <option key={s.id} value={s.id}>{svcName(s, lang)}</option>)}</select>
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save photos')}</button></form>
         </div>
         <h3>{tr('My jobs')}</h3>
         <div className="list" style={{ marginBottom: 26 }}>
@@ -120,6 +123,11 @@ export default async function Account({ searchParams }: { searchParams: Promise<
               </form>}
               {['confirmed', 'on_the_way', 'in_progress', 'done'].includes(b.status) && <div style={{ gridColumn: '1/-1' }} className="list">
                 <JobPhotos photos={photosOf(b.id)} tr={tr} />
+                {photosOf(b.id).length > 0 && (photosOf(b.id).some((p: any) => p.client_hidden)
+                  ? <span className="mu xs">{tr('The client asked to keep these photos private.')}</span>
+                  : <form action={publishJobPhotos} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="booking" value={b.id} /><input type="hidden" name="on" value={photosOf(b.id).some((p: any) => p.public) ? '0' : '1'} />
+                      <button className="btn ghost sm">{photosOf(b.id).some((p: any) => p.public) ? `✓ ${tr('Shown on my page')} · ${tr('Hide')}` : tr('Show these photos on my page')}</button>
+                      <span className="mu xs">{tr('Only if there are no faces, house numbers, addresses or personal items. Clients find you by photo search.')}</span></form>)}
                 <form action={addPhotos} className="list">
                   <input type="hidden" name="booking" value={b.id} /><input type="hidden" name="kind" value={b.status === 'done' || b.status === 'in_progress' ? 'after' : 'before'} />
                   <PhotoPicker name="work_url" prefix="job" max={8} label={tr(b.status === 'done' || b.status === 'in_progress' ? 'Add AFTER photos' : 'Add BEFORE photos')} />
@@ -145,6 +153,8 @@ export default async function Account({ searchParams }: { searchParams: Promise<
               : <div className="mu sm">{tr('The office will assign a technician. You will see who is coming here.')}</div>}
             {invOf(b.id) && <InvoiceLink inv={invOf(b.id)} booking={b.id} tr={tr} />}
             {photosOf(b.id).length > 0 && <JobPhotos photos={photosOf(b.id)} tr={tr} />}
+            {photosOf(b.id).some((p: any) => p.public) && <form action={hideJobPhotos} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="booking" value={b.id} />
+              <span className="mu xs">{tr('Your pro shows these photos on their page (no faces or addresses).')}</span><button className="btn ghost sm">{tr('Keep them private')}</button></form>}
             {b.proposed && <div className="note">
               {tr('{company} asks to change your technician to', { company: b.company?.name ?? '' })} <Link href={`/pro/${b.proposed.slug}`}><b>{b.proposed.display_name}</b></Link>.
               <div className="chips" style={{ marginTop: 8 }}>

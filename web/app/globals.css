@@ -498,3 +498,14 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .sched-row .inp{padding:6px 8px}
 @media (max-width:520px){.sched-row{grid-template-columns:1fr 90px 12px 90px}}
 @media (min-width:701px) and (max-width:1120px){.nav a{padding:7px 7px;font-size:13.5px}.bar .in{gap:10px}}
+/* photo search */
+.photo-drop{display:flex;gap:14px;align-items:center}
+.ps-prev{width:84px;height:84px;object-fit:cover;border-radius:12px;flex:none}
+.photosearch.compact .drop{padding:12px 14px}
+.jobstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}
+.jobstrip img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
+.jobstrip .lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+.sbox .inp{padding-right:56px}
+.sbox .sbox-cam{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--cu-l);background:color-mix(in srgb,var(--cu) 14%,transparent);text-decoration:none}
+.sbox .sbox-cam svg{position:static}
+.sbox .sbox-cam:hover{background:color-mix(in srgb,var(--cu) 24%,transparent)}

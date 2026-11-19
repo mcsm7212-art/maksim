@@ -392,4 +392,21 @@ do $$ begin insert into public.conversations (client_id, peer_id) values (auth.u
 select pg_temp.ok(true, 'no chat with people who are not matched neighbors');
 select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.services where trade = 'construction') >= 10, 'construction services are in the catalog');
+-- 18) job photos in the portfolio, photo-search allowance
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+insert into public.pro_photos (id, pro_id, url, kind, booking_id) values ('a0000000-0000-0000-0000-000000000001', auth.uid(), 'https://x/after.jpg', 'after', '20000000-0000-0000-0000-000000000002');
+select pg_temp.ok((select service_id from public.pro_photos where id = 'a0000000-0000-0000-0000-000000000001') = 'faucet-replacement', 'job photos are tagged with the job''s service');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_photos where id = 'a0000000-0000-0000-0000-000000000001') = 0, 'job photos are private by default');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+update public.pro_photos set public = true where id = 'a0000000-0000-0000-0000-000000000001';
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_photos where id = 'a0000000-0000-0000-0000-000000000001') = 1, 'a pro can show a job photo on their page');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select public.hide_job_photos('20000000-0000-0000-0000-000000000002');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+update public.pro_photos set public = true where id = 'a0000000-0000-0000-0000-000000000001';
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_photos where id = 'a0000000-0000-0000-0000-000000000001') = 0, 'the client can hide job photos, and the pro cannot show them again');
+select pg_temp.ok(public.photo_search_quota('t', 2) and public.photo_search_quota('t', 2) and not public.photo_search_quota('t', 2), 'photo search has a daily allowance');
 \echo ALL RULE TESTS PASSED

@@ -59,7 +59,9 @@ export async function addPhotos(f: FormData) {
   const urls = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
   const booking = s(f, 'booking') || null;
   const kind = ['before', 'after'].includes(s(f, 'kind')) ? s(f, 'kind') : 'portfolio';
-  if (urls.length) await sb.from('pro_photos').insert(urls.map((url) => ({ pro_id: me.id, url, kind, booking_id: kind === 'portfolio' ? null : booking })));
+  const { serviceById } = await import('@/lib/catalog');
+  const service = kind === 'portfolio' && serviceById(s(f, 'service')) ? s(f, 'service') : null;
+  if (urls.length) await sb.from('pro_photos').insert(urls.map((url) => ({ pro_id: me.id, url, kind, booking_id: kind === 'portfolio' ? null : booking, ...(service ? { service_id: service } : {}) })));
   revalidatePath('/account');
 }
 export async function deletePhoto(f: FormData) {
@@ -80,4 +82,17 @@ export async function saveFigure(f: FormData): Promise<{ error?: string; ok?: st
   if (error) return { error: error.message };
   revalidatePath('/account/profile'); revalidatePath(`/pro/${me.pro.slug}`);
   return { ok: url ? 'Saved. This is how clients see you now.' : 'Removed.' };
+}
+
+/** Pro shows (or hides) a job's before/after photos on their public page. */
+export async function publishJobPhotos(f: FormData) {
+  const { me, sb } = await need();
+  await sb.from('pro_photos').update({ public: f.get('on') === '1' }).eq('pro_id', me.id).eq('booking_id', s(f, 'booking'));
+  revalidatePath('/account'); if (me.pro) { revalidatePath(`/pro/${me.pro.slug}`); revalidatePath(`/${me.pro.slug}`); }
+}
+/** The client of a job keeps its photos private for good. */
+export async function hideJobPhotos(f: FormData) {
+  const { sb } = await need();
+  await sb.rpc('hide_job_photos', { b_id: s(f, 'booking') });
+  revalidatePath('/account');
 }
