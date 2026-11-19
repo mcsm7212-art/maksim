@@ -479,4 +479,66 @@ select pg_temp.ok((select count(*) from public.work_requests) = 0, 'others canno
 select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
 update public.pros set is_demo = false where id = auth.uid();
 select pg_temp.ok((select is_demo from public.pros where id = auth.uid()), 'a pro cannot remove the demo label');
+-- 23) honest rating: patterns count less, honest one-off negatives count in full, helpful votes
+select pg_temp.act(null);
+reset role;
+insert into auth.users (id, email, raw_user_meta_data) values
+ ('00000000-0000-0000-0000-0000000000b1','b1@x','{"role":"pro"}'), ('00000000-0000-0000-0000-0000000000b2','b2@x','{"role":"pro"}'), ('00000000-0000-0000-0000-0000000000b3','b3@x','{"role":"pro"}'),
+ ('00000000-0000-0000-0000-0000000000e1','e1@x','{"role":"client"}'), ('00000000-0000-0000-0000-0000000000e2','e2@x','{"role":"client"}'), ('00000000-0000-0000-0000-0000000000e3','e3@x','{"role":"client"}'),
+ ('00000000-0000-0000-0000-0000000000e4','e4@x','{"role":"client"}'), ('00000000-0000-0000-0000-0000000000e5','e5@x','{"role":"client"}'), ('00000000-0000-0000-0000-0000000000e6','e6@x','{"role":"client"}'),
+ ('00000000-0000-0000-0000-0000000000e7','e7@x','{"role":"client"}');
+set session_replication_role = replica;
+insert into public.pros (id, slug, display_name, trade) select ('00000000-0000-0000-0000-0000000000' || p)::uuid, 'rate-' || p, 'Pro ' || p, 'plumbing' from unnest(array['b1','b2','b3']) p;
+insert into public.bookings (id, client_id, pro_id, service_id, status, chosen_by, starts_at)
+select ('5' || c || p || '000-0000-0000-0000-000000000000')::uuid, ('00000000-0000-0000-0000-0000000000' || c)::uuid, ('00000000-0000-0000-0000-0000000000' || p)::uuid,
+       'faucet-replacement', 'done', 'client', now() - interval '3 days'
+from unnest(array['e1','e2','e3','e4','e5','e6','e7']) c, unnest(array['b1','b2','b3']) p;
+set session_replication_role = origin;
+create or replace function pg_temp.rv(c text, p text, sc int) returns void language sql as $$
+  insert into public.reviews (id, booking_id, client_id, pro_id, punctuality, workmanship, cleanliness, communication, pricing, publish_at)
+  values (('6' || c || p || '000-0000-0000-0000-000000000000')::uuid, ('5' || c || p || '000-0000-0000-0000-000000000000')::uuid,
+          ('00000000-0000-0000-0000-0000000000' || c)::uuid, ('00000000-0000-0000-0000-0000000000' || p)::uuid, sc, sc, sc, sc, sc, now() - interval '1 minute') $$;
+create or replace function pg_temp.w(c text, p text) returns numeric language sql as $$
+  select weight from public.reviews where id = ('6' || c || p || '000-0000-0000-0000-000000000000')::uuid $$;
+select pg_temp.rv(c, p, 5) from unnest(array['e1','e2','e3']) c, unnest(array['b1','b2','b3']) p;
+select pg_temp.rv('e4', 'b3', 5); select pg_temp.rv('e4', 'b1', 1); select pg_temp.rv('e4', 'b2', 1);
+select pg_temp.ok(pg_temp.w('e4','b1') = 0 and pg_temp.w('e4','b2') = 0 and pg_temp.w('e4','b3') = 0
+  and (select bool_and(needs_review and weight_reason = 'competitor') from public.reviews where client_id = '00000000-0000-0000-0000-0000000000e4'),
+  'praising one pro while trashing well-rated others: not counted, sent to the moderator');
+select pg_temp.rv('e5', 'b1', 1);
+select pg_temp.ok(pg_temp.w('e5','b1') = 1, 'an honest one-off negative review counts in full');
+select pg_temp.rv('e6', 'b1', 2); select pg_temp.rv('e6', 'b2', 2); select pg_temp.rv('e6', 'b3', 2);
+select pg_temp.ok(pg_temp.w('e6','b1') = 0.25 and (select weight_reason from public.reviews where id = '6e6b1000-0000-0000-0000-000000000000') = 'harsh',
+  'an author who is always far below everyone else counts 25%');
+update public.reviews set resolved = true where id = '6e5b1000-0000-0000-0000-000000000000';
+select pg_temp.ok(pg_temp.w('e5','b1') = 0.5, 'a low review resolved with the pro counts 50%');
+select pg_temp.act('00000000-0000-0000-0000-0000000000e7');
+insert into public.reviews (id, booking_id, client_id, pro_id, punctuality, workmanship, cleanliness, communication, pricing, weight, helpful_count, needs_review)
+  values ('6e7b1000-0000-0000-0000-000000000000', '5e7b1000-0000-0000-0000-000000000000', auth.uid(), '00000000-0000-0000-0000-0000000000b1', 5,5,5,5,5, 0, 99, true);
+select pg_temp.ok((select weight = 1 and helpful_count = 0 and not needs_review from public.reviews where id = '6e7b1000-0000-0000-0000-000000000000'), 'a client cannot set the weight or helpful count');
+do $$ begin perform public.admin_review_decide('6e6b1000-0000-0000-0000-000000000000', 'count'); raise exception 'FAIL: client decided';
+  exception when others then if sqlerrm not like 'not allowed%' then raise; end if; end $$;
+select pg_temp.act('00000000-0000-0000-0000-0000000000ad');
+select public.admin_review_decide('6e6b1000-0000-0000-0000-000000000000', 'count');
+select pg_temp.act(null); reset role;
+update public.reviews set publish_at = now() - interval '1 minute' where pro_id = '00000000-0000-0000-0000-0000000000b1';
+update public.reviews set pricing = 2 where id = '6e6b2000-0000-0000-0000-000000000000';
+select pg_temp.ok(pg_temp.w('e6','b1') = 1 and (select not needs_review from public.reviews where id = '6e6b1000-0000-0000-0000-000000000000'), 'a moderator decision stays after recalculation');
+update public.pros set status = 'verified' where id::text like '%0000b_';
+select pg_temp.act(null);
+select pg_temp.ok((select rating = 4.09 and reviews = 7 and not_full = 2 from public.pro_stats where pro_id = '00000000-0000-0000-0000-0000000000b1'),
+  'the public rating is weighted (4.09, not 3.43); every review still shows');
+select pg_temp.ok((select abs(rank_score - 4.2) < abs(rating - 4.2) from public.pro_stats where pro_id = '00000000-0000-0000-0000-0000000000b1'), 'search order uses a cautious (Bayesian) score');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+insert into public.review_helpful (review_id) values ('6e5b1000-0000-0000-0000-000000000000');
+select pg_temp.ok((select helpful_count from public.reviews where id = '6e5b1000-0000-0000-0000-000000000000') = 1, 'a reader marks a review helpful');
+do $$ begin insert into public.review_helpful (review_id) values ('6e5b1000-0000-0000-0000-000000000000'); raise exception 'FAIL: voted twice';
+  exception when unique_violation then null; end $$;
+select pg_temp.act('00000000-0000-0000-0000-0000000000e5');
+do $$ begin insert into public.review_helpful (review_id) values ('6e5b1000-0000-0000-0000-000000000000'); raise exception 'FAIL: own vote';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.act('00000000-0000-0000-0000-0000000000b1');
+do $$ begin insert into public.review_helpful (review_id) values ('6e5b1000-0000-0000-0000-000000000000'); raise exception 'FAIL: pro vote';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'one vote per person; not the author, not the pro');
 \echo ALL RULE TESTS PASSED

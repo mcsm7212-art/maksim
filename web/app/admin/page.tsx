@@ -9,7 +9,7 @@ import { TRADES, type Trade } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel } from '@/lib/time';
-import { approveCompany, approvePro, hideReview, keepReview, rejectCompany, rejectPro } from './actions';
+import { approveCompany, approvePro, countFlagged, hideFlagged, hideReview, keepFlagged, keepReview, rejectCompany, rejectPro } from './actions';
 
 export const metadata = { title: 'Admin' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,13 +23,18 @@ export default async function Admin() {
   if (!me) redirect('/login?next=/admin');
   if (me.role !== 'admin') redirect('/');
   const sb = await supabaseServer();
-  const [{ data: pros }, { data: cos }, { data: reports }, { count: live }, { data: problems }] = await Promise.all([
+  const [{ data: pros }, { data: cos }, { data: reports }, { count: live }, { data: problems }, { data: flagged }] = await Promise.all([
     sb.from('pros').select('id, slug, display_name, trade, license_no, photo_url, area, years_exp, insured, insurance_claimed, created_at, company:companies(name, license_no)').eq('status', 'pending').order('created_at'),
     sb.from('companies').select('id, slug, name, trade, license_no, city, owner_id, created_at').eq('status', 'pending').order('created_at'),
     sb.from('review_reports').select('id, reason, details, created_at, review:reviews(id, body, punctuality, workmanship, cleanliness, communication, pricing, author_name, pro:pros(display_name, slug))').eq('status', 'open').order('created_at'),
     sb.from('pros').select('id', { count: 'exact', head: true }).eq('status', 'verified'),
     sb.from('problems').select('*').eq('status', 'open').order('created_at'),
+    sb.from('reviews').select('id, client_id, author_name, body, punctuality, workmanship, cleanliness, communication, pricing, weight, weight_reason, created_at, pro:pros(display_name, slug)').eq('needs_review', true).order('created_at').limit(50),
   ]);
+  const authors = [...new Set((flagged ?? []).map((r: any) => r.client_id as string))];
+  const { data: history } = authors.length ? await sb.from('reviews').select('client_id, punctuality, workmanship, cleanliness, communication, pricing, weight, pro:pros(display_name, slug)').in('client_id', authors) : { data: [] as any[] };
+  const sc = (r: any) => ((r.punctuality + r.workmanship + r.cleanliness + r.communication + r.pricing) / 5).toFixed(1);
+  const WHY: Record<string, string> = { competitor: 'Praises one pro, very low marks to well-rated others', harsh: 'Much lower than other clients give the same pros', praise: 'Much higher than other clients give the same pros' };
   return (
     <section className="sec pad"><div className="in">
       <div className="eyebrow">{tr("Moderation")}</div><h2>{tr("Admin")}</h2>
@@ -90,6 +95,21 @@ export default async function Admin() {
           </form>
         ))}
         {!(reports ?? []).length && <div className="card empty">{tr("No open reports.")}</div>}
+      </div>
+
+      <h3 style={{ marginTop: 28 }}>{tr('Suspicious review patterns')} ({(flagged ?? []).length})</h3>
+      <p className="mu xs">{tr('Found automatically. The review stays visible; only its weight in the rating changes. Count in full if the pattern is explained (for example, the author really had bad luck). Hide only if a rule is broken.')}</p>
+      <div className="list">
+        {(flagged ?? []).map((r: any) => (
+          <form key={r.id} action={keepFlagged} className="card formcard">
+            <input type="hidden" name="review" value={r.id} />
+            <div><span className="status">{tr(WHY[r.weight_reason] ?? 'Unusual pattern')}</span> <span className="mu xs">· {tr('counts')} {Math.round(Number(r.weight) * 100)}% · {dateLabel(r.created_at, lang)}</span></div>
+            <div className="note">★ {sc(r)} “{r.body || tr('(no text)')}” <span className="mu xs">· {r.author_name} → <Link href={`/${r.pro?.slug}`}>{r.pro?.display_name}</Link></span></div>
+            <div className="sm mu">{tr('All reviews by this author')}: {(history ?? []).filter((h: any) => h.client_id === r.client_id).map((h: any) => `${h.pro?.display_name} ★${sc(h)}`).join(' · ')}</div>
+            <div className="chips"><button className="btn sm" formAction={countFlagged}>{tr('Count in full')}</button><button className="btn ghost sm">{tr('Keep reduced')}</button><button className="btn ghost sm" formAction={hideFlagged}>{tr('Hide (rule broken)')}</button></div>
+          </form>
+        ))}
+        {!(flagged ?? []).length && <div className="card empty">{tr('Nothing suspicious right now.')}</div>}
       </div>
 
       <h3 style={{ marginTop: 28 }}>{tr('Problems on orders')} ({(problems ?? []).length})</h3>

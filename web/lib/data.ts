@@ -21,7 +21,7 @@ function mapCompany(c: Row): Company {
 }
 
 const PRO_SELECT = `*, company:companies(*), pro_photos(id, url, caption, kind, created_at, public), pro_services(service_id, price, jobs_count, active), availability_rules(weekday, start_time, end_time),
-  reviews(id, author_name, created_at, service_id, tier, punctuality, workmanship, cleanliness, communication, pricing, body, resolved, review_replies(body))`;
+  reviews(id, author_name, created_at, service_id, tier, punctuality, workmanship, cleanliness, communication, pricing, body, resolved, weight, weight_reason, helpful_count, review_replies(body))`;
 
 function mapPro(p: Row, stats?: Row): Pro {
   const company = p.company ? mapCompany(p.company) : null;
@@ -30,6 +30,7 @@ function mapPro(p: Row, stats?: Row): Pro {
     id: r.id, who: r.author_name, date: r.created_at, service: serviceById(r.service_id)?.name ?? 'Service', tier: r.tier as Tier,
     scores: { punctuality: r.punctuality, workmanship: r.workmanship, cleanliness: r.cleanliness, communication: r.communication, pricing: r.pricing },
     text: r.body ?? '', reply: (Array.isArray(r.review_replies) ? r.review_replies[0]?.body : r.review_replies?.body) ?? null, resolved: r.resolved,
+    weight: r.weight != null ? Number(r.weight) : 1, why: r.weight_reason ?? null, helpful: Number(r.helpful_count ?? 0),
   })).sort((a: Review, b: Review) => b.date.localeCompare(a.date));
   const s = stats;
   return {
@@ -43,7 +44,7 @@ function mapPro(p: Row, stats?: Row): Pro {
     isDemo: Boolean(p.is_demo),
     accepting: !p.is_demo && ((p.accepting !== false) || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }))), pausedUntil: p.paused_until ?? null,
     urgent: Boolean(!p.is_demo && p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),
-    rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), jobs: Number(s?.jobs ?? 0),
+    rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), rankScore: s?.rank_score != null ? Number(s.rank_score) : null, jobs: Number(s?.jobs ?? 0),
     skills: s?.rating != null ? {
       punctuality: s.punctuality / 20, workmanship: s.workmanship / 20, cleanliness: s.cleanliness / 20, communication: s.communication / 20, pricing: s.pricing / 20,
     } : null,

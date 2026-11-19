@@ -31,6 +31,8 @@ export default async function MyReviews() {
             <div key={r.id} className="card formcard">
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><b>{r.author_name}</b><span className="stars">{'★'.repeat(Math.round(avg))}<span className="mu2">{'★'.repeat(5 - Math.round(avg))}</span></span></div>
               <div className="mu xs">{svcName(serviceById(r.service_id ?? ''), lang) || tr('Service')} · {dateLabel(r.created_at, lang)} · {tr('Punctuality')} {r.punctuality}, {tr('Workmanship')} {r.workmanship}, {tr('Cleanliness')} {r.cleanliness}, {tr('Communication')} {r.communication}, {tr('Pricing transparency')} {r.pricing}{r.hidden && ` · ${tr('hidden by moderator')}`}</div>
+              {Number(r.weight ?? 1) < 1 && <div className="rv-why">{tr('Counts {p}% in your rating', { p: Math.round(Number(r.weight) * 100) })}{r.weight_reason === 'resolved' ? ` — ${tr('the problem was resolved with you')}` : ` — ${tr('this author rates very differently from other clients; a moderator checks it')}`}</div>}
+              {Number(r.helpful_count ?? 0) > 0 && <div className="mu xs">👍 {tr('{n} found this helpful', { n: r.helpful_count })}</div>}
               {r.body && <div>{r.body}</div>}
               {reply ? <div className="rv"><div className="reply">{reply.body}</div></div>
                 : <ReplyForm review={r.id} waitUntil={avg < 3 ? new Date(new Date(r.created_at).getTime() + 36e5).toISOString() : null} />}

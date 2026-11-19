@@ -16,6 +16,7 @@ import { getTheme } from '@/lib/theme';
 import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
+import HelpfulButton from '@/components/HelpfulButton';
 import PostCard from '@/components/PostCard';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -44,6 +45,30 @@ export default async function ProPage({ params, searchParams }: Props) {
   const stats = showStats(pro);
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
+  const voted = new Set<string>();
+  if (me && pro.reviews.length) {
+    const { data: hv } = await (await supabaseServer()).from('review_helpful').select('review_id').in('review_id', pro.reviews.map((r) => r.id));
+    (hv ?? []).forEach((x: { review_id: string }) => voted.add(x.review_id));
+  }
+  const WHY: Record<string, string> = {
+    competitor: 'Not counted in the rating: this author praises one pro and gives very low marks to others that everyone else rates well. A moderator is checking.',
+    harsh: 'Counts 25%: this author rates much lower than other clients rate the same pros.',
+    praise: 'Counts 25%: this author rates much higher than other clients rate the same pros.',
+    resolved: 'Counts 50%: the problem was resolved with the pro.',
+  };
+  const reviewCard = (r: (typeof pro.reviews)[number]) => {
+    const avg = (r.scores.punctuality + r.scores.workmanship + r.scores.cleanliness + r.scores.communication + r.scores.pricing) / 5;
+    return (
+      <div key={r.id} className="card rv">
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}><b>{r.who}</b>{stars(avg)}</div>
+        <div className="mu xs">{svcLabel(r.service)} · {dateLabel(r.date, lang)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('Resolved with the pro')}</span>}</div>
+        {r.why && WHY[r.why] && <div className="rv-why">{tr(WHY[r.why])}</div>}
+        <div>{r.text}</div>
+        {r.reply && <div className="reply"><b className="xs" style={{ display: 'block', color: 'var(--acc)' }}>{tr('Reply from {name}', { name: first })}</b>{r.reply}</div>}
+        <div style={{ marginTop: 8 }}><HelpfulButton reviewId={r.id} count={r.helpful ?? 0} voted={voted.has(r.id)} back={`/${pro.slug}`} disabled={me?.id === pro.id} /></div>
+      </div>
+    );
+  };
   const isOwner = me?.id === pro.id;
   const isColleague = me?.pro && !isOwner ? Boolean((await (await supabaseServer()).from('pro_contacts').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data) : false;
   const myRec = me?.pro && !isOwner ? (await (await supabaseServer()).from('pro_recommendations').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data : null;
@@ -212,18 +237,15 @@ export default async function ProPage({ params, searchParams }: Props) {
 
         <div className="blk">
           <h2>{tr('Reviews')} <small>{pro.reviewCount}</small></h2>
+          <p className="mu xs" style={{ marginTop: -6 }}>{tr('Every review stays visible. A review counts less in the rating only when its author follows an unusual pattern, and a moderator checks it.')} <Link href="/rules#reviews">{tr('How the rating works')}</Link></p>
           <div className="list">
-            {pro.reviews.map((r) => {
-              const avg = (r.scores.punctuality + r.scores.workmanship + r.scores.cleanliness + r.scores.communication + r.scores.pricing) / 5;
-              return (
-                <div key={r.id} className="card rv">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}><b>{r.who}</b>{stars(avg)}</div>
-                  <div className="mu xs">{svcLabel(r.service)} · {dateLabel(r.date, lang)}{r.resolved && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('Resolved with the pro')}</span>}</div>
-                  <div>{r.text}</div>
-                  {r.reply && <div className="reply"><b className="xs" style={{ display: 'block', color: 'var(--acc)' }}>{tr('Reply from {name}', { name: first })}</b>{r.reply}</div>}
-                </div>
-              );
-            })}
+            {pro.reviews.filter((r) => (r.weight ?? 1) >= 1).map((r) => reviewCard(r))}
+          </div>
+          {pro.reviews.some((r) => (r.weight ?? 1) < 1) && <details className="rv-less">
+            <summary>{tr('Reviews that count less in the rating ({n})', { n: pro.reviews.filter((r) => (r.weight ?? 1) < 1).length })}</summary>
+            <div className="list" style={{ marginTop: 10 }}>{pro.reviews.filter((r) => (r.weight ?? 1) < 1).map((r) => reviewCard(r))}</div>
+          </details>}
+          <div className="list">
             {!pro.reviews.length && <p className="mu">{tr('No reviews yet. Reviews come only from clients who booked {name} here.', { name: first })}</p>}
           </div>
           {!stats && <p className="mu xs" style={{ marginTop: 14 }}>{tr('Level and detailed skill scores appear after {jobs} jobs and {reviews} reviews on NovaFides.', { jobs: STATS_MIN_JOBS, reviews: STATS_MIN_REVIEWS })}</p>}

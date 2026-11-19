@@ -39,3 +39,13 @@ export async function approveCompany(f: FormData) { await reviewCompany(f, true)
 export async function rejectCompany(f: FormData) { await reviewCompany(f, false); }
 export async function hideReview(f: FormData) { await decideReport(f, true); }
 export async function keepReview(f: FormData) { await decideReport(f, false); }
+
+// Suspicious-pattern queue: count in full, keep the reduced weight, or hide (only when a rule is broken).
+export async function countFlagged(f: FormData) { const sb = await admin(); await sb.rpc('admin_review_decide', { rid: s(f, 'review'), decision: 'count' }); revalidatePath('/admin'); }
+export async function keepFlagged(f: FormData) { const sb = await admin(); await sb.rpc('admin_review_decide', { rid: s(f, 'review'), decision: 'keep' }); revalidatePath('/admin'); }
+export async function hideFlagged(f: FormData) {
+  const sb = await admin();
+  await sb.rpc('admin_review_decide', { rid: s(f, 'review'), decision: 'keep' });
+  await sb.from('reviews').update({ hidden: true }).eq('id', s(f, 'review'));
+  revalidatePath('/admin');
+}

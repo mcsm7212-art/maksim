@@ -167,6 +167,9 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mu
 .rv{padding:16px;display:flex;flex-direction:column;gap:8px}
 .rv .reply{border-left:3px solid var(--acc);padding:8px 12px;background:rgba(255,255,255,.03);border-radius:0 10px 10px 0;font-size:14px}
 .themed.light .rv .reply{background:#F7F2EB}
+.rv-why{font-size:13px;color:var(--mu,#9aa);border:1px dashed rgba(127,127,127,.35);border-radius:8px;padding:6px 10px}
+.rv-less{margin-top:14px}
+.rv-less>summary{cursor:pointer;color:var(--mu,#9aa);font-size:14px;padding:6px 0}
 .dist div{display:grid;grid-template-columns:30px 1fr 34px;gap:10px;align-items:center;font-size:13px}
 .dist .tr{height:6px;border-radius:3px;background:rgba(127,127,127,.2);overflow:hidden}
 .dist .tr i{display:block;height:100%;background:var(--acc)}

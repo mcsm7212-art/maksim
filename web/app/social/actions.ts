@@ -32,6 +32,13 @@ export async function toggleLike(postId: string, like: boolean): Promise<SocialS
   return error && error.code !== '23505' ? { error: error.message } : { ok: 'ok' };
 }
 
+export async function toggleHelpful(reviewId: string, on: boolean, back: string): Promise<SocialState> {
+  const me = await signedIn(back); if (!me) return { error: 'demo' };
+  const sb = await supabaseServer();
+  const { error } = on ? await sb.from('review_helpful').insert({ review_id: reviewId, user_id: me.id }) : await sb.from('review_helpful').delete().eq('review_id', reviewId).eq('user_id', me.id);
+  return error && error.code !== '23505' ? { error: error.message } : { ok: 'ok' };
+}
+
 export async function createPost(_p: SocialState, f: FormData): Promise<SocialState> {
   const me = await signedIn('/feed'); if (!me) return { error: 'Demo mode: nothing was saved. Connect the database to accept real sign-ups.' };
   if (!me.pro) return { error: 'Only pros can post.' };

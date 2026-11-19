@@ -44,6 +44,11 @@ export interface Review {
   text: string;
   reply?: string | null;
   resolved?: boolean;
+  /** How much this review counts in the rating, 0..1 (every review stays visible) */
+  weight?: number;
+  /** Why it counts less: competitor | harsh | praise | resolved */
+  why?: string | null;
+  helpful?: number;
 }
 
 export interface Pro {
@@ -92,6 +97,8 @@ export interface Pro {
   tripFee: number;
   rating: number | null;
   reviewCount: number;
+  /** Cautious score for ordering: few reviews are pulled toward the platform average */
+  rankScore?: number | null;
   jobs: number;
   skills: SkillScores | null; // averages 1..5
   services: ProService[];

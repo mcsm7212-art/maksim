@@ -84,6 +84,11 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select publish_at<=now() from reviews")!=='t')throw new Error('review not published after both rated');step('pro rated client → review published');
  await s.goto(B+'/account/reviews');await s.fill('textarea[name=body]','Thank you Anna! Glad the new faucet works well.');await s.click('button:has-text("Post reply")');await s.waitForTimeout(1500);await s.screenshot({path:D+'e_reply.png',fullPage:true});await s.waitForSelector('.reply:has-text("Glad the new faucet")',{timeout:5000});
  await c.goto(B+'/pro/max-solo');await c.waitForSelector('text=Glad the new faucet');step('reply shows on the public page');
+ await a.goto(B+'/pro/max-solo');await a.click('button.helpful');await a.waitForTimeout(1200);
+ if(sql("select helpful_count from reviews")!=='1')throw new Error('helpful vote not counted');
+ await c.goto(B+'/pro/max-solo');if(await c.locator('button.helpful').count()!==1)throw new Error('author should still see the button');
+ await a.goto(B+'/admin');await a.waitForSelector('text=Suspicious review patterns');await a.goto(B+'/rules');await a.waitForSelector('text=How the rating works');
+ step('a reader marks the review helpful (count 1); admin has the suspicious-pattern queue; rules explain the rating');
  // invoice: pro bills the job (labor from the booking + a material line with 9.375% tax), sends, client opens, pro marks paid
  await s.goto(B+'/account');await s.click('a:has-text("Create invoice")');await s.waitForURL(/invoice\/new/);
  await s.click('button:has-text("+ Material")');const rows=s.locator('.invline');await rows.nth(1).locator('input').nth(0).fill('Moen faucet');await rows.nth(1).locator('input').nth(2).fill('150');
