@@ -409,4 +409,15 @@ update public.pro_photos set public = true where id = 'a0000000-0000-0000-0000-0
 select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.pro_photos where id = 'a0000000-0000-0000-0000-000000000001') = 0, 'the client can hide job photos, and the pro cannot show them again');
 select pg_temp.ok(public.photo_search_quota('t', 2) and public.photo_search_quota('t', 2) and not public.photo_search_quota('t', 2), 'photo search has a daily allowance');
+-- 19) parts installed on jobs
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+do $$ begin insert into public.job_parts (booking_id, pro_id, brand, part_no, name) values ('20000000-0000-0000-0000-000000000002', auth.uid(), 'Grohe', '47678000', 'cartridge'); raise exception 'FAIL: part on someone else''s job';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'a pro records parts only on their own jobs');
+update public.bookings set status = 'done' where id = '20000000-0000-0000-0000-000000000001';
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+insert into public.job_parts (booking_id, pro_id, brand, part_no, name) values ('20000000-0000-0000-0000-000000000001', auth.uid(), 'Grohe', '47 678 000', 'Pressure balance cartridge');
+select pg_temp.act(null);
+select pg_temp.ok((select exact from public.parts_lookup(array['G47678000'], null, null)) and (select exact from public.parts_lookup(array['47-678-000'], null, null)) and (select count(*) from public.parts_lookup(array['678000'], null, null)) = 1 and (select count(*) from public.parts_lookup(array['999'], null, null)) = 0, 'part number lookup ignores spaces, dashes and a brand prefix');
+select pg_temp.ok((select count(*) from public.parts_lookup('{}', 'GROHE', 'shower pressure balance cartridge')) = 1, 'lookup by brand and part words works for visitors');
 \echo ALL RULE TESTS PASSED

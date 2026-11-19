@@ -6,7 +6,7 @@ import { searchByPhoto } from '@/app/photo/actions';
 import { useT } from './I18n';
 
 /** Shrinks a photo to ~1024 px JPEG in the browser (phone photos are 3–8 MB). Returns base64 without the data: prefix. */
-async function toJpeg(file: File, max = 1024): Promise<string> {
+export async function toJpeg(file: File, max = 1024): Promise<string> {
   const img = await createImageBitmap(file);
   const k = Math.min(1, max / Math.max(img.width, img.height));
   const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);

@@ -509,3 +509,6 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .sbox .sbox-cam{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--cu-l);background:color-mix(in srgb,var(--cu) 14%,transparent);text-decoration:none}
 .sbox .sbox-cam svg{position:static}
 .sbox .sbox-cam:hover{background:color-mix(in srgb,var(--cu) 24%,transparent)}
+.partform{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.partform .inp{padding:8px 10px}
+.partform > input[name=name],.partform > .list,.partform > button,.partform > span{grid-column:1/-1}

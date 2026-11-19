@@ -96,3 +96,19 @@ export async function hideJobPhotos(f: FormData) {
   await sb.rpc('hide_job_photos', { b_id: s(f, 'booking') });
   revalidatePath('/account');
 }
+
+/** Pro records a part installed on a job (builds NovaFides' parts database). */
+export async function addJobPart(f: FormData) {
+  const { me, sb } = await need();
+  const name = s(f, 'name').trim().slice(0, 120);
+  if (name.length < 2) return;
+  const photo = s(f, 'part_photo');
+  await sb.from('job_parts').insert({ booking_id: s(f, 'booking'), pro_id: me.id, brand: s(f, 'brand').trim().slice(0, 40) || null,
+    part_no: s(f, 'part_no').trim().slice(0, 40) || null, name, photo_url: photo && ownPhotoUrl(photo, me.id) ? photo : null });
+  revalidatePath('/account');
+}
+export async function deleteJobPart(f: FormData) {
+  const { sb } = await need();
+  await sb.from('job_parts').delete().eq('id', Number(f.get('id')));
+  revalidatePath('/account');
+}

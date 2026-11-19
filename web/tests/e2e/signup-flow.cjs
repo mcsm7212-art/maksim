@@ -8,7 +8,7 @@ async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...d
   await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
-const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person; start the app with NOVAFIDES_TEST_VISION=fake
+const IMG=n=>process.env.IMG_DIR+'/'+n+'.jpg'; // any three JPGs named face, w1, w2; ROOM_IMG = a full-height photo of a person; start the app with NOVAFIDES_TEST_VISION=fake AMAZON_ASSOCIATE_TAG=testtag-20
 async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'));await p.waitForSelector('input[name=photo_url]',{state:'attached'})}
 (async()=>{sql('truncate auth.users, public.companies, public.notifications cascade');sql("insert into storage.buckets (id, name, public) values ('photos','photos',true) on conflict do nothing");await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});const b=await chromium.launch();try{
  // company owner
@@ -174,6 +174,14 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/account');await c.click('button:has-text("Keep them private")');await c.waitForTimeout(800);
  if(sql("select count(*) from pro_photos where public")!=='0')throw new Error('client could not hide job photos');
  step('photo search: Max showed his before/after photos, client found him by a photo of the leak; client then hid the photos of their home');
+ // find a part: Max records the part he installed; a client photographs the same part
+ await s.goto(B+'/account');await s.fill('.partform input[name=brand]','Grohe');await s.fill('.partform input[name=part_no]','47 678 000');await s.fill('.partform input[name=name]','Pressure balance shower cartridge');
+ await s.click('.partform button:has-text("Add part")');await s.waitForSelector('text=47 678 000');
+ await c.goto(B+'/photo?mode=part');await c.setInputFiles('.photosearch input[type=file]',IMG('w1'));await c.waitForSelector('text=Pros who installed this part');
+ const pt=await c.textContent('main');if(!pt.includes('47678000')||!pt.includes('Max Solo')||!pt.includes('Same part number'))throw new Error('part search wrong');
+ const az=await c.getAttribute('a:has-text("Amazon")','href');if(!az.includes('tag=testtag-20'))throw new Error('amazon link has no partner tag: '+az);
+ await c.screenshot({path:D+'e_part.png',fullPage:true});
+ step('find a part: Max recorded a Grohe 47678000; client photographed a part → part number, Amazon link with partner tag, Max as installer');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});

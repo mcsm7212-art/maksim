@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import PhotoSearch from '@/components/PhotoSearch';
+import PartSearch from '@/components/PartSearch';
 import ProCard from '@/components/ProCard';
 import { serviceById } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
@@ -12,8 +13,9 @@ import { visionEnabled } from '@/lib/vision';
 
 export const metadata = { title: 'Search by photo' };
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // part search may run a few web searches
 
-export default async function Photo({ searchParams }: { searchParams: Promise<{ svc?: string; s?: string; u?: string; tip?: string }> }) {
+export default async function Photo({ searchParams }: { searchParams: Promise<{ svc?: string; s?: string; u?: string; tip?: string; mode?: string }> }) {
   const sp = await searchParams; const tr = await getT(); const lang = await getLang();
   const ids = (sp.svc ?? '').split(',').filter((id) => serviceById(id)).slice(0, 3);
   // Pros who offer these jobs; those with photos of this kind of job come first.
@@ -30,9 +32,13 @@ export default async function Photo({ searchParams }: { searchParams: Promise<{ 
       <div className="eyebrow">{tr('Like Google Lens, for home repairs')}</div>
       <h2>{tr('Search by photo')}</h2>
       {!visionEnabled() && <p className="note">{tr('Photo search is not switched on yet. Describe the problem in words instead.')} <Link href="/search">{tr('Find a pro')}</Link></p>}
-      <PhotoSearch />
+      <div className="chips" style={{ marginBottom: 14 }}>
+        <Link className="chip" aria-pressed={sp.mode !== 'part'} href="/photo">📷 {tr('What is wrong?')}</Link>
+        <Link className="chip" aria-pressed={sp.mode === 'part'} href="/photo?mode=part">🔩 {tr('Find a part')}</Link>
+      </div>
+      {sp.mode === 'part' ? <PartSearch /> : <PhotoSearch />}
 
-      {ids.length > 0 && <>
+      {sp.mode !== 'part' && ids.length > 0 && <>
         <div className="card" style={{ padding: 18, marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {sp.s && <b style={{ fontSize: 18 }}>{sp.s}</b>}
           {sp.u === '1' && <div className="note" style={{ margin: 0 }}>⚡ {tr('Looks urgent.')} {sp.tip} <Link href="/online?urgent=1">{tr('Find urgent help')}</Link></div>}

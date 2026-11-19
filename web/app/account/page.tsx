@@ -11,7 +11,7 @@ import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName, type T } from '@/lib/i18n-core';
 import { rateClient } from './reviews/actions';
-import { addPhotos, answerSwap, deletePhoto, hideJobPhotos, markRead, publishJobPhotos, setOnline, setStatus, setUrgent, submitReview } from './actions';
+import { addJobPart, addPhotos, answerSwap, deleteJobPart, deletePhoto, hideJobPhotos, markRead, publishJobPhotos, setOnline, setStatus, setUrgent, submitReview } from './actions';
 
 export const metadata = { title: 'My account' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -46,6 +46,8 @@ export default async function Account({ searchParams }: { searchParams: Promise<
   const { data: invs } = bookingIds.length ? await sb.from('invoices').select('id, number, status, total, booking_id').in('booking_id', bookingIds).neq('status', 'void') : { data: [] as any[] };
   const invOf = (id: string) => (invs ?? []).find((x: any) => x.booking_id === id);
   const photosOf = (id: string) => (jobPhotos ?? []).filter((p: any) => p.booking_id === id);
+  const { data: parts } = me.pro && bookingIds.length ? await sb.from('job_parts').select('id, booking_id, brand, part_no, name').eq('pro_id', me.id).in('booking_id', bookingIds) : { data: [] as any[] };
+  const partsOf = (id: string) => (parts ?? []).filter((p: any) => p.booking_id === id);
   const done = new Set((reviewed ?? []).map((r) => r.booking_id));
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
   const online = proRow?.online_until && new Date(proRow.online_until) > new Date();
@@ -128,6 +130,18 @@ export default async function Account({ searchParams }: { searchParams: Promise<
                   : <form action={publishJobPhotos} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="booking" value={b.id} /><input type="hidden" name="on" value={photosOf(b.id).some((p: any) => p.public) ? '0' : '1'} />
                       <button className="btn ghost sm">{photosOf(b.id).some((p: any) => p.public) ? `✓ ${tr('Shown on my page')} · ${tr('Hide')}` : tr('Show these photos on my page')}</button>
                       <span className="mu xs">{tr('Only if there are no faces, house numbers, addresses or personal items. Clients find you by photo search.')}</span></form>)}
+                {(b.status === 'in_progress' || b.status === 'done') && <div className="list" style={{ gap: 6 }}>
+                  <b className="sm">🔩 {tr('Parts installed')}</b>
+                  {partsOf(b.id).map((x: any) => <form key={x.id} action={deleteJobPart} className="chips sm" style={{ alignItems: 'center' }}><input type="hidden" name="id" value={x.id} />
+                    <span>{[x.brand, x.part_no, x.name].filter(Boolean).join(' · ')}</span><button className="linkbtn xs">{tr('Delete')}</button></form>)}
+                  <form action={addJobPart} className="partform"><input type="hidden" name="booking" value={b.id} />
+                    <input className="inp" name="brand" maxLength={40} placeholder={tr('Brand (e.g. Grohe)')} aria-label={tr('Brand')} />
+                    <input className="inp" name="part_no" maxLength={40} placeholder={tr('Part number (e.g. 47678000)')} aria-label={tr('Part number')} />
+                    <input className="inp" name="name" maxLength={120} required placeholder={tr('What part (e.g. shower cartridge)')} aria-label={tr('Part')} />
+                    <PhotoPicker name="part_photo" prefix="part" max={1} label={tr('Photo of the old part (optional)')} />
+                    <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }}>{tr('Add part')}</button>
+                    <span className="mu xs">{tr('Clients who photograph the same part will find you.')}</span></form>
+                </div>}
                 <form action={addPhotos} className="list">
                   <input type="hidden" name="booking" value={b.id} /><input type="hidden" name="kind" value={b.status === 'done' || b.status === 'in_progress' ? 'after' : 'before'} />
                   <PhotoPicker name="work_url" prefix="job" max={8} label={tr(b.status === 'done' || b.status === 'in_progress' ? 'Add AFTER photos' : 'Add BEFORE photos')} />
