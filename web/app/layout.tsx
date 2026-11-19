@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import { I18nProvider } from '@/components/I18n';
 import { getLang, getT } from '@/lib/i18n';
+import { getTheme } from '@/lib/theme';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,9 +14,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#0C0C0E', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await getLang(); const t = await getT();
+  const lang = await getLang(); const t = await getT(); const theme = await getTheme();
   return (
-    <html lang={lang}>
+    <html lang={lang} data-theme={theme}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

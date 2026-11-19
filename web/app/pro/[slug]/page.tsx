@@ -12,6 +12,7 @@ import { colorWord } from '@/lib/colors';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
 import { dateLabel, slotLabel } from '@/lib/time';
 import { getLang } from '@/lib/i18n';
+import { getTheme } from '@/lib/theme';
 import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
@@ -34,7 +35,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const pro = await getPro(slug);
   if (!pro) notFound();
-  const lang = await getLang(); const tr = makeT(lang);
+  const lang = await getLang(); const tr = makeT(lang); const theme = await getTheme();
   const svcLabel = (name: string) => svcName(SERVICES.find((x) => x.name === name), lang) || name;
   const tier: Tier = sp.tier && pro.tiers.includes(sp.tier as Tier) ? (sp.tier as Tier) : pro.tiers.includes('standard') ? 'standard' : pro.tiers[0];
   const svcId = sp.svc && pro.services.some((s) => s.id === sp.svc) ? sp.svc : undefined;
@@ -57,7 +58,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   ] : [];
 
   return (
-    <div className={`themed ${pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
+    <div className={`themed ${theme === 'light' ? 'light' : pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
       <div className="pad"><div className="in" style={{ maxWidth: 1040, paddingBottom: 40 }}>
 
         <div className="ph3 phero2">
@@ -72,8 +73,8 @@ export default async function ProPage({ params, searchParams }: Props) {
             {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}</div>}
             {pro.urgent && <div className="badge urg" style={{ marginTop: 8 }}>⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</div>}
             {stats
-              ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: '#E2B48C' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
-              : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: '#E2B48C' }}>{tr('Founding Pro')}</b></div></div>}
+              ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: 'var(--cu-l)' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
+              : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{tr('Founding Pro')}</b></div></div>}
           </div>
           <div className="figcol">
             <div className="lbl">{tr(TRADES[pro.trade].name).toUpperCase()} / {tr(colorWord(pro.accent))}</div>

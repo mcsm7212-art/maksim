@@ -737,7 +737,11 @@ export const ES: Record<string, string> = {
 "Saved. This is how clients see you now.": "Guardado. Así lo ven ahora los clientes.",
 "Removed.": "Eliminado.",
 "Upload the photo again.": "Suba la foto otra vez.",
-"Only pros can do this.": "Solo los profesionales pueden hacer esto."
+"Only pros can do this.": "Solo los profesionales pueden hacer esto.",
+"This page could not be found.": "No encontramos esta página.",
+"Home": "Inicio",
+"Light theme": "Tema claro",
+"Dark theme": "Tema oscuro"
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1477,5 +1481,9 @@ export const RU: Record<string, string> = {
 "Saved. This is how clients see you now.": "Сохранено. Так вас теперь видят клиенты.",
 "Removed.": "Удалено.",
 "Upload the photo again.": "Загрузите фото ещё раз.",
-"Only pros can do this.": "Это доступно только мастерам."
+"Only pros can do this.": "Это доступно только мастерам.",
+"This page could not be found.": "Такой страницы нет.",
+"Home": "Главная",
+"Light theme": "Светлая тема",
+"Dark theme": "Тёмная тема"
 };

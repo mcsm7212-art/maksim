@@ -24,7 +24,7 @@ export function colorWord(hex: string): string {
   if (d < 0.12) return mx > 0.7 ? 'SILVER' : 'GRAPHITE';
   let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360;
   if (h < 9 || h >= 340) return 'RED';
-  if (h < 28) return 'TERRACOTTA';
+  if (h < 28) return d > 0.5 ? 'TERRACOTTA' : 'COPPER';
   if (h < 40) return d < 0.45 ? 'SAND' : 'COPPER';
   if (h < 65) return 'GOLD';
   if (h < 160) return 'GREEN';

@@ -1,3 +1,4 @@
+import { getTheme } from '@/lib/theme';
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -20,7 +21,7 @@ export default async function CompanyPage({ params }: Props) {
   if (!c) notFound();
   const team = await listPros({ companySlug: slug }); const tr = await getT();
   return (
-    <div className={`themed ${c.base}`} style={{ ['--acc' as string]: c.accent, minHeight: '70vh' }}>
+    <div className={`themed ${(await getTheme()) === 'light' ? 'light' : c.base}`} style={{ ['--acc' as string]: c.accent, minHeight: '70vh' }}>
       <div className="pad"><div className="in" style={{ paddingBottom: 40 }}>
         <div className="cban">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>

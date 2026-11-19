@@ -6,11 +6,13 @@ import { getT } from '@/lib/i18n';
 import { Suspense } from 'react';
 import LangSwitch from './LangSwitch';
 import AccountMenu from './AccountMenu';
+import ThemeToggle from './ThemeToggle';
+import { getTheme } from '@/lib/theme';
 import NavLink from './NavLink';
 import NavProgress from './NavProgress';
 
 export default async function Header() {
-  const me = await getMe(); const t = await getT();
+  const me = await getMe(); const t = await getT(); const theme = await getTheme();
   return (
     <>
       {!isLive() && <div className="demo">{t('Demo mode: sample pros, sign-up turns on when the database is connected.')}</div>}
@@ -41,6 +43,7 @@ export default async function Header() {
               ...(me.role === 'admin' ? [{ href: '/admin', text: 'Admin' }] : []),
               ...(!me.pro && !me.companies.length ? [{ href: '/join', text: t('For pros') }] : []),
             ]} /> : <Link href="/login" className="btn sm">{t('Sign in')}</Link>}
+            <ThemeToggle initial={theme} />
             <Suspense><LangSwitch /></Suspense>
           </div>
         </div>

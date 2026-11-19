@@ -431,3 +431,46 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .figmaker-stage .lbl{position:absolute;left:10px;bottom:8px;font-size:10px;letter-spacing:.2em;color:var(--mu);display:flex;gap:6px;align-items:center}
 .figmaker-stage .lbl::before{content:"";width:6px;height:6px;background:var(--acc)}
 @media (max-width:620px){.figmaker-grid{grid-template-columns:1fr}.figmaker-stage{height:340px}}
+/* ===== pro figure stands on a floor (desktop) ===== */
+@media (min-width:761px){
+  .figcol .fig-sil.cut.big{overflow:visible;background:radial-gradient(48% 42% at 50% 52%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 72%)}
+  .figcol .fig-sil.cut.big img{bottom:13%;height:83%;-webkit-box-reflect:below 1px linear-gradient(transparent 84%,rgba(0,0,0,.2))}
+  /* floor: horizon line + glossy surface fading away */
+  .figcol .fig-sil.cut.big::before{inset:auto -30% 0 -30%;height:15%;border-radius:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);
+    background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--acc) 45%,transparent) 50%,transparent) top/100% 1px no-repeat,
+      radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),
+      linear-gradient(180deg,rgba(255,255,255,.035),transparent 80%)}
+  /* contact shadow + soft pool of light right under the shoes */
+  .figcol .fig-sil.cut.big::after{left:26%;right:26%;bottom:11.4%;height:4.2%;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(0,0,0,.75),rgba(0,0,0,.35) 55%,transparent),radial-gradient(closest-side,color-mix(in srgb,var(--acc) 40%,transparent),transparent);filter:blur(2px)}
+}
+
+/* ===== light theme ===== */
+[data-theme="light"]{
+  --bg:#F6F3EE; --bg2:#EFEAE3; --card:#FFFFFF; --card2:#F2ECE4; --line:#E3DBD0; --ink:#1A1714; --mu:#5F564D; --mu2:#82776C;
+  --cu-l:#9A5A2E; --ok:#1E9E59; color-scheme:light;
+}
+[data-theme="light"] .bar{background:rgba(246,243,238,.92)}
+[data-theme="light"] .demo{background:#FFF1E4}
+[data-theme="light"] .logo b{color:#1A1714}
+[data-theme="light"] .badge.ok{color:#17803F;border-color:rgba(23,128,63,.35);background:rgba(23,128,63,.07)}
+[data-theme="light"] .badge.cu{color:#9A4F1F}
+[data-theme="light"] .badge.e{color:#B33A2A}
+[data-theme="light"] .badge.p{color:#9A5A00}
+[data-theme="light"] .badge.urg{color:#9A4F1F;background:rgba(192,138,98,.12)}
+[data-theme="light"] .live{color:#1E8A4F}
+[data-theme="light"] .stars{color:#B86A2E}
+[data-theme="light"] .tchip{color:#17803F}
+[data-theme="light"] .acct-menu{box-shadow:0 12px 30px rgba(60,40,20,.15)}
+[data-theme="light"] a.card:hover,[data-theme="light"] .card.pc:hover{box-shadow:0 10px 26px rgba(60,40,20,.12),0 0 0 1px rgba(192,138,98,.18)}
+[data-theme="light"] .fig-sil{background:radial-gradient(70% 60% at 50% 55%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 70%),linear-gradient(#F1EBE3,#E4DBD0)}
+[data-theme="light"] .fig-sil.big,[data-theme="light"] .figcol .fig-sil{background:radial-gradient(55% 45% at 50% 60%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 72%)}
+[data-theme="light"] .ph3 .pname,[data-theme="light"] .ph3 .pco,[data-theme="light"] .ph3 .ptag,[data-theme="light"] .ph3 .locline,[data-theme="light"] .pname,[data-theme="light"] .pco,[data-theme="light"] .ptag{text-shadow:0 1px 10px rgba(246,243,238,.9)}
+[data-theme="light"] .figcol .fig-sil.cut.big::before{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--acc) 55%,transparent) 50%,transparent) top/100% 1px no-repeat,radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 14%,transparent),transparent 70%),linear-gradient(180deg,rgba(0,0,0,.04),transparent 80%)}
+[data-theme="light"] .figcol .fig-sil.cut.big::after{background:radial-gradient(closest-side,rgba(40,25,10,.45),rgba(40,25,10,.18) 55%,transparent)}
+[data-theme="light"] .figmaker-stage{background:#EFE9E1}
+.themebtn{border:0;background:none;cursor:pointer}
+[data-theme="light"] .chip[aria-pressed="true"]{background:#FBEBDD;color:#1A1714;border-color:#C08A62}
+[data-theme="light"] .trade .ic,[data-theme="light"] .step h3 i{background:#F6E6D6;color:#9A5A2E}
+[data-theme="light"] .urg-ic{background:#F6E6D6;color:#9A5A2E}
+[data-theme="light"] .pal button[aria-pressed="true"]{border-color:#1A1714}
