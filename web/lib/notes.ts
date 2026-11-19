@@ -10,6 +10,10 @@ const PATTERNS: [RegExp, string][] = [
   [/^Your company was not approved: (.+)\.$/, 'Your company was not approved: {a}.'],
   [/^New invoice (\S+): (\$[\d.,]+)\.$/, 'New invoice {a}: {b}.'],
   [/^New post from (.+)\.$/, 'New post from {a}.'],
+  [/^(.+) commented on your post\.$/, '{a} commented on your post.'],
+  [/^(.+) answered your question\.$/, '{a} answered your question.'],
+  [/^(.+) picked your answer as the best\.$/, '{a} picked your answer as the best.'],
+  [/^(.+) replied in the Lounge\.$/, '{a} replied in the Lounge.'],
   [/^(.+) recommends you on their page\.$/, '{a} recommends you on their page.'],
 ];
 export function noteText(body: string, tr: T): string {

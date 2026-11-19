@@ -4,7 +4,8 @@ import { getMe } from './auth';
 import { isLive } from './supabase/config';
 import { supabaseServer } from './supabase/server';
 
-export type PostView = { id: string; body: string; photos: string[]; createdAt: string; likes: number; liked: boolean;
+export type CommentView = { id: number; userId: string; name: string; slug: string | null; body: string; createdAt: string };
+export type PostView = { id: string; body: string; photos: string[]; createdAt: string; likes: number; liked: boolean; comments: CommentView[];
   pro: { id: string; slug: string; name: string; photoUrl: string | null; accent: string; trade: string } };
 export type Colleague = { id: string; slug: string; name: string; trade: string; photoUrl: string | null; accent: string; note: string | null };
 
@@ -23,11 +24,12 @@ export async function saveCount(proId: string): Promise<number> {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const POST_SELECT = 'id, body, photos, created_at, pro:pros(id, slug, display_name, photo_url, accent, trade), post_likes(user_id)';
+const POST_SELECT = 'id, body, photos, created_at, pro:pros(id, slug, display_name, photo_url, accent, trade), post_likes(user_id), post_comments(id, user_id, author_name, author_slug, body, created_at)';
 function mapPosts(rows: any[], meId: string | null): PostView[] {
   return rows.filter((r) => r.pro).map((r) => ({
     id: r.id, body: r.body, photos: r.photos ?? [], createdAt: r.created_at,
     likes: (r.post_likes ?? []).length, liked: Boolean(meId && (r.post_likes ?? []).some((l: any) => l.user_id === meId)),
+    comments: (r.post_comments ?? []).sort((a: any, b: any) => a.created_at.localeCompare(b.created_at)).map((c: any) => ({ id: c.id, userId: c.user_id, name: c.author_name, slug: c.author_slug, body: c.body, createdAt: c.created_at })),
     pro: { id: r.pro.id, slug: r.pro.slug, name: r.pro.display_name, photoUrl: r.pro.photo_url, accent: r.pro.accent ?? '#B57A50', trade: r.pro.trade },
   }));
 }
@@ -52,6 +54,13 @@ export async function feed(kind: 'following' | 'discover', limit = 30): Promise<
   }
   const { data } = await q;
   return mapPosts(data ?? [], me?.id ?? null);
+}
+
+export async function postById(id: string): Promise<PostView | null> {
+  if (!isLive() || !/^[0-9a-f-]{36}$/.test(id)) return null;
+  const me = await getMe();
+  const { data } = await (await supabaseServer()).from('posts').select(POST_SELECT).eq('id', id).maybeSingle();
+  return data ? mapPosts([data], me?.id ?? null)[0] ?? null : null;
 }
 
 export async function colleaguesOf(proId: string): Promise<Colleague[]> {

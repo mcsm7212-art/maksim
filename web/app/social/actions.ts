@@ -62,3 +62,19 @@ export async function unrecommendPro(f: FormData) {
   await (await supabaseServer()).from('pro_recommendations').delete().eq('pro_id', me.id).eq('colleague_id', String(f.get('colleague')));
   refresh(String(f.get('path') ?? '/'), `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
 }
+
+export async function addComment(_p: SocialState, f: FormData): Promise<SocialState> {
+  const path = String(f.get('path') ?? '/feed');
+  const me = await signedIn(path); if (!me) return { error: 'Demo mode: nothing was saved. Connect the database to accept real sign-ups.' };
+  const body = String(f.get('body') ?? '').trim().slice(0, 500);
+  if (!body) return { error: 'Write a comment first.' };
+  const { error } = await (await supabaseServer()).from('post_comments').insert({ post_id: String(f.get('post')), user_id: me.id, body });
+  if (error) return { error: error.message.startsWith('comment limit') ? 'Too many comments today. Try again tomorrow.' : error.message };
+  refresh(path, '/feed');
+  return { ok: 'ok' };
+}
+export async function deleteComment(f: FormData) {
+  const me = await signedIn('/feed'); if (!me) return;
+  await (await supabaseServer()).from('post_comments').delete().eq('id', Number(f.get('id')));
+  refresh(String(f.get('path') ?? '/feed'), '/feed');
+}

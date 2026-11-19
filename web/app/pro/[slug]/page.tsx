@@ -135,7 +135,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         {(posts.length > 0 || isOwner) && <div className="blk">
           <h2>{tr('Posts')} <small><a href="/feed">{tr('Feed')} →</a></small></h2>
           {isOwner && <p className="mu sm" style={{ marginTop: 0 }}>{tr('Share new work in the')} <a href="/feed">{tr('Feed')}</a>.</p>}
-          <div className="list">{posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={isOwner} />)}</div>
+          <div className="list">{posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={isOwner} meId={me?.id ?? null} path={`/pro/${pro.slug}`} />)}</div>
         </div>}
 
         {(colleagues.length > 0 || isOwner) && <div className="blk">

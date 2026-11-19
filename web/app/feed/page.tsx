@@ -21,11 +21,13 @@ export default async function Feed({ searchParams }: { searchParams: Promise<{ t
       <div className="tabs-row">
         <Link className="chip" aria-pressed={tab === 'discover'} href="/feed">{tr('New')}</Link>
         {me && <Link className="chip" aria-pressed={tab === 'following'} href="/feed?tab=following">♥ {tr('My pros')}</Link>}
+        <Link className="chip" href="/questions">{tr('Ask the pros')}</Link>
+        {me?.pro && <Link className="chip" href="/lounge">{tr('Pro Lounge')}</Link>}
       </div>
       {!isLive() && <p className="note">{tr('Demo mode: the feed turns on when the database is connected.')}</p>}
       {me?.pro && <div style={{ marginBottom: 16 }}><PostForm /></div>}
       <div className="list">
-        {posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={p.pro.id === me?.id} />)}
+        {posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={p.pro.id === me?.id} meId={me?.id ?? null} path={tab === 'following' ? '/feed?tab=following' : '/feed'} />)}
         {isLive() && !posts.length && <div className="card empty">{tab === 'following'
           ? <>{tr('Save pros with ♥ on their page and their new work will show up here.')} <Link href="/search">{tr('Find a pro')}</Link></>
           : tr('No posts yet. Pros will share their work here.')}</div>}

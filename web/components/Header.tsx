@@ -28,6 +28,7 @@ export default async function Header() {
             <NavLink href="/companies">{t('Companies')}</NavLink>
             <NavLink href="/online">● {t('Online now')}</NavLink>
             <NavLink href="/feed">{t('Feed')}</NavLink>
+            <NavLink href="/questions">{t('Questions')}</NavLink>
             {!me && <NavLink href="/join">{t('For pros')}</NavLink>}
           </nav>
           <div className="hdr-me">
@@ -39,6 +40,7 @@ export default async function Header() {
               { href: '/account', text: t('My account') },
               { href: '/my-pros', text: '♥ ' + t('My pros') },
               { href: '/messages', text: t('Messages') },
+              ...(me.pro ? [{ href: '/lounge', text: t('Pro Lounge') }] : []),
               ...(me.companies.some((c) => c.role !== 'technician') ? [{ href: '/business', text: t('Business') }] : []),
               ...(me.role === 'admin' ? [{ href: '/admin', text: 'Admin' }] : []),
               ...(!me.pro && !me.companies.length ? [{ href: '/join', text: t('For pros') }] : []),

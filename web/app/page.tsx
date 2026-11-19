@@ -5,6 +5,7 @@ import SearchBox from '@/components/SearchBox';
 import { TRADES, type Trade } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
 import { popularIds } from '@/lib/social';
+import { listQuestions } from '@/lib/community';
 import { getT } from '@/lib/i18n';
 
 export default async function Home() {
@@ -13,6 +14,7 @@ export default async function Home() {
   const onlineCount = pros.filter((p) => p.online).length;
   const urgentCount = pros.filter((p) => p.urgent).length;
   const pop = await popularIds(6);
+  const questions = (await listQuestions({}, 4));
   const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
   return (
     <>
@@ -47,6 +49,15 @@ export default async function Home() {
             <span className="mu2 xs">{t('Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.')}</span>
           </div>
           <Link href={urgentCount > 0 ? '/online?urgent=1' : '/online'} className="btn">{t(urgentCount > 0 ? 'Find urgent help' : 'Find pros online')}</Link>
+        </div>
+      </div></section>
+
+      <section className="sec pad"><div className="in">
+        <div className="eyebrow">{t('Free answers from verified pros')}</div><h2>{t('Ask the pros')}</h2>
+        <div className="list">{questions.map((q) => (
+          <Link key={q.id} href={`/questions/${q.id}`} className="card qrow"><span className="qcount"><b className="num">{q.answers}</b><small>{t(q.answers === 1 ? 'answer' : 'answers')}</small></span>
+            <span style={{ minWidth: 0 }}><b>{q.title}</b><br /><span className="mu xs">{q.name}{q.city ? ` · ${q.city}` : ''}</span></span></Link>))}
+          <Link href="/questions" className="card bk" style={{ textDecoration: 'none' }}><span>{t('Not sure what is wrong or what it should cost? Ask here. Only verified local pros can answer, and you pick the most helpful answer.')}</span><span className="btn sm">{t('Ask a question')}</span></Link>
         </div>
       </div></section>
 

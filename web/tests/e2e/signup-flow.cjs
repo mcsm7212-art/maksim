@@ -122,6 +122,26 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/max');await s.waitForSelector('.colls >> text=Tom Tech');if(!(await s.textContent('main')).includes('1 people saved you')&&!(await s.textContent('main')).includes('people saved you'))throw new Error('owner save count missing');
  if(sql("select count(*) from notifications where body like '%recommends you%'")!=='1')throw new Error('colleague not notified');
  step('Max recommended Tom → shown on Max page, Tom notified');
+ // community: comments, questions & answers, the pros Lounge, colleague chat
+ await c.goto(B+'/feed');await c.fill('.post .cmt-form input[name=body]','Nice clean job!');await c.click('.post .cmt-form button');await c.waitForSelector('.post .cmt >> text=Nice clean job!');
+ if(sql("select count(*) from notifications where body like '%commented on your post.'")!=='1')throw new Error('pro not notified about comment');
+ step('client commented on a post → pro notified');
+ await c.goto(B+'/questions');await c.fill('input[name=title]','Why does my faucet drip at night?');await c.fill('textarea[name=body]','Kitchen faucet, 10 years old.');await c.selectOption('select[name=trade]','plumbing');
+ await c.click('.askbox button:has-text("Ask the pros")');await c.waitForURL(/questions\/[0-9a-f-]{36}/);const qurl=c.url();
+ await t.goto(qurl);await t.fill('textarea[name=body]','Worn cartridge most likely. A new one is $20-40; replacing it takes about an hour.');await t.click('button:has-text("Post answer")');await t.waitForSelector('.ans >> text=Worn cartridge');
+ await c.goto(qurl);await c.click('.ans button:has-text("Best answer")');await c.waitForSelector('.ans.best');
+ await s.goto(qurl);await s.click('.ans button:has-text("Helpful")');await s.waitForSelector('.ans button[aria-pressed=true]');
+ if(sql("select count(*) from notifications where body like '%picked your answer as the best.'")!=='1'||sql("select count(*) from answer_votes")!=='1')throw new Error('best/vote not stored');
+ await c.screenshot({path:D+'e_question.png',fullPage:true});
+ step('client asked a question → Tom answered, client picked best, Max upvoted');
+ await s.goto(B+'/lounge');await s.check('input[name=kind][value=handoff]');await s.fill('textarea[name=body]','Water heater swap in Belmont Friday, I am booked. Who can take it?');await s.click('button:has-text("Post")');await s.waitForSelector('.lpost >> text=Water heater swap');
+ await t.goto(B+'/lounge');await t.fill('.lpost .cmt-form input[name=body]','I can take it.');await t.click('.lpost .cmt-form button');await t.waitForSelector('.lreplies >> text=I can take it.');
+ await c.goto(B+'/lounge');if(!(await c.textContent('main')).includes('only for verified pros')&&!(await c.textContent('main')).includes('for verified pros'))throw new Error('client saw the lounge');
+ await t.goto(B+'/lounge');await t.click('.lpost button:has-text("Message")');await t.waitForURL(/messages\/[0-9a-f-]{36}/);await t.fill('textarea[name=body]','Call me 650-555-0199');await t.click('form button:has-text("Send")');await t.waitForSelector('text=Call me 650-555-0199');
+ for(let i=0;i<20&&!sql("select flagged from messages where body like 'Call me%'");i++)await t.waitForTimeout(300);
+ if(sql("select flagged from messages where body like 'Call me%'")!=='f')throw new Error('colleague chat should not warn about phone numbers');
+ await s.goto(B+'/messages');await s.waitForSelector('text=Colleague');
+ step('Lounge: Max passed a job, Tom replied and messaged him (colleague chat), client cannot see the Lounge');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});
