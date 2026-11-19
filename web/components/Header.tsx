@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import LangSwitch from './LangSwitch';
 import AccountMenu from './AccountMenu';
 import ThemeToggle from './ThemeToggle';
+import UiFeel from './UiFeel';
 import { getTheme } from '@/lib/theme';
 import NavLink from './NavLink';
 import NavProgress from './NavProgress';
@@ -46,6 +47,7 @@ export default async function Header() {
               ...(me.role === 'admin' ? [{ href: '/admin', text: 'Admin' }] : []),
               ...(!me.pro && !me.companies.length ? [{ href: '/join', text: t('For pros') }] : []),
             ]} /> : <Link href="/login" className="btn sm">{t('Sign in')}</Link>}
+            <UiFeel />
             <ThemeToggle initial={theme} />
             <Suspense><LangSwitch /></Suspense>
           </div>

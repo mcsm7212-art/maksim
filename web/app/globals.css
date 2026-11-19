@@ -550,3 +550,18 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .trustinfo ul{list-style:none;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .trustinfo li::before{display:inline-block;width:20px}
 .trustinfo li.y::before{content:"✓";color:var(--ok)}.trustinfo li.n::before{content:"—";color:var(--mu)}.trustinfo li.i::before{content:"ⓘ";color:var(--mu)}
+/* ===== noble hover: soft copper light under the cursor, gentle lift ===== */
+.soundbtn{border:0;background:none;cursor:pointer}
+.soundbtn[aria-pressed="true"]{color:var(--cu-l)}
+@media (hover:hover) and (pointer:fine){
+  a.card:hover,.card.pc:hover,.card.trade:hover,.card.qrow:hover,.card.coll:hover,.card.bk:is(a):hover{
+    transform:translateY(-2px) scale(1.012);
+    background-image:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(226,180,140,.10),transparent 45%);
+    border-color:rgba(192,138,98,.6);
+    box-shadow:0 12px 32px rgba(0,0,0,.35),0 0 0 1px rgba(192,138,98,.18),0 0 28px rgba(192,138,98,.12)}
+  .btn:hover{background-image:radial-gradient(120px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.22),transparent 60%),var(--foil);box-shadow:0 4px 18px rgba(192,138,98,.28),0 0 0 1px rgba(226,180,140,.25)}
+  .btn.ghost:hover{background-image:radial-gradient(120px circle at var(--mx,50%) var(--my,50%),rgba(226,180,140,.14),transparent 60%);border-color:rgba(192,138,98,.6)}
+  .chip:hover,.nav a:hover,.hdr-me .ico:hover{box-shadow:0 0 14px rgba(192,138,98,.18)}
+  [data-theme="light"] a.card:hover,[data-theme="light"] .card.pc:hover{background-image:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(192,138,98,.10),transparent 45%);box-shadow:0 12px 30px rgba(60,40,20,.12),0 0 0 1px rgba(192,138,98,.22)}
+}
+@media (prefers-reduced-motion:reduce){a.card:hover,.card.pc:hover,.card.trade:hover{transform:none}}

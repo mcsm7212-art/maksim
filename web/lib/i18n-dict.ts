@@ -1064,7 +1064,9 @@ export const ES: Record<string, string> = {
 "New problem report on a job.": "Nuevo reporte de problema en un trabajo.",
 "A problem was reported on your job. The NovaFides team will help.": "Se reportó un problema en su trabajo. El equipo de NovaFides ayudará.",
 "Your problem report was answered.": "Su reporte de problema fue respondido.",
-"{a} added you as a colleague.": "{a} lo agregó como colega."
+"{a} added you as a colleague.": "{a} lo agregó como colega.",
+"Sounds: on": "Sonidos: activados",
+"Sounds: off": "Sonidos: desactivados"
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2131,5 +2133,7 @@ export const RU: Record<string, string> = {
 "New problem report on a job.": "Новое сообщение о проблеме в заказе.",
 "A problem was reported on your job. The NovaFides team will help.": "По вашему заказу сообщили о проблеме. Команда NovaFides поможет.",
 "Your problem report was answered.": "На ваше сообщение о проблеме ответили.",
-"{a} added you as a colleague.": "{a} добавил(а) вас в коллеги."
+"{a} added you as a colleague.": "{a} добавил(а) вас в коллеги.",
+"Sounds: on": "Звуки: включены",
+"Sounds: off": "Звуки: выключены"
 };
