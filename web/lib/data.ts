@@ -39,7 +39,8 @@ function mapPro(p: Row, stats?: Row): Pro {
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },
     photoUrl: p.photo_url, figureUrl: p.figure_url ?? null, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
     online: Boolean(p.online_until && new Date(p.online_until) > new Date()), onlineArea: p.online_area ?? null,
-    urgent: Boolean(p.urgent_ok && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),
+    accepting: p.accepting !== false || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })), pausedUntil: p.paused_until ?? null,
+    urgent: Boolean(p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95),
     rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), jobs: Number(s?.jobs ?? 0),
     skills: s?.rating != null ? {
       punctuality: s.punctuality / 20, workmanship: s.workmanship / 20, cleanliness: s.cleanliness / 20, communication: s.communication / 20, pricing: s.pricing / 20,
@@ -125,6 +126,7 @@ export const getCompany = cache(async (slug: string): Promise<Company | null> =>
 /** Open 2-hour slots for the next 7 days (Pacific time), minus booked times. */
 export function openSlots(pro: Pro, days = 7): string[] {
   const out: string[] = [];
+  if (!pro.accepting) return out; // paused: no open times
   const now = Date.now();
   const busy = pro.busy.map((b) => [new Date(b.start).getTime(), new Date(b.end).getTime()] as const);
   const taken = (s: number) => busy.some(([a, z]) => s < z && s + 2 * 36e5 > a); // 2-hour visit overlaps a busy range

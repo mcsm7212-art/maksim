@@ -21,6 +21,7 @@ import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { colleaguesOf, mySaves, postsOf, saveCount } from '@/lib/social';
 import { recommendPro, unrecommendPro } from '@/app/social/actions';
+import { toggleColleague } from '@/app/account/work/actions';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -45,6 +46,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id, tier) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
   const isOwner = me?.id === pro.id;
+  const isColleague = me?.pro && !isOwner ? Boolean((await (await supabaseServer()).from('pro_contacts').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data) : false;
   const myRec = me?.pro && !isOwner ? (await (await supabaseServer()).from('pro_recommendations').select('colleague_id').eq('pro_id', me.id).eq('colleague_id', pro.id).maybeSingle()).data : null;
   const bookHref = (t?: string) => `/book?pro=${pro.slug}&tier=${tier}${svcId ? `&svc=${svcId}` : ''}${t ? `&t=${encodeURIComponent(t)}` : ''}`;
   const q = (patch: Record<string, string>) => `/pro/${pro.slug}?${new URLSearchParams({ tier, ...(svcId ? { svc: svcId } : {}), ...patch })}`;
@@ -67,7 +69,7 @@ export default async function ProPage({ params, searchParams }: Props) {
             <h1 className="pname">{pro.name}</h1>
             {pro.company
               ? <Link className="pco" href={`/company/${pro.company.slug}`}>{pro.company.name.toUpperCase()}<br />{tr(TRADES[pro.trade].name).toUpperCase()}<b>.</b></Link>
-              : <span className="pco">{tr('INDEPENDENT')}<br />{tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN' } as const)[pro.trade])}<b>.</b></span>}
+              : <span className="pco">{tr('INDEPENDENT')}<br />{tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION' } as const)[pro.trade])}<b>.</b></span>}
             <p className="ptag">{tr('Behind every rating is a job.')}<br />{tr('Behind every job is a person.')}</p>
             {pro.area && <div className="locline"><Icon name="pin" size={18} /> {pro.area} · San Francisco Bay Area</div>}
             {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}</div>}
@@ -100,20 +102,24 @@ export default async function ProPage({ params, searchParams }: Props) {
           {pro.company && <span className="tchip">{tr('Technician at')} {pro.company.name}</span>}
         </div>
 
+        {!pro.accepting && <div className="note" style={{ marginTop: 16 }}>{pro.pausedUntil ? tr('{name} is not taking new jobs until {date}. You can still send a message.', { name: first, date: dateLabel(pro.pausedUntil + 'T12:00:00', lang) }) : tr('{name} is not taking new jobs right now. You can still send a message.', { name: first })}</div>}
         <div className="pricebox2">
           {fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
           <div className="cta2" style={{ flex: 1 }}>
-            <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })} <Icon name="arrow" /></Link>
-            <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link>
+            {pro.accepting && <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })} <Icon name="arrow" /></Link>}
+            {pro.accepting && <Link className="btn ghost" href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link>}
             <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>
           </div>
         </div>
         <div className="chips" style={{ marginTop: 12 }}>
           {!isOwner && <SaveButton proId={pro.id} initial={saves.get(pro.id) ?? null} count={saved} />}
+          {me?.pro?.status === 'verified' && !isOwner && <form action={toggleColleague}><input type="hidden" name="id" value={pro.id} /><input type="hidden" name="path" value={`/pro/${pro.slug}`} /><input type="hidden" name="on" value={isColleague ? '0' : '1'} />
+            <button className={`btn sm ${isColleague ? '' : 'ghost'}`}>{isColleague ? `✓ ${tr('My colleague')}` : `+ ${tr('Add to my colleagues')}`}</button></form>}
           {isOwner && saved > 0 && <span className="badge cu">♥ {tr('{n} people saved you', { n: saved })}</span>}
           <a className="btn ghost sm" href={`/api/vcard/${pro.slug}`}>{tr('Save to contacts')}</a>
           <a className="btn ghost sm" href={`/api/qr/${pro.slug}?format=png`}>{tr('QR code')}</a>
         </div>
+        {sp.chat === 'error' && <p className="note">{tr('This pro does not take messages from colleagues right now.')}</p>}
         {sp.chat === 'demo' && <p className="note">{tr('Demo mode: chat turns on when the database is connected.')}</p>}
 
         {(pro.bio || pro.experience) && <div className="blk">

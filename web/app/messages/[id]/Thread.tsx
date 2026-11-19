@@ -45,7 +45,7 @@ export default function Thread({ id, messages, booked }: { id: string; messages:
         {!messages.length && <p className="mu">{t('Describe the job, ask about price or time. You can send photos.')}</p>}
         <div ref={end} />
       </div>
-      <form action={async (f) => { await sendMessage(f); setText(''); setPhotos([]); router.refresh(); }} className="list" style={{ gap: 8, position: 'sticky', bottom: 0, background: 'var(--bg)', paddingBlock: 10 }}>
+      <form action={async (f) => { const r = await sendMessage(f); if (r?.error) { setErr(t(r.error)); return; } setText(''); setPhotos([]); router.refresh(); }} className="list" style={{ gap: 8, position: 'sticky', bottom: 0, background: 'var(--bg)', paddingBlock: 10 }}>
         <input type="hidden" name="id" value={id} />
         {photos.map((p) => <input key={p.url} type="hidden" name="photo_url" value={p.url} />)}
         {photos.length > 0 && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{photos.map((p, i) => (

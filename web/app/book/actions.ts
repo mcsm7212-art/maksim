@@ -39,6 +39,6 @@ export async function createBooking(_prev: BookState, form: FormData): Promise<B
       price_estimate: svc ? roundPrice(marketMid(svc) * TIERS[tier].multiplier) : null };
   }
   const { data, error } = await sb.from('bookings').insert(row).select('id').single();
-  if (error) return { error: error.message.includes('bookings_no_double') ? 'That time was just taken. Please pick another.' : error.message };
+  if (error) return { error: error.message.includes('bookings_no_double') ? 'That time was just taken. Please pick another.' : error.message.includes('pro not accepting') ? 'This pro is not taking new jobs right now.' : error.message };
   redirect(`/account?booked=${data.id}`);
 }

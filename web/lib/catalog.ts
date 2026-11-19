@@ -2,7 +2,7 @@
 import raw from './services.json';
 import esRaw from './services-es.json';
 
-export type Trade = 'plumbing' | 'electrical' | 'handyman';
+export type Trade = 'plumbing' | 'electrical' | 'handyman' | 'construction';
 export type Tier = 'economy' | 'standard' | 'premium';
 
 export interface Service {
@@ -44,6 +44,7 @@ export const TRADES: Record<Trade, { name: string; license: string; icon: string
   plumbing: { name: 'Plumbing', license: 'C-36', icon: 'drop', blurb: 'Leaks, drains, water heaters, toilets, gas lines.' },
   electrical: { name: 'Electrical', license: 'C-10', icon: 'bolt', blurb: 'Outlets, panels, lighting, EV chargers.' },
   handyman: { name: 'Handyman', license: '', icon: 'tool', blurb: 'Mounting, assembly, drywall, doors. Jobs under $1,000.' },
+  construction: { name: 'Construction', license: 'B', icon: 'build', blurb: 'Remodels, additions, ADUs, decks, foundations.' },
 };
 
 export const roundPrice = (n: number) => (n < 200 ? Math.round(n / 5) * 5 : n < 2000 ? Math.round(n / 10) * 10 : Math.round(n / 50) * 50);

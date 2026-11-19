@@ -9,7 +9,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 type S = { error?: string; ok?: string } | undefined;
 const DEMO = 'Demo mode: nothing was saved. Connect the database to accept real sign-ups.';
 const str = (f: FormData, k: string, max = 2000) => String(f.get(k) ?? '').trim().slice(0, max);
-const TRADES = ['plumbing', 'electrical', 'handyman'];
+const TRADES = ['plumbing', 'electrical', 'handyman', 'construction'];
 async function who(next: string) { if (!isLive()) return null; const me = await getMe(); if (!me) redirect(`/login?next=${encodeURIComponent(next)}`); return me; }
 const limitMsg = (m: string) => (/limit/.test(m) ? 'You reached today’s limit. Try again tomorrow.' : m);
 

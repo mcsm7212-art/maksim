@@ -24,7 +24,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const saves = await mySaves();
   pros = pros.filter((p) => saves.get(p.id) !== 'hidden');
   const fav = (p: { id: string }) => Number(saves.get(p.id) === 'saved');
-  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.online) - Number(a.online) || (b.rating ?? 0) - (a.rating ?? 0));
+  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.accepting) - Number(a.accepting) || Number(b.online) - Number(a.online) || (b.rating ?? 0) - (a.rating ?? 0));
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));

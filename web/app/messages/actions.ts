@@ -34,10 +34,12 @@ export async function sendMessage(f: FormData) {
   const id = String(f.get('id') ?? ''), body = String(f.get('body') ?? '').trim().slice(0, 4000);
   const { ownPhotoUrl } = await import('@/lib/photos');
   const photos = f.getAll('photo_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 6);
-  if (!body && !photos.length) return;
+  if (!body && !photos.length) return {};
   const sb = await supabaseServer();
   // Each photo is its own message; the text goes with the first one.
   const rows = photos.length ? photos.map((photo_url, i) => ({ conversation_id: id, sender_id: me.id, body: i === 0 ? body : '', photo_url })) : [{ conversation_id: id, sender_id: me.id, body }];
-  await sb.from('messages').insert(rows);
+  const { error } = await sb.from('messages').insert(rows);
   revalidatePath(`/messages/${id}`);
+  if (error) return { error: error.message.startsWith('colleague chat closed') ? 'This pro does not take messages from colleagues right now.' : error.message.startsWith('neighbor chat closed') ? 'This neighbor is no longer available for chat.' : 'Could not send. Please try again.' };
+  return {};
 }

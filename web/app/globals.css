@@ -492,3 +492,9 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .lpost .kind{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .lpost .kind.help{color:var(--warn)}.lpost .kind.handoff{color:var(--ok)}.lpost .kind.talk{color:var(--mu)}
 .lreplies{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+@media (min-width:861px){.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.sched{display:flex;flex-direction:column;gap:6px}
+.sched-row{display:grid;grid-template-columns:150px 110px 16px 110px;gap:8px;align-items:center}
+.sched-row .inp{padding:6px 8px}
+@media (max-width:520px){.sched-row{grid-template-columns:1fr 90px 12px 90px}}
+@media (min-width:701px) and (max-width:1120px){.nav a{padding:7px 7px;font-size:13.5px}.bar .in{gap:10px}}

@@ -13,6 +13,7 @@ const P: Record<string, string> = {
   camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  build: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
   siren: '<path d="M6 18v-5a6 6 0 0 1 12 0v5M4 18h16M12 3v2M4.5 6l1.4 1.4M19.5 6l-1.4 1.4"/>',
 };
 export default function Icon({ name, size = 20, className }: { name: keyof typeof P | string; size?: number; className?: string }) {

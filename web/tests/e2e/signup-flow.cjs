@@ -142,6 +142,29 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select flagged from messages where body like 'Call me%'")!=='f')throw new Error('colleague chat should not warn about phone numbers');
  await s.goto(B+'/messages');await s.waitForSelector('text=Colleague');
  step('Lounge: Max passed a job, Tom replied and messaged him (colleague chat), client cannot see the Lounge');
+ // taking jobs, schedule, colleague settings, neighbors, construction
+ await s.goto(B+'/account/work');await s.click('button:has-text("Pause new jobs")');await s.waitForSelector('text=Not taking new jobs');
+ await c.goto(B+'/max');await c.waitForSelector('text=is not taking new jobs right now');if(await c.locator('.pricebox2 a:has-text("Book Max")').count())throw new Error('paused pro still bookable');
+ await s.click('button:has-text("Take jobs again")');await s.waitForSelector('text=Taking new jobs');
+ await s.check('input[name=on_6]');await s.selectOption('select[name=start_6]','09:00');await s.selectOption('select[name=end_6]','13:00');await s.click('button:has-text("Save schedule")');await s.waitForSelector('text=Schedule saved.');
+ if(sql("select start_time||'-'||end_time from availability_rules a join pros p on p.id=a.pro_id where p.display_name='Max Solo' and weekday=6")!=='09:00:00-13:00:00')throw new Error('schedule not saved');
+ step('Max paused new jobs (no Book button for clients), resumed, set Saturday 9-13');
+ await t.goto(B+'/max');await t.click('button:has-text("Add to my colleagues")');await t.waitForSelector('button:has-text("My colleague")');
+ await s.goto(B+'/account/work');await s.check('input[name=mode][value=off]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
+ await t.goto(B+'/messages');await t.click('text=Max Solo');await t.fill('textarea[name=body]','Are you free Friday?');await t.click('form button:has-text("Send")');await t.waitForSelector('text=does not take messages from colleagues');
+ await s.goto(B+'/account/work');await s.check('input[name=mode][value=all]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
+ if(sql("select colleague_chat from pros where display_name='Max Solo'")!=='all')throw new Error('chat setting not saved');
+ step('Tom added Max to colleagues; Max turned colleague chat off → Tom could not write; turned back on');
+ await c.goto(B+'/neighbors');await c.check('input[name=open]');await c.selectOption('select[name=city]','San Carlos');await c.check('input[name=scope][value=city]');await c.check('input[name=interest][value=electrical]');await c.click('button:has-text("Save")');await c.waitForSelector('text=Neighbors you can talk to');
+ await o.goto(B+'/neighbors');await o.check('input[name=open]');await o.selectOption('select[name=city]','San Carlos');await o.check('input[name=scope][value=bayarea]');await o.click('button:has-text("Save")');await o.waitForSelector('.card.bk >> text=Anna C.');
+ await o.click('.card.bk:has-text("Anna C.") button:has-text("Message")');await o.waitForURL(/messages\/[0-9a-f-]{36}/);const nurl=o.url();await o.fill('textarea[name=body]','Hi neighbor! Who did your panel?');await o.click('form button:has-text("Send")');await o.waitForSelector('text=Who did your panel?');
+ await c.waitForTimeout(1000);await c.goto(B+'/messages');if(!(await c.locator('text=Neighbor').count())){await c.waitForTimeout(1500);await c.reload();}await c.waitForSelector('.badge:has-text("Neighbor")');
+ await c.goto(B+'/neighbors');await c.click('.card.bk:has-text("Dana O.") button:has-text("Block")');await c.waitForSelector('text=Unblock');
+ await o.goto(nurl);await o.fill('textarea[name=body]','Hello?');await o.click('form button:has-text("Send")');await o.waitForSelector('text=no longer available');
+ step('neighbors: Anna (San Carlos, electrical) and Dana (whole Bay Area) found each other, chatted; Anna blocked Dana');
+ await c.goto(B+'/');if(!(await c.textContent('main')).includes('Construction'))throw new Error('construction trade missing on home');
+ const cs=await c.goto(B+'/search?trade=construction');if(!(await c.textContent('main')).includes('Construction'))throw new Error('construction search');
+ step('construction is a fourth trade on the home page and in search');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});

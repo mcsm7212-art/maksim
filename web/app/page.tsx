@@ -25,7 +25,7 @@ export default async function Home() {
         <SearchBox />
       </div></section>
 
-      <section className="pad"><div className="in grid3">
+      <section className="pad"><div className="in grid3 grid4">
         {(Object.keys(TRADES) as Trade[]).map((k) => (
           <Link key={k} href={`/search?trade=${k}`} className="card trade">
             <span className="ic"><Icon name={TRADES[k].icon} size={24} /></span>

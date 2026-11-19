@@ -76,6 +76,10 @@ export interface Pro {
   founding: boolean;
   /** City the pro is working in right now (when online) */
   onlineArea: string | null;
+  /** Taking new jobs (a pause with an end date ends by itself) */
+  accepting: boolean;
+  /** Paused until this date (YYYY-MM-DD), if the pro set one */
+  pausedUntil: string | null;
   /** Online now AND takes urgent calls */
   urgent: boolean;
   /** Extra call-out fee for urgent visits, if the pro set one */
