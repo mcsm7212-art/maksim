@@ -5,7 +5,7 @@ async function code(email){for(let i=0;i<20;i++){const r=await (await fetch('htt
   if(r.messages&&r.messages.length){const m=await (await fetch('http://127.0.0.1:54324/api/v1/message/'+r.messages[0].ID)).json();const c=(m.Text||m.HTML).match(/\b(\d{6})\b/);if(c)return c[1]}await new Promise(r=>setTimeout(r,500))}throw new Error('no mail for '+email)}
 async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...devices['iPhone 13']}:{viewport:{width:1200,height:900}});const p=await c.newPage();
   p.on('pageerror',e=>errs.push(email+' '+p.url()+' '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(email+' console '+m.text().slice(0,200))});
-  await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.click('text=Email me a sign-in code');
+  await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.check('input[name=agree]');await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
 const IMG=n=>__dirname+'/'+n+'.jpg';
@@ -14,20 +14,20 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  // company owner
  const o=await user(b,'owner@test.local','Dana Owner');step('owner signed in by email code');
  await o.goto(B+'/join/company');await o.fill('input[name=name]','Peninsula Pipe Co');await o.fill('input[name=license]','1045001');await o.fill('input[name=city]','Redwood City');await o.fill('textarea[name=about]','Plumbing company for test.');
- await o.click('button:has-text("Register company")');await o.waitForURL(/business/);step('company registered → business page');
+ await o.check('input[name=agree]');await o.click('button:has-text("Register company")');await o.waitForURL(/business/);step('company registered → business page');
  const a=await user(b,'admin@test.local','Ada Admin');sql("update profiles set role='admin' where id=(select id from auth.users where email='admin@test.local')");
  await a.goto(B+'/admin');await a.click('form:has-text("Peninsula Pipe Co") button:has-text("Approve")');await a.waitForTimeout(800);
  if(sql("select status from companies")!=='verified')throw new Error('admin approve company failed');step('admin approved the company with a button');
  await o.reload();await o.click('button:has-text("New technician invite")');await o.waitForSelector('code');const inv=(await o.textContent('code')).trim();step('invite link '+inv);
  // technician
  const t=await user(b,'tech@test.local','Tom Tech',true);await t.goto(inv);await t.waitForURL(/join\/pro\?invite/);
- await t.fill('input[name=name]','Tom Tech');await avatar(t);await t.check('input[name=svc_faucet-replacement]');await t.click('button:has-text("Create my profile")');await t.waitForURL(/account/);step('technician joined through invite');
+ await t.fill('input[name=name]','Tom Tech');await avatar(t);await t.check('input[name=svc_faucet-replacement]');await t.check('input[name=agree]');await t.click('button:has-text("Create my profile")');await t.waitForURL(/account/);step('technician joined through invite');
  // solo pro
  const s=await user(b,'solo@test.local','Max Solo');await s.goto(B+'/join/pro');await s.fill('input[name=name]','Max Solo');await s.fill('input[name=license]','1121547');await avatar(s);
  await s.fill('textarea[name=experience]','Nine years as a plumber, four on my own.');await s.fill('input[name=skills]','Water heaters, Repipes, Leak detection');
  await s.setInputFiles('.drop input >> nth=1',[IMG('w1'),IMG('w2')]);await s.waitForFunction(()=>document.querySelectorAll('input[name=work_url]').length===2);
  await s.check('input[name=svc_faucet-replacement]');await s.fill('input[name=price_faucet-replacement]','400');await s.check('input[name=day_0]',{force:true});await s.check('input[name=day_6]',{force:true});
- await s.click('button:has-text("Create my profile")');await s.waitForURL(/account/);step('solo pro registered');
+ await s.check('input[name=agree]');await s.click('button:has-text("Create my profile")');await s.waitForURL(/account/);step('solo pro registered');
  for(const n of ['Tom Tech','Max Solo']){await a.goto(B+'/admin');const f=a.locator(`form:has-text("${n}")`);await f.locator('input[name=id_ok]').check();await f.locator('input[name=license_ok]').check();await f.locator('button:has-text("Approve")').click();await a.waitForTimeout(800)}
  if(sql("select count(*) from pros where status='verified' and id_verified")!=='2')throw new Error('admin approve pros failed');step('admin approved both pros (license + ID)');
  await s.goto(B+'/account/profile');await s.fill('textarea[name=experience]','Ten years now. Tankless heaters are my favorite.');await s.click('button:has-text("Save changes")');await s.waitForSelector('text=Saved');
@@ -84,6 +84,9 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select publish_at<=now() from reviews")!=='t')throw new Error('review not published after both rated');step('pro rated client → review published');
  await s.goto(B+'/account/reviews');await s.fill('textarea[name=body]','Thank you Anna! Glad the new faucet works well.');await s.click('button:has-text("Post reply")');await s.waitForTimeout(1500);await s.screenshot({path:D+'e_reply.png',fullPage:true});await s.waitForSelector('.reply:has-text("Glad the new faucet")',{timeout:5000});
  await c.goto(B+'/pro/max-solo');await c.waitForSelector('text=Glad the new faucet');step('reply shows on the public page');
+ if(sql("select count(*) from profiles where terms_version is null")!=='0')throw new Error('someone signed in without accepting the terms');
+ await c.goto(B+'/terms');if(await c.locator('.legal h3').count()<15)throw new Error('terms page');await c.goto(B+'/privacy');if(await c.locator('.legal h3').count()<8)throw new Error('privacy page');
+ step('every account accepted the Terms at sign-in; Terms and Privacy pages open');
  await a.goto(B+'/pro/max-solo');await a.click('button.helpful');await a.waitForTimeout(1200);
  if(sql("select helpful_count from reviews")!=='1')throw new Error('helpful vote not counted');
  await c.goto(B+'/pro/max-solo');if(await c.locator('button.helpful').count()!==1)throw new Error('author should still see the button');

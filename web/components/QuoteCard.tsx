@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { acceptQuote, declineQuote, withdrawQuote } from '@/app/orders/actions';
 import { LINE_KINDS, type QuoteLine } from '@/lib/orders';
+import Disclaimer from './Disclaimer';
 import { useT } from './I18n';
 
 export type QuoteView = { id: string; conv: string; title: string; lines: QuoteLine[]; total: number; includes: string | null; notes: string | null;
@@ -29,6 +30,7 @@ export default function QuoteCard({ q, role, inOrder }: { q: QuoteView; role: 'c
         <form action={declineQuote}><input type="hidden" name="id" value={q.id} /><input type="hidden" name="conv" value={q.conv} /><button className="btn ghost sm">{t('Decline')}</button></form>
         <span className="mu xs" style={{ alignSelf: 'center' }}>{t('Accepting agrees on the price. You pick the time next.')}</span>
       </div>}
+      {q.status === 'sent' && <Disclaimer style={{ margin: 0 }} />}
       {q.status === 'sent' && role === 'pro' && <form action={withdrawQuote}><input type="hidden" name="id" value={q.id} /><input type="hidden" name="conv" value={q.conv} /><button className="btn ghost sm">{t('Withdraw')}</button></form>}
       {q.status === 'accepted' && q.bookingId && !inOrder && <Link className="btn ghost sm" href={`/orders/${q.bookingId}`} style={{ alignSelf: 'flex-start' }}>{t('Open order')} →</Link>}
     </div>

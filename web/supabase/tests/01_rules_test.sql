@@ -541,4 +541,15 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000b1');
 do $$ begin insert into public.review_helpful (review_id) values ('6e5b1000-0000-0000-0000-000000000000'); raise exception 'FAIL: pro vote';
   exception when insufficient_privilege then null; end $$;
 select pg_temp.ok(true, 'one vote per person; not the author, not the pro');
+-- 24) terms: the version accepted at sign-up is saved; existing accounts accept on sign-in
+select pg_temp.act(null); reset role;
+insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-0000000000f1','f1@x','{"role":"client","terms_version":"2026-11-19"}');
+select pg_temp.ok((select terms_version = '2026-11-19' and terms_accepted_at is not null from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'), 'sign-up saves the accepted terms version');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select public.accept_terms('2026-11-19');
+select pg_temp.ok((select terms_version = '2026-11-19' from public.profiles where id = auth.uid()), 'an existing account accepts the current terms');
+select pg_temp.act(null);
+do $$ begin perform public.accept_terms('2026-11-19'); raise exception 'FAIL: anon accepted';
+  exception when insufficient_privilege then null; when others then if sqlerrm not like 'sign in first%' then raise; end if; end $$;
+select pg_temp.ok(true, 'visitors cannot call accept_terms');
 \echo ALL RULE TESTS PASSED

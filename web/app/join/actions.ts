@@ -33,6 +33,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!(trade in TRADES)) return { error: 'Choose your trade.' };
+  if (!f.get('agree')) return { error: 'Please confirm your licenses and agree to the Terms of Use.' };
   if (trade !== 'handyman' && !invite && license.length < 6) return { error: `A CSLB ${TRADES[trade].license} license number is required for ${TRADES[trade].name.toLowerCase()}.` };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
@@ -108,6 +109,7 @@ export async function registerCompany(_p: JoinState, f: FormData): Promise<JoinS
   const accent = isHex(f.get('accent')) ? String(f.get('accent')) : '#B57A50';
   const base = ['dark', 'graphite', 'light', 'teal'].includes(str(f, 'base')) ? str(f, 'base') : 'dark';
   if (name.length < 3) return { error: 'Enter the company name.' };
+  if (!f.get('agree')) return { error: 'Please confirm your licenses and agree to the Terms of Use.' };
   if (!(trade in TRADES)) return { error: 'Choose the main trade.' };
   if (trade !== 'handyman' && license.length < 6) return { error: 'A CSLB license number is required.' };
   if (!isLive()) return { demo: true };

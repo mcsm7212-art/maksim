@@ -1,4 +1,5 @@
 'use client';
+import Disclaimer from '@/components/Disclaimer';
 import { useActionState, useRef, useState } from 'react';
 import { createBooking } from './actions';
 import { useT } from '@/components/I18n';
@@ -33,6 +34,7 @@ export default function BookForm({ hidden, children, cta, summary }: { hidden: R
           <dt>{t('Where')}</dt><dd>{where || <span className="mu">{t('Not filled in yet')}</span>}</dd>
         </dl>
         <span className="mu xs">{t(next)}</span>
+        <Disclaimer />
       </div>
       {state?.error && <div className="err" role="alert">{t(state.error)}</div>}
       {state?.demo && <div className="note">{t('Demo mode: the request was not sent. When the database is connected, this creates a real booking.')}</div>}

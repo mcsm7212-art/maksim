@@ -1,4 +1,5 @@
 'use client';
+import Disclaimer from '@/components/Disclaimer';
 import { useActionState, useState } from 'react';
 import { askEstimate } from './actions';
 import { useT } from '@/components/I18n';
@@ -30,6 +31,7 @@ export default function AskForm({ pros, cities, initial }: { pros: { slug: strin
       <div className="note" style={{ margin: 0 }}>{names.length ? <>{t('Goes only to')}: <b>{names.join(', ')}</b></> : t('Nobody chosen yet. We never send your request to anyone you did not choose.')}</div>
       {state?.error && <div className="err" role="alert">{t(state.error)}</div>}
       {state?.demo && <div className="note">{t('Demo mode: nothing was sent.')}</div>}
+      <Disclaimer style={{ margin: 0 }} />
       <button className="btn" disabled={pending}>{pending ? t('Sending…') : t('Send to the chosen pros')}</button>
       <span className="mu xs">{t('Each pro gets it in a separate chat and can answer or send a quote. City or ZIP is enough for now.')}</span>
     </form>

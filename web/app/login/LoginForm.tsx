@@ -3,11 +3,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { useT } from '@/components/I18n';
+import { LEGAL_VERSION } from '@/lib/legal-short';
 
 // Email sign-in with a 6-digit code (also works by clicking the link in the email). No passwords.
 export default function LoginForm({ next, live }: { next: string; live: boolean }) {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [agree, setAgree] = useState(false);
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [msg, setMsg] = useState<string | null>(null);
@@ -16,10 +18,11 @@ export default function LoginForm({ next, live }: { next: string; live: boolean 
 
   async function send(e: React.FormEvent) {
     e.preventDefault(); setMsg(null);
+    if (!agree) { setMsg(t('Please agree to the Terms of Use and Privacy Policy.')); return; }
     if (!live) { setMsg(t('Demo mode: sign-in turns on when the database is connected.')); return; }
     setBusy(true);
     const { error } = await supabaseBrowser().auth.signInWithOtp({
-      email, options: { emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`, data: name ? { full_name: name } : undefined },
+      email, options: { emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`, data: name ? { full_name: name, terms_version: LEGAL_VERSION } : { terms_version: LEGAL_VERSION } },
     });
     setBusy(false);
     if (error) setMsg(/rate limit/i.test(error.message) ? t('Too many sign-in emails were sent in the last hour. Please try again in an hour.') : error.message); else setStep('code');
@@ -29,13 +32,15 @@ export default function LoginForm({ next, live }: { next: string; live: boolean 
     const { error } = await supabaseBrowser().auth.verifyOtp({ email, token: code.trim(), type: 'email' });
     setBusy(false);
     if (error) setMsg(t('That code did not work. Check the latest email or send a new code.'));
-    else { router.replace(next); router.refresh(); }
+    else { await supabaseBrowser().rpc('accept_terms', { v: LEGAL_VERSION }); router.replace(next); router.refresh(); }
   }
 
   return step === 'email' ? (
     <form className="card formcard" onSubmit={send}>
       <label className="f">{t('Email')}<input className="inp" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com" /></label>
       <label className="f">{t('Your name (new accounts)')}<input className="inp" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder={t('First and last name')} /></label>
+      <label className="agree"><input type="checkbox" name="agree" required checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+        <span>{t('I am 18 or older and agree to the')} <a href="/terms" target="_blank">{t('Terms of Use')}</a> {t('and the')} <a href="/privacy" target="_blank">{t('Privacy Policy')}</a>. {t('NovaFides is an information platform: prices, payment and the work are agreed between the client and the pro.')}</span></label>
       {msg && <div className="err" role="alert">{msg}</div>}
       <button className="btn" disabled={busy}>{busy ? t('Sending…') : t('Email me a sign-in code')}</button>
       <span className="mu xs">{t('No password needed. New here? This creates your account.')}</span>

@@ -67,6 +67,8 @@ export default function CompanyForm({ initial: I }: { initial?: CompanyInitial }
         </div>
         <span className="mu xs">{tt("License, rating, prices and the Book button keep the NovaFides look on every page so clients can trust them.")}</span>
       </div>
+      {!edit && <label className="agree"><input type="checkbox" name="agree" required />
+        <span>{tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: nothing was saved. Connect the database to accept real sign-ups.")}</div>}

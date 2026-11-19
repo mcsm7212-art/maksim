@@ -100,6 +100,8 @@ export default function ProForm({ invite, companyName, initial }: { invite?: str
         </div>
       </div>
 
+      {!edit && <label className="agree"><input type="checkbox" name="agree" required />
+        <span>{tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: the form checks out, but nothing was saved. Connect the database to accept real sign-ups.")}</div>}

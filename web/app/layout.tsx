@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="wrap">{children}</main>
         <footer className="ft pad"><div className="in" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <span>© {new Date().getFullYear()} NovaFides Marketplace · Bay Area</span>
-          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link></span>
+          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link><Link href="/terms">{t('Terms')}</Link><Link href="/privacy">{t('Privacy')}</Link></span>
         </div></footer>
         <BottomNav signedIn={Boolean(me)} act={act} />
         </I18nProvider>

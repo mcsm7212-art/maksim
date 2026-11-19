@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { sendQuote } from '@/app/orders/actions';
 import { LINE_KINDS, type QuoteLine } from '@/lib/orders';
 import ActionForm from './ActionForm';
-import { useT } from './I18n';
+import Disclaimer from './Disclaimer';
+import { useLang, useT } from './I18n';
+import { CA_PRO_NOTE } from '@/lib/legal-short';
 
 type Opt = { id: string; label: string };
 /** Pro writes a quote right in the chat: lines (labor, materials, trip, urgency, discount), what is included, how long it is valid. */
 export default function QuoteForm({ conv, services, jobs }: { conv: string; services: Opt[]; jobs: Opt[] }) {
-  const t = useT();
+  const t = useT(); const lang = useLang();
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<QuoteLine[]>([{ kind: 'labor', label: '', amount: 0 }, { kind: 'material', label: '', amount: 0 }]);
   const total = lines.reduce((n, l) => n + (l.kind === 'discount' ? -1 : 1) * (Number(l.amount) || 0), 0);
@@ -37,6 +39,8 @@ export default function QuoteForm({ conv, services, jobs }: { conv: string; serv
       <textarea className="inp" name="includes" maxLength={1000} placeholder={t('What is included (e.g. parts, cleanup, 1-year warranty on labor)')} style={{ minHeight: 56 }} />
       <textarea className="inp" name="notes" maxLength={1000} placeholder={t('What may need a separate agreement (e.g. if the valve body is damaged)')} style={{ minHeight: 56 }} />
       <label className="sm mu">{t('Valid until (optional)')} <input className="inp" type="date" name="valid_until" style={{ width: 'auto', padding: '6px 8px' }} /></label>
+      {total > 500 && <div className="canote">⚖ {CA_PRO_NOTE[lang] ?? CA_PRO_NOTE.en}</div>}
+      <Disclaimer style={{ margin: 0 }} />
       <div className="chips"><button className="btn sm">{t('Send quote')}</button><button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>{t('Cancel')}</button></div>
     </ActionForm>
   );

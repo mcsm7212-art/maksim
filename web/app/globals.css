@@ -605,3 +605,10 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .homejob-head{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center}
 .homejob .post-ava{width:52px;height:52px}
 .btn.same{background-image:none;background:color-mix(in srgb,var(--cu) 22%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--cu) 60%,transparent)}
+.legal h3{margin-top:22px}
+.legal p{line-height:1.6}
+.disclaimer{font-size:12.5px;line-height:1.5;color:var(--mu,#9aa);border-top:1px solid rgba(127,127,127,.25);padding-top:10px;margin:10px 0 0}
+.disclaimer a{text-decoration:underline}
+.agree{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45}
+.agree input{margin-top:3px;flex:none;width:18px;height:18px}
+.canote{font-size:12.5px;line-height:1.5;border:1px solid rgba(214,160,60,.5);background:rgba(214,160,60,.08);border-radius:10px;padding:8px 12px}

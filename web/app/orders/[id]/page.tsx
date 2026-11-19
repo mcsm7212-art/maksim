@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Disclaimer from '@/components/Disclaimer';
 import { notFound, redirect } from 'next/navigation';
 import ActionForm from '@/components/ActionForm';
 import QuoteCard from '@/components/QuoteCard';
@@ -87,6 +88,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
         <b className="sm">{tr(PROBLEM_KINDS[p.kind as keyof typeof PROBLEM_KINDS] ?? p.kind)}</b> <span className={`badge ${p.status === 'open' ? 'p' : 'ok'}`}>{tr(p.status === 'open' ? 'Under review' : 'Answered')}</span>
         <div className="sm" style={{ whiteSpace: 'pre-wrap' }}>{p.body}</div><div className="mu xs">{dateLabel(p.created_at, lang)}</div>
         {p.resolution && <div className="note" style={{ margin: '8px 0 0' }}>{tr('NovaFides team')}: {p.resolution}</div>}</div>)}
+      <Disclaimer />
       <details className="card formcard"><summary style={{ cursor: 'pointer' }}><b>⚠ {tr('Report a problem')}</b> <span className="mu xs">{tr('The order, chat and quote are attached automatically.')}</span></summary>
         <ActionForm action={reportProblem} className="list" style={{ gap: 8, marginTop: 10 }} okText><input type="hidden" name="id" value={id} />
           <select className="inp" name="kind" required defaultValue="" aria-label={tr('What happened?')}><option value="" disabled>{tr('What happened?')}</option>
