@@ -212,7 +212,12 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  step('phone bottom menu, "What NovaFides checked" panel, pinned post');
  // client path: search in 3 languages, estimate with photos to one pro, "I have the same", demo profile, My home, phone header
  await c.goto(B+'/search?q='+encodeURIComponent('течёт под раковиной'));await c.waitForSelector('text=What needs doing?');await c.waitForSelector('a.chip:has-text("Under-sink leak repair")');
- await c.goto(B+'/search');await c.fill('.sbox input','inodoro tapado');await c.click('.sbox-go');await c.waitForURL(/svc=clogged-toilet/);
+ await c.goto(B+'/search');await c.fill('.sbox input.inp','inodoro tapado');await c.click('.sbox-go');await c.waitForURL(/svc=clogged-toilet/);
+ await c.goto(B+'/');await c.fill('.sbox input.inp','leak under sink');await c.fill('.sbox-loc input','94063');await c.click('.sbox-go');await c.waitForURL(/loc=94063/);await c.waitForSelector('text=Redwood City');
+ await c.goto(B+'/search');if((await c.inputValue('.sbox-loc input'))!=='94063')throw new Error('location not remembered');
+ const tr=await c.goto(B+'/search?today=1');if(tr.status()!==200)throw new Error('today filter');
+ await c.goto(B+'/');await c.waitForSelector('.qa2-card');await c.goto(B+'/questions');await c.waitForSelector('a[href^="/questions/"] .qcount, a[href^="/questions/"]');
+ step('search with a ZIP: pros near Redwood City first, the place is remembered; open-hours-today filter');
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});
@@ -241,8 +246,8 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
  await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');
  sql("update pros set online_until=now()+interval '2 hours' where display_name='Tom Tech'");
- await c.goto(B+'/');const hu=await c.textContent('.urgent');if(!hu.includes('1 pro ready for urgent calls now'))throw new Error('home urgent count wrong: '+hu);
- await c.click('.urgent a:has-text("Find urgent help")');await c.waitForURL(/urgent=1/);const ou=await c.textContent('main');if(!ou.includes('Max Solo')||ou.includes('Tom Tech'))throw new Error('urgent list wrong');
+ await c.goto(B+'/');const hu=await c.textContent('.urg-stats a[href="/online?urgent=1"] b');const ho=await c.textContent('.urg-stats a[href="/online"] b');if(hu!=='1'||ho!=='2')throw new Error('home urgent counts wrong: '+hu+' '+ho);
+ await c.click('.urgent a.btn');await c.waitForURL(/urgent=1/);const ou=await c.textContent('main');if(!ou.includes('Max Solo')||ou.includes('Tom Tech'))throw new Error('urgent list wrong');
  await c.screenshot({path:D+'e_urgent.png',fullPage:true});
  await c.goto(B+'/max');await c.waitForSelector('text=+$75 call-out');
  step('Max takes urgent calls (+$75) → home count, urgent map shows only Max, badge on his page');

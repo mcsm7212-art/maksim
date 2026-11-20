@@ -137,7 +137,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               : tr('not checked yet')}</li>}
             <li className={pro.verified.id ? 'y' : 'n'}><b>{tr('Identity')}</b>: {pro.verified.id ? <>{tr('a NovaFides admin compared the photo with a government ID')}{pro.checkedAt.id && ` · ${dateLabel(pro.checkedAt.id, lang)}`}</> : tr('not checked yet')}</li>
             <li className={pro.verified.insured ? 'y' : 'n'}><b>{tr('Insurance')}</b>: {pro.verified.insured ? <>{tr('a NovaFides admin saw the insurance document')}{pro.checkedAt.insured && ` · ${dateLabel(pro.checkedAt.insured, lang)}`}</> : tr('not confirmed')}</li>
-            <li className="i"><b>{tr('Reviews')}</b>: {tr('only from clients with a finished NovaFides job; negative reviews are never deleted')}</li>
+            <li className="i"><b>{tr('Reviews')}</b>: {tr('only from clients with a finished NovaFides job; a review is never removed for being negative')}</li>
             <li className="i"><b>{tr('Experience and skills')}</b>: {tr('written by the pro')}</li>
             {pro.founding && <li className="i"><b>{tr('Founding Pro')}</b>: {tr('joined NovaFides during the launch')}</li>}
           </ul>

@@ -1,6 +1,7 @@
 // Read model for public pages. Uses Supabase when keys are set, otherwise the demo data.
 import 'server-only';
 import { cache } from 'react';
+import { showDemo } from './demo-view';
 import { serviceById, type Tier, type Trade } from './catalog';
 import { atPacific, pacificParts } from './time';
 import { accentFromUniform, baseFor } from './colors';
@@ -74,6 +75,7 @@ export const listPros = cache(async (opts: { trade?: Trade | null; serviceId?: s
     if (error) throw error;
     const stats = await statsFor((data ?? []).map((p) => p.id));
     pros = (data ?? []).map((p) => mapPro(p, stats.get(p.id)));
+    if (!(await showDemo())) pros = pros.filter((p) => !p.isDemo);
   }
   return pros.filter((p) =>
     (!opts.trade || p.trade === opts.trade) &&

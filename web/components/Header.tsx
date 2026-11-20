@@ -55,7 +55,7 @@ export default async function Header() {
             <MoreMenu>
               <Link2 href="/companies">{t('Companies')}</Link2>
               <Link2 href="/online">● {t('Online now')}</Link2>
-              <Link2 href="/feed">{t('Feed')}</Link2>
+              <Link2 href="/feed">{t('Work & tips')}</Link2>
               <Link2 href="/questions">{t('Questions')}</Link2>
               <Link2 href="/photo">📷 {t('Search by photo')}</Link2>
               {!me?.pro && <Link2 href="/join">{t('For pros')}</Link2>}

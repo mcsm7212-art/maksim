@@ -15,7 +15,7 @@ const mapQ = (r: any): QuestionRow => ({ id: r.id, userId: r.user_id, name: r.au
 export async function listQuestions(opts: { trade?: string | null; mine?: boolean; unanswered?: boolean } = {}, limit = 40): Promise<QuestionRow[]> {
   if (!isLive()) return [];
   const sb = await supabaseServer();
-  let q = sb.from('questions').select('*, answers(count)').order('created_at', { ascending: false }).limit(limit);
+  let q = sb.from('questions').select('*, answers!answers_question_id_fkey(count)').order('created_at', { ascending: false }).limit(limit);
   if (opts.trade) q = q.eq('trade', opts.trade);
   if (opts.mine) { const me = await getMe(); if (!me) return []; q = q.eq('user_id', me.id); }
   const rows = ((await q).data ?? []).map(mapQ);

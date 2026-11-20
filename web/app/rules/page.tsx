@@ -20,7 +20,7 @@ export default async function Rules() {
         <li>{tr("Readers can mark a review as helpful.")}</li>
       </ul>
       <h3>{tr("Companies")}</h3><p className="mu">{tr("If you choose a technician, the company cannot replace them without your OK. If the office assigned the technician, it may change them and you get a notification.")}</p>
-      <h3>{tr("Handyman limits")}</h3><p className="mu">{tr("In California, handymen without a license may only take jobs under $1,000 total, without permits.")}</p>
+      <h3>{tr("Handyman limits")}</h3><p className="mu">{tr("In California, a person without a contractor license may only take jobs under $1,000 total (labor and materials), that need no building permit and with no hired workers. A bigger job cannot be split into small ones.")}</p>
       <h3>{tr("Prices for pros")}</h3><p className="mu">{tr("During the launch NovaFides is free for pros and clients. When a subscription for pros is introduced, we will announce it at least 30 days in advance by email and in every pro account, with the exact start date and price. Nothing is charged without that notice. Pros who joined during the launch are Founding Pros and keep special terms. For clients, searching and booking stay free.")}</p>
     </div></section>
   );

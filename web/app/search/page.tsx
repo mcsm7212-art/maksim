@@ -2,7 +2,9 @@ import Link from 'next/link';
 import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
 import { searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
-import { listPros } from '@/lib/data';
+import { listPros, openSlots } from '@/lib/data';
+import { getLoc } from '@/lib/loc';
+import { locCity, milesBetween } from '@/lib/areas';
 import { mySaves } from '@/lib/social';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
@@ -20,13 +22,16 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const guess = (!trade && matches[0]?.trade) as Trade | undefined;
   let pros = await listPros({ trade: trade ?? guess ?? null, serviceId: svc?.id });
   if (sp.online) pros = pros.filter((p) => p.online);
+  if (sp.today) pros = pros.filter((p) => openSlots(p, 1).length > 0);
+  const loc = await getLoc(sp.loc ?? null);
+  const dist = (p: { area: string; onlineArea?: string | null }) => (loc.city ? milesBetween(loc.city, locCity(p.onlineArea) ?? locCity(p.area)) ?? 60 : 0);
   // Handymen cannot take permit jobs or jobs over $1,000.
   if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman');
   // My pros: hidden ones are left out, saved ones come first.
   const saves = await mySaves();
   pros = pros.filter((p) => saves.get(p.id) !== 'hidden');
   const fav = (p: { id: string }) => Number(saves.get(p.id) === 'saved');
-  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.accepting) - Number(a.accepting) || Number(b.online) - Number(a.online) || (b.rankScore ?? b.rating ?? 0) - (a.rankScore ?? a.rating ?? 0));
+  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.accepting) - Number(a.accepting) || Number(b.online) - Number(a.online) || Math.min(Math.ceil(dist(a) / 8), 4) - Math.min(Math.ceil(dist(b) / 8), 4) || (b.rankScore ?? b.rating ?? 0) - (a.rankScore ?? a.rating ?? 0));
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
@@ -36,7 +41,10 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
     <section className="sec pad"><div className="in">
       <div className="eyebrow">{trade ? tr(TRADES[trade].name) : tr('All trades')}</div>
       <h2>{svc ? svcName(svc, lang) : sp.online ? tr('Online now') : tr('Find a pro')}</h2>
-      <SearchBox initial={svc ? svcName(svc, lang) : sp.q ?? ''} trade={trade} />
+      <div className="search-wide"><SearchBox initial={svc ? svcName(svc, lang) : sp.q ?? ''} trade={trade} loc={loc.text} /></div>
+      {loc.city && <p className="mu xs" style={{ marginTop: 8 }}>📍 {tr('Pros near {city} come first', { city: loc.city })}</p>}
+      {loc.text && !loc.city && <p className="mu xs" style={{ marginTop: 8 }}>📍 {tr('We could not find “{loc}”. Try a Bay Area city or a ZIP code.', { loc: loc.text })}</p>}
+      {sp.today && <p className="mu xs">{tr('Showing pros with open hours today by their schedule. The pro confirms the exact time.')}</p>}
 
       <div className="chips" style={{ marginTop: 16 }}>
         <Link className="chip" aria-pressed={!trade} href={link({ trade: null, svc: null })}>{tr('All')}</Link>

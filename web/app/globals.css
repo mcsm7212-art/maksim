@@ -657,3 +657,49 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .procta>div{display:flex;flex-direction:column;gap:6px;max-width:68ch}
 .procta b{font-size:19px}
 [data-theme="light"] .lu-fig img,[data-theme="light"] .fc-stage img{filter:drop-shadow(0 12px 16px rgba(60,40,20,.25))}
+
+/* ===== search: what + where + Find a pro + Photo in one bar ===== */
+.sbox{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;max-width:780px}
+.sbox:focus-within{border-color:color-mix(in srgb,var(--cu-l,#C08A62) 55%,var(--line))}
+.sbox>svg{position:static!important;flex:none;margin-left:8px;color:var(--mu)}
+.sbox .inp{flex:1 1 220px;min-width:0;border:0!important;background:transparent!important;padding:10px 6px!important;box-shadow:none!important;outline:none}
+.sbox-loc{display:flex;align-items:center;gap:5px;border-left:1px solid var(--line);padding:0 6px 0 10px;color:var(--mu);flex:0 1 170px;min-width:0}
+.sbox-loc svg{position:static!important;flex:none}
+.sbox-loc input{width:100%;min-width:0;background:transparent;border:0;color:var(--ink);font:inherit;font-size:15px;outline:none;padding:10px 0}
+.sbox .sbox-go{position:static!important;height:42px;flex:none;white-space:nowrap}
+.sbox .sbox-cam{position:static!important;width:auto;height:42px;padding:0 12px;gap:6px;display:flex;align-items:center;font-size:13px;flex:none}
+.sbox-only{max-width:780px;margin:8px 0 0;font-size:13.5px;color:var(--mu);display:flex;gap:6px;align-items:center}
+.sbox-only::before{content:"✓";color:var(--ok,#3FBF6B);font-weight:700}
+@media (max-width:620px){
+  .sbox{flex-wrap:wrap}
+  .sbox .inp{flex:1 1 calc(100% - 40px)}
+  .sbox-loc{border-left:0;border-top:1px solid var(--line);flex:1 1 100%;padding:2px 8px 0}
+  .sbox .sbox-go{flex:1 1 auto}
+}
+
+/* ===== home: compact urgent strip, Q&A with answers, recent work ===== */
+.urg2{padding:14px 18px;gap:14px;align-items:center}
+.urg2 .urg-txt{gap:4px}
+.urg-stats{display:flex;gap:8px 18px;flex-wrap:wrap;font-size:13.5px}
+.urg-stats a{color:var(--mu);text-decoration:none}
+.urg-stats a:hover{color:var(--ink)}
+.urg-stats b{color:var(--ink);margin-right:3px}
+.qa2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
+@media (max-width:760px){.qa2{grid-template-columns:1fr}}
+.qa2-card{padding:16px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--ink)}
+.qa2-ans{font-size:14px;line-height:1.5;color:var(--mu);border-left:2px solid var(--cu-l,#C08A62);padding-left:10px}
+.works2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.works2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.work2{padding:0 0 10px;display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--ink);overflow:hidden}
+.work2 img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;margin-bottom:6px}
+.work2>span{padding-inline:10px}
+/* search bar: what on the first row; where + Find a pro + Photo on the second (wide pages keep one row) */
+.sbox{flex-wrap:wrap}
+.sbox .inp{flex:1 1 calc(100% - 40px)}
+.sbox-loc{border-left:0;border-top:1px solid var(--line);flex:1 1 180px;padding:2px 8px 0}
+.search-wide .sbox{flex-wrap:nowrap}
+.search-wide .sbox .inp{flex:1 1 220px}
+.search-wide .sbox-loc{border-top:0;border-left:1px solid var(--line);flex:0 1 190px;padding:0 6px 0 10px}
+@media (max-width:620px){.search-wide .sbox{flex-wrap:wrap}.search-wide .sbox .inp{flex:1 1 calc(100% - 40px)}.search-wide .sbox-loc{border-left:0;border-top:1px solid var(--line);flex:1 1 100%;padding:2px 8px 0}}
+.figrow{grid-auto-columns:minmax(170px,200px);justify-content:start}
+@media (max-width:620px){.sbox-loc{flex:1 1 100%}.sbox .sbox-go{flex:1 1 auto}}

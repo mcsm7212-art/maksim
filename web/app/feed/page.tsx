@@ -6,7 +6,7 @@ import { getLang, getT } from '@/lib/i18n';
 import { feed, POST_TAGS } from '@/lib/social';
 import { isLive } from '@/lib/supabase/config';
 
-export const metadata = { title: 'Feed' };
+export const metadata = { title: 'Work & tips' };
 export const dynamic = 'force-dynamic';
 
 export default async function Feed({ searchParams }: { searchParams: Promise<{ tab?: string; tag?: string }> }) {
@@ -19,7 +19,7 @@ export default async function Feed({ searchParams }: { searchParams: Promise<{ t
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 680 }}>
       <div className="eyebrow">{tr('Real work from real pros')}</div>
-      <h2>{tr('Feed')}</h2>
+      <h2>{tr('Work & tips')}</h2>
       <div className="tabs-row">
         <Link className="chip" aria-pressed={tab === 'discover'} href="/feed">{tr('New')}</Link>
         {me && <Link className="chip" aria-pressed={tab === 'following'} href="/feed?tab=following">♥ {tr('My pros')}</Link>}
