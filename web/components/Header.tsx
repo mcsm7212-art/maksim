@@ -28,9 +28,7 @@ export default async function Header() {
           </Link>
           <nav className="nav" aria-label="Main">
             <NavLink href="/search">{t('Find a pro')}</NavLink>
-            <NavLink href="/companies">{t('Companies')}</NavLink>
             <NavLink href="/online">● {t('Online now')}</NavLink>
-            <NavLink href="/feed">{t('Feed')}</NavLink>
             <NavLink href="/questions">{t('Questions')}</NavLink>
             {!me && <NavLink href="/join">{t('For pros')}</NavLink>}
           </nav>

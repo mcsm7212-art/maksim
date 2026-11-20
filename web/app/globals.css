@@ -598,6 +598,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
   .grid4 .trade h3{font-size:16px;margin:0}
   .grid4 .trade > .mu.sm,.grid4 .trade > .xs{display:none}
   .grid4 .trade .ic{width:34px;height:34px}
+  .grid4 .trade{min-height:0;flex-direction:row;align-items:center;gap:10px}
   .hero{padding-block:22px 14px}
   .hero p{font-size:15px}
 }
@@ -612,3 +613,47 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .agree{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45}
 .agree input{margin-top:3px;flex:none;width:18px;height:18px}
 .canote{font-size:12.5px;line-height:1.5;border:1px solid rgba(214,160,60,.5);background:rgba(214,160,60,.08);border-radius:10px;padding:8px 12px}
+/* ===== header: fewer items; sound, theme and second-level links live under "⋯" on every screen ===== */
+.more{display:block}
+.hdr-me > .themebtn,.hdr-me > .soundbtn{display:none}
+.nav a{white-space:nowrap}
+
+/* ===== home: hero with a line-up of pros standing on one floor ===== */
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;align-items:end}
+.lineup{position:relative;height:440px;margin-bottom:40px}
+.lu-fig{position:absolute;bottom:34px;height:88%;display:block;text-decoration:none;color:var(--ink);transition:transform .25s ease,filter .25s ease}
+.lu-fig img{height:100%;width:auto;display:block;position:relative;z-index:1;filter:drop-shadow(0 18px 24px rgba(0,0,0,.45))}
+.lu-fig::before{content:"";position:absolute;inset:4% -28% 0;background:radial-gradient(50% 50% at 50% 50%,color-mix(in srgb,var(--acc) 48%,transparent),transparent 70%);z-index:0;transition:opacity .25s ease;opacity:.9}
+.lu-fig::after{content:"";position:absolute;left:12%;right:12%;bottom:-6px;height:16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.7),transparent);z-index:0}
+.lu-fig:hover{transform:translateY(-6px)}.lu-fig:hover::before{opacity:1}
+.lu-0{left:30%;z-index:3;height:94%}
+.lu-1{left:2%;z-index:2;bottom:44px;height:82%}
+.lu-2{right:0;z-index:2;bottom:44px;height:82%}
+.lu-tag{position:absolute;left:50%;bottom:-32px;transform:translateX(-50%);white-space:nowrap;font-size:12px;color:var(--mu);display:flex;gap:6px;align-items:baseline;z-index:2}
+.lu-tag b{color:var(--ink);font-size:13px}
+.lu-fig.lu-1 .lu-tag,.lu-fig.lu-2 .lu-tag{bottom:-42px}
+.lu-note{position:absolute;left:0;right:0;text-align:center;bottom:-66px;font-size:11px;letter-spacing:.08em;color:var(--mu2);text-transform:uppercase}
+.lu-floor{position:absolute;left:-6%;right:-6%;bottom:22px;height:60px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--cu-l,#C08A62) 55%,transparent) 50%,transparent) top/100% 1px no-repeat,
+    radial-gradient(60% 100% at 50% 0%,rgba(192,138,98,.14),transparent 70%)}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr}.lineup{display:none}}
+
+/* ===== home: how it works, pros row, pros call-to-action ===== */
+.steps3{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:st}
+.steps3 li{padding:18px;display:flex;flex-direction:column;gap:6px;position:relative;counter-increment:st}
+.steps3 li::after{content:counter(st);position:absolute;right:16px;top:12px;font-size:34px;font-weight:800;color:var(--line)}
+.steps3 .ic,.trust .ic,.procta .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--card2);color:var(--cu-l,#C08A62);margin-bottom:4px}
+@media (max-width:760px){.steps3{grid-template-columns:1fr}}
+.sec-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.figrow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.figcard{scroll-snap-align:start;padding:0 0 14px;display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--ink);overflow:hidden}
+.figcard>b,.figcard>span:not(.fc-stage){padding-inline:14px}
+.fc-stage{position:relative;height:230px;display:block;margin-bottom:8px;background:radial-gradient(55% 55% at 50% 55%,color-mix(in srgb,var(--acc) 28%,transparent),transparent 72%),linear-gradient(180deg,transparent 78%,rgba(255,255,255,.03));border-bottom:1px solid color-mix(in srgb,var(--acc) 35%,var(--line))}
+.fc-stage img{position:absolute;left:50%;bottom:6px;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 14px rgba(0,0,0,.45));transition:transform .25s ease}
+.figcard:hover .fc-stage img{transform:translateX(-50%) translateY(-4px) scale(1.02)}
+.trust div{padding:18px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.trust b{font-size:15.5px}
+.procta{margin-top:16px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:20px;border-color:color-mix(in srgb,var(--cu-l,#C08A62) 45%,var(--line))}
+.procta>div{display:flex;flex-direction:column;gap:6px;max-width:68ch}
+.procta b{font-size:19px}
+[data-theme="light"] .lu-fig img,[data-theme="light"] .fc-stage img{filter:drop-shadow(0 12px 16px rgba(60,40,20,.25))}
