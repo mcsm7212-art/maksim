@@ -95,7 +95,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   let watching = false;
   if (me && isLive()) {
     let q = (await supabaseServer()).from('saved_searches').select('id').eq('user_id', me.id);
-    q = trade ? q.eq('trade', trade) : q.is('trade', null); q = loc.city ? q.eq('city', loc.city) : q.is('city', null);
+    const wt = trade ?? guess ?? null; q = wt ? q.eq('trade', wt) : q.is('trade', null); q = loc.city ? q.eq('city', loc.city) : q.is('city', null);
     watching = Boolean((await q.limit(1)).data?.length);
   }
   const link = (patch: Record<string, string | null>) => {
@@ -142,9 +142,9 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
       </div>
       <p className="mu xs" style={{ marginTop: 14 }}>🤝 {tr('Pros never pay for a place in this list. The order depends only on what you choose above.')}</p>
       {isLive() && <form action={watching ? unsaveSearch : saveSearch} className="savesearch">
-        <input type="hidden" name="trade" value={trade ?? ''} /><input type="hidden" name="city" value={loc.city ?? ''} /><input type="hidden" name="back" value={link({})} />
+        <input type="hidden" name="trade" value={trade ?? guess ?? ''} /><input type="hidden" name="city" value={loc.city ?? ''} /><input type="hidden" name="back" value={link({})} />
         <button className="btn ghost sm">{watching ? `🔕 ${tr('Stop alerts about new pros')}` : `🔔 ${tr('Tell me when a new verified pro joins')}`}</button>
-        <span className="mu xs">{[trade ? tr(TRADES[trade].name) : tr('All trades'), loc.city].filter(Boolean).join(' · ')}</span>
+        <span className="mu xs">{[(trade ?? guess) ? tr(TRADES[(trade ?? guess) as Trade].name) : tr('All trades'), loc.city].filter(Boolean).join(' · ')}</span>
       </form>}
       <CompareBar label={tr('Compare')} />
     </div></section>
