@@ -236,6 +236,9 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/feed');await c.waitForSelector('.proj:has-text("New faucet in our kitchen")');
  await c.goto(B+'/'+sql("select slug from pros where id='"+maxId+"'"));await c.waitForSelector('.proj');
  step('client shared a project with photos → Max confirmed it was his job → it shows in the feed and on his page');
+ for(const u of ['/robots.txt','/sitemap.xml','/manifest.webmanifest','/services','/services/faucet-replacement','/near/redwood-city']){const r=await c.goto(B+u);if(r.status()!==200)throw new Error('page '+u+' '+r.status())}
+ await c.goto(B+'/max');if(!(await c.content()).includes('application/ld+json'))throw new Error('no structured data on pro page');
+ step('Google: robots, sitemap, app manifest, service and city pages, structured data on the pro page');
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

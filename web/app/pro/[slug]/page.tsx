@@ -20,6 +20,7 @@ import HelpfulButton from '@/components/HelpfulButton';
 import PeerPicks from '@/components/PeerPicks';
 import ProjectCard from '@/components/ProjectCard';
 import { listProjects } from '@/lib/projects';
+import { SITE } from '@/lib/seo';
 import { alsoChosen } from '@/lib/discovery';
 import PostCard from '@/components/PostCard';
 import { getMe } from '@/lib/auth';
@@ -32,8 +33,20 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<s
 
 export async function generateMetadata({ params }: Props) {
   const pro = await getPro((await params).slug);
-  return { title: pro ? `${pro.name} · ${TRADES[pro.trade].name}` : 'Pro not found' };
+  if (!pro) return { title: 'Pro not found', robots: { index: false } };
+  const trade = TRADES[pro.trade].name;
+  const rating = pro.reviewCount > 0 && pro.rating != null ? ` ★ ${pro.rating.toFixed(1)} (${pro.reviewCount} reviews).` : '';
+  const description = `${pro.name}: ${trade.toLowerCase()} pro${pro.area ? ` in ${pro.area}` : ''}, Bay Area.${rating} ${pro.bio.replace(/^TEST PROFILE[^.]*\.\s*/, '')}`.slice(0, 300);
+  const image = pro.figureUrl ?? pro.photoUrl;
+  return {
+    title: `${pro.name} · ${trade}${pro.area ? ` in ${pro.area}` : ''}`, description,
+    alternates: { canonical: `${SITE}/${pro.slug}` },
+    // Demo profiles are examples: never in Google.
+    robots: pro.isDemo ? { index: false, follow: false } : undefined,
+    openGraph: { type: 'profile', title: `${pro.name} · ${trade}`, description, url: `${SITE}/${pro.slug}`, images: image ? [{ url: image }] : undefined },
+  };
 }
+const LD_TYPE: Record<string, string> = { plumbing: 'Plumber', electrical: 'Electrician', handyman: 'HomeAndConstructionBusiness', construction: 'GeneralContractor' };
 
 const stars = (n: number) => <span className="stars">{'★'.repeat(Math.round(n))}<span className="mu2">{'★'.repeat(5 - Math.round(n))}</span></span>;
 
@@ -91,8 +104,17 @@ export default async function ProPage({ params, searchParams }: Props) {
     { key: 't', name: tr('Pricing transparency'), icon: 'tag', score: sk.pricing, desc: tr('The final bill matches the quote. No surprise fees.'), sample: tr('Rated {n} of 5', { n: sk.pricing.toFixed(1) }) },
   ] : [];
 
+  // Structured data for Google (not for demo profiles). Ratings only from counted reviews of finished jobs.
+  const ld = pro.isDemo ? null : {
+    '@context': 'https://schema.org', '@type': LD_TYPE[pro.trade] ?? 'HomeAndConstructionBusiness', name: pro.name, url: `${SITE}/${pro.slug}`,
+    image: pro.photoUrl ? new URL(pro.photoUrl, SITE).toString() : undefined, description: pro.bio || undefined,
+    areaServed: pro.area ? { '@type': 'City', name: pro.area } : 'San Francisco Bay Area', knowsLanguage: pro.languages.length ? pro.languages : undefined,
+    aggregateRating: pro.reviewCount > 0 && pro.rating != null ? { '@type': 'AggregateRating', ratingValue: pro.rating.toFixed(1), reviewCount: pro.reviewCount, bestRating: 5, worstRating: 1 } : undefined,
+    hasCredential: pro.verified.license && pro.license ? { '@type': 'EducationalOccupationalCredential', credentialCategory: 'license', name: `CSLB license ${pro.license}` } : undefined,
+  };
   return (
     <div className={`themed ${theme === 'light' ? 'light' : pro.base} has-sticky`} style={{ ['--acc' as string]: pro.accent }}>
+      {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, '\\u003c') }} />}
       <div className="pad"><div className="in" style={{ maxWidth: 1040, paddingBottom: 40 }}>
 
         {pro.isDemo && <div className="note demo-note" style={{ marginTop: 12 }}>🧪 <b>{tr('Demo profile')}</b> · {tr('This is an example profile. It shows how NovaFides works; requests cannot be sent to it.')} <Link href="/search">{tr('Find a pro')}</Link></div>}

@@ -117,7 +117,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         {(Object.keys(TRADES) as Trade[]).map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={link({ trade: t, svc: null })}>{tr(TRADES[t].name)}</Link>)}
         <Link className="chip" aria-pressed={Boolean(sp.online)} href={link({ online: sp.online ? null : '1' })}>● {tr('Online now')}</Link>
       </div>
-      {svc && <p className="mu sm" style={{ marginTop: 12 }}>{tr('Bay Area typical price: {lo}–{hi}.', { lo: usd(svc.lo), hi: usd(svc.hi) })} {svc.permit && tr('Permit usually required.')}</p>}
+      {svc && <p className="mu sm" style={{ marginTop: 12 }}>{tr('Bay Area typical price: {lo}–{hi}.', { lo: usd(svc.lo), hi: usd(svc.hi) })} {svc.permit && tr('Permit usually required.')} <Link href={`/services/${svc.id}`}>{tr('What changes the price')} →</Link></p>}
 
       {matches.length > 0 && <div className="card" style={{ marginTop: 18, padding: 16 }}>
         <b>{tr('What needs doing?')}</b>

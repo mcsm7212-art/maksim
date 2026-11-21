@@ -7,12 +7,18 @@ import { getTheme } from '@/lib/theme';
 import BottomNav from '@/components/BottomNav';
 import { getMe } from '@/lib/auth';
 import { actionCount } from '@/lib/order-count';
+import { SITE } from '@/lib/seo';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'NovaFides Marketplace', template: '%s · NovaFides' },
-  description: 'Book a verified plumber, electrician or handyman in the Bay Area. You choose one pro. No lead selling.',
-  icons: { icon: '/emblem.png' },
+  metadataBase: new URL(SITE),
+  title: { default: 'NovaFides Marketplace · Pick your pro in the Bay Area', template: '%s · NovaFides' },
+  description: 'Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.',
+  applicationName: 'NovaFides',
+  icons: { icon: [{ url: '/emblem.png' }, { url: '/icon-192.png', sizes: '192x192' }], apple: '/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'NovaFides', statusBarStyle: 'black-translucent' },
+  openGraph: { type: 'website', siteName: 'NovaFides Marketplace', images: [{ url: '/og.png', width: 1200, height: 630, alt: 'NovaFides: pick your pro, not a lead auction' }] },
+  twitter: { card: 'summary_large_image', images: ['/og.png'] },
 };
 export const viewport: Viewport = { themeColor: '#0C0C0E', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
@@ -33,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="wrap">{children}</main>
         <footer className="ft pad"><div className="in" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <span>© {new Date().getFullYear()} NovaFides Marketplace · Bay Area</span>
-          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link><Link href="/terms">{t('Terms')}</Link><Link href="/privacy">{t('Privacy')}</Link></span>
+          <span style={{ display: 'flex', gap: 14 }}><Link href="/join">{t('For pros & companies')}</Link><Link href="/services">{t('Services & prices')}</Link><Link href="/rules">{t('Rules & reviews policy')}</Link><Link href="/terms">{t('Terms')}</Link><Link href="/privacy">{t('Privacy')}</Link></span>
         </div></footer>
         <BottomNav signedIn={Boolean(me)} act={act} />
         </I18nProvider>

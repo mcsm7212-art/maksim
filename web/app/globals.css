@@ -735,3 +735,9 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .pc-wrap{display:flex;flex-direction:column;gap:4px}
 .pc-wrap .cmp-t{position:static;align-self:flex-end;margin-right:6px}
 .cmp-space{height:70px}
+
+/* ===== services and city pages ===== */
+.svc-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.svc-group{padding:14px 16px}
+.svc-group ul{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.svc-price{padding:18px;display:flex;flex-direction:column;gap:12px;margin-top:6px}
