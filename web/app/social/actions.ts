@@ -93,3 +93,18 @@ export async function togglePin(f: FormData) {
   refresh('/feed', `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
   if (error?.message.includes('pin limit')) redirect(`/pro/${me.pro.slug}?pin=limit`);
 }
+
+// "Tell me when a new verified pro joins" for a trade and city.
+export async function saveSearch(f: FormData) {
+  const back = String(f.get('back') ?? '/search'); const me = await signedIn(back); if (!me) return;
+  const trade = String(f.get('trade') ?? '') || null; const city = String(f.get('city') ?? '').slice(0, 60) || null;
+  await (await supabaseServer()).from('saved_searches').insert({ user_id: me.id, trade, city });
+  revalidatePath('/search');
+}
+export async function unsaveSearch(f: FormData) {
+  const back = String(f.get('back') ?? '/search'); const me = await signedIn(back); if (!me) return;
+  const trade = String(f.get('trade') ?? '') || null; const city = String(f.get('city') ?? '').slice(0, 60) || null;
+  let q = (await supabaseServer()).from('saved_searches').delete().eq('user_id', me.id);
+  q = trade ? q.eq('trade', trade) : q.is('trade', null); q = city ? q.eq('city', city) : q.is('city', null);
+  await q; revalidatePath('/search');
+}

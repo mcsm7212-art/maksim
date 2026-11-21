@@ -50,6 +50,7 @@ export default async function MyHome() {
               {ph.length > 0 && <div className="jobstrip">{ph.slice(0, 4).map((x: any) => <a key={x.url} href={x.url} target="_blank" rel="noreferrer"><img src={x.url} alt={x.kind} /></a>)}</div>}
               <div className="chips">
                 {p && <Link className="btn sm" href={`/book?pro=${p.slug}${j.service_id ? `&svc=${j.service_id}` : ''}`}>{tr('Call again')}</Link>}
+                {p && <Link className="btn ghost sm" href={`/projects/new?pro=${p.id}`}>📸 {tr('Share a project')}</Link>}
                 <Link className="btn ghost sm" href={`/orders/${j.id}`}>{tr('Order details')}</Link>
                 {inv && <Link className="btn ghost sm" href={`/invoice/${inv.id}`}>🧾 {tr('Invoice')} {inv.number}</Link>}
                 {p && <ShareLink url={`/${p.slug}`} title={p.display_name} />}

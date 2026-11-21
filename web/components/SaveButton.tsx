@@ -24,7 +24,7 @@ export default function SaveButton({ proId, initial, count, compact }: { proId: 
   return (
     <span className="chips" style={{ alignItems: 'center' }}>
       <button type="button" className={`btn sm ${status === 'saved' ? '' : 'ghost'}`} disabled={pending} aria-pressed={status === 'saved'} onClick={() => apply(status === 'saved' ? '' : 'saved')}>
-        {status === 'saved' ? '♥' : '♡'} {t(status === 'saved' ? 'Saved' : 'Save')}{n > 0 && !compact ? ` · ${n}` : ''}
+        {status === 'saved' ? '♥' : '♡'} {t(status === 'saved' ? 'Following' : 'Save & follow')}{n > 0 && !compact ? ` · ${n}` : ''}
       </button>
       {!compact && status !== 'saved' && <button type="button" className="btn ghost sm" disabled={pending} onClick={() => apply('hidden')} title={t('Do not show this pro in my search')}>{t('Hide')}</button>}
       {msg && <span className="err xs">{msg}</span>}

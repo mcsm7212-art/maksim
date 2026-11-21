@@ -552,4 +552,36 @@ select pg_temp.act(null);
 do $$ begin perform public.accept_terms('2026-11-19'); raise exception 'FAIL: anon accepted';
   exception when insufficient_privilege then null; when others then if sqlerrm not like 'sign in first%' then raise; end if; end $$;
 select pg_temp.ok(true, 'visitors cannot call accept_terms');
+-- 25) discovery: similar clients, saved searches, client projects confirmed by the pro, client card
+select pg_temp.act(null); reset role;
+update public.pros set trade = 'electrical' where id = '00000000-0000-0000-0000-0000000000b3';
+select pg_temp.act('00000000-0000-0000-0000-0000000000e7');
+select pg_temp.ok((select count(*) from public.similar_picks('electrical') where pro_id = '00000000-0000-0000-0000-0000000000b3' and n >= 3) = 1,
+  'clients who like the same plumber as me lead to an electrician they like (3+ clients agree)');
+select pg_temp.act('00000000-0000-0000-0000-0000000000e5');
+select pg_temp.ok((select count(*) from public.similar_picks(null)) = 0, 'no picks without my own likes');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.also_chosen('00000000-0000-0000-0000-0000000000b1')) = 2, 'a pro page shows what their clients also choose');
+do $$ begin perform * from public.client_likes(); raise exception 'FAIL: likes are public';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'who likes whom stays private');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+insert into public.saved_searches (trade, city) values ('plumbing', 'San Mateo');
+select pg_temp.act(null); reset role;
+insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-0000000000b9','b9@x','{"role":"pro"}');
+insert into public.pros (id, slug, display_name, trade, area, status) values ('00000000-0000-0000-0000-0000000000b9', 'new-sm', 'New Pro', 'plumbing', 'San Mateo', 'verified');
+select pg_temp.ok((select count(*) from public.notifications where user_id = '00000000-0000-0000-0000-0000000000c1' and body like 'New verified pro on NovaFides: New Pro.') = 1,
+  'a saved search tells the client about a new verified pro in their city');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+insert into public.client_projects (id, client_id, pro_id, body, photos, status) values ('92000000-0000-0000-0000-000000000001', auth.uid(), '00000000-0000-0000-0000-0000000000a1', 'New kitchen faucet', array['https://x/p.jpg'], 'confirmed');
+select pg_temp.ok((select status from public.client_projects where id = '92000000-0000-0000-0000-000000000001') = 'pending', 'a client project starts as pending');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.client_projects) = 0, 'a pending project is not public');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+do $$ begin insert into public.client_projects (client_id, pro_id, photos) values (auth.uid(), '00000000-0000-0000-0000-0000000000b1', array['x']); raise exception 'FAIL: pro posted a client project';
+  exception when others then if sqlerrm not like 'only clients%' then raise; end if; end $$;
+select public.decide_project('92000000-0000-0000-0000-000000000001', true);
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.client_projects where status = 'confirmed') = 1, 'after the pro confirms, the project is public');
+select pg_temp.ok((select projects = 1 and not is_pro from public.client_card('00000000-0000-0000-0000-0000000000c1')), 'the client card shows confirmed projects');
 \echo ALL RULE TESTS PASSED

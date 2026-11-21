@@ -43,7 +43,7 @@ export default async function Header() {
               { href: '/my-home', text: '🏠 ' + t('My home') },
               { href: '/orders', text: t('Orders') },
               { href: '/messages', text: t('Messages') },
-              ...(me.pro ? [{ href: '/lounge', text: t('Pro Lounge') }, { href: '/account/work', text: t('Work & chat settings') }] : []),
+              ...(me.pro ? [{ href: '/lounge', text: t('Pro Lounge') }, { href: '/account/projects', text: '📸 ' + t('Client projects') }, { href: '/account/work', text: t('Work & chat settings') }] : [{ href: `/client/${me.id}`, text: '📸 ' + t('My projects') }]),
               { href: '/neighbors', text: t('Neighbors') },
               ...(me.companies.some((c) => c.role !== 'technician') ? [{ href: '/business', text: t('Business') }] : []),
               ...(me.role === 'admin' ? [{ href: '/admin', text: 'Admin' }] : []),

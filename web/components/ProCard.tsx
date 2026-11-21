@@ -13,7 +13,7 @@ export function priceFor(pro: Pro, serviceId: string, _tier?: unknown): number |
   return roundPrice(own ?? marketMid(s));
 }
 
-export default async function ProCard({ pro, serviceId, saved }: { pro: Pro; serviceId?: string | null; tier?: unknown; saved?: boolean }) {
+export default async function ProCard({ pro, serviceId, saved, reasons }: { pro: Pro; serviceId?: string | null; tier?: unknown; saved?: boolean; reasons?: string[] }) {
   const lang = await getLang(); const tr = makeT(lang);
   const price = serviceId ? priceFor(pro, serviceId) : null;
   const from = pro.services.length ? Math.min(...pro.services.map((s) => priceFor(pro, s.id) ?? 1e9)) : null;
@@ -34,6 +34,7 @@ export default async function ProCard({ pro, serviceId, saved }: { pro: Pro; ser
           {pro.founding && <span className="badge cu">★ {tr('Founding Pro')}</span>}
           {pro.photos.length > 0 && <span className="badge n">{tr('{n} work photos', { n: pro.photos.length })}</span>}
         </span>
+        {reasons && reasons.length > 0 && <span className="why xs">{reasons.map((r) => <span key={r}>{r}</span>)}</span>}
       </span>
       <span className="side">
         {price != null ? <><span className="mu xs">{svcName(serviceById(serviceId!), lang)}</span><span className="price">≈ {usd(price)}</span></>

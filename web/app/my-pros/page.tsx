@@ -7,6 +7,9 @@ import { serviceById, TRADES, type Trade } from '@/lib/catalog';
 import { getLang, getT } from '@/lib/i18n';
 import { svcName } from '@/lib/i18n-core';
 import { mySaves } from '@/lib/social';
+import PeerPicks from '@/components/PeerPicks';
+import { similarPicks } from '@/lib/discovery';
+import { listPros } from '@/lib/data';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel } from '@/lib/time';
@@ -39,6 +42,8 @@ export default async function MyPros() {
   const saved = all.filter((r) => r.status === 'saved').sort((a, b) => a.trade.localeCompare(b.trade));
   const history = all.filter((r) => !r.status);
   const hidden = all.filter((r) => r.status === 'hidden');
+  const simMap = await similarPicks(null, 8);
+  const simPros = simMap.size ? (await listPros()).filter((p) => simMap.has(p.id)).sort((a, b) => (simMap.get(b.id) ?? 0) - (simMap.get(a.id) ?? 0)) : [];
 
   const Card = ({ r }: { r: Row }) => (
     <div className="card bk" style={{ ['--acc' as string]: r.accent }}>
@@ -60,6 +65,7 @@ export default async function MyPros() {
       <h3>{tr('Saved')} <span className="mu sm">({saved.length})</span></h3>
       <div className="list">{saved.map((r) => <Card key={r.id} r={r} />)}
         {!saved.length && <div className="card empty">{tr('Tap ♡ Save on a pro’s page: they appear here first, their new work shows in your feed, and they come first in your search.')}</div>}</div>
+      <PeerPicks pros={simPros} counts={simMap} title={tr('You may also like')} note={tr('Pros that clients with picks like yours are happy with, in any trade. Shown only when at least 3 clients agree; nobody sees who.')} />
       {history.length > 0 && <><h3 style={{ marginTop: 26 }}>{tr('Pros you booked')}</h3><div className="list">{history.map((r) => <Card key={r.id} r={r} />)}</div></>}
       {hidden.length > 0 && <><h3 style={{ marginTop: 26 }}>{tr('Hidden')}</h3><p className="mu xs">{tr('These pros do not appear in your search.')}</p><div className="list">{hidden.map((r) => <Card key={r.id} r={r} />)}</div></>}
     </div></section>

@@ -7,12 +7,14 @@ const CASES: [string, string][] = [
   ['slow drain in shower', 'sink-tub-or-shower-drain-clearing'], ['replace outlet', 'outlet-replacement'], ['outlet sparks', 'sparking-outlet-or-burning-smell'], ['breaker keeps tripping', 'troubleshooting-tripping-breaker-partial-outage'],
   ['install ceiling fan', 'ceiling-fan-installation'], ['tesla charger', 'level-2-ev-charger-installation'], ['mount tv', 'tv-wall-mounting'], ['ikea assembly', 'furniture-assembly'],
   ['hole in wall', 'drywall-patch-and-repair'], ['door does not close', 'door-repair-and-adjustment'], ['gas smell', 'gas-leak-detection-and-repair'], ['kitchen remodel', 'kitchen-remodel'],
+  ['replace main water line', 'water-service-line-replacement-meter-to-house'], ['water line from meter to house', 'water-service-line-replacement-meter-to-house'],
   // Russian
   ['течёт под раковиной', 'under-sink-leak-repair'], ['течёт смеситель', 'faucet-replacement'], ['смеситель', 'faucet-replacement'], ['заменить кран на кухне', 'faucet-replacement'],
   ['засор унитаза', 'clogged-toilet'], ['забилась раковина', 'sink-tub-or-shower-drain-clearing'], ['бачок постоянно течёт', 'running-toilet-repair'], ['бойлер не греет', 'water-heater-repair'],
   ['нет горячей воды', 'water-heater-repair'], ['прорвало трубу', 'burst-pipe-emergency'], ['искрит розетка', 'sparking-outlet-or-burning-smell'], ['поменять розетку', 'outlet-replacement'],
   ['выбивает автомат', 'troubleshooting-tripping-breaker-partial-outage'], ['нет света', 'troubleshooting-tripping-breaker-partial-outage'], ['повесить телевизор', 'tv-wall-mounting'], ['собрать шкаф', 'bed-or-wardrobe-assembly'],
   ['дырка в стене', 'drywall-patch-and-repair'], ['зарядка для теслы', 'level-2-ev-charger-installation'], ['пахнет газом', 'gas-leak-detection-and-repair'], ['ремонт ванной под ключ', 'bathroom-remodel'],
+  ['замена трубы от счётчика до дома', 'water-service-line-replacement-meter-to-house'], ['мейн лайн воды', 'water-service-line-replacement-meter-to-house'],
   // Spanish
   ['fuga debajo del fregadero', 'under-sink-leak-repair'], ['gotea la llave', 'faucet-replacement'], ['cambiar grifo', 'faucet-replacement'], ['inodoro tapado', 'clogged-toilet'],
   ['el inodoro no para', 'running-toilet-repair'], ['no hay agua caliente', 'water-heater-repair'], ['calentador gotea', 'water-heater-repair'], ['tubo reventado', 'burst-pipe-emergency'],

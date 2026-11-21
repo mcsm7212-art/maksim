@@ -1,5 +1,14 @@
 import Link from 'next/link';
-import ProCard from '@/components/ProCard';
+import { cookies } from 'next/headers';
+import ProCard, { priceFor } from '@/components/ProCard';
+import SearchControls from '@/components/SearchControls';
+import CompareToggle, { CompareBar } from '@/components/CompareToggle';
+import { saveSearch, unsaveSearch } from '@/app/social/actions';
+import { getMe } from '@/lib/auth';
+import { similarPicks, FILTERS, SORTS, type Sort } from '@/lib/discovery';
+import { pacificParts, slotLabel } from '@/lib/time';
+import { isLive } from '@/lib/supabase/config';
+import { supabaseServer } from '@/lib/supabase/server';
 import SearchBox from '@/components/SearchBox';
 import { searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
@@ -22,16 +31,73 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const guess = (!trade && matches[0]?.trade) as Trade | undefined;
   let pros = await listPros({ trade: trade ?? guess ?? null, serviceId: svc?.id });
   if (sp.online) pros = pros.filter((p) => p.online);
-  if (sp.today) pros = pros.filter((p) => openSlots(p, 1).length > 0);
+  if (sp.today && !sp.f) sp.f = 'today';
   const loc = await getLoc(sp.loc ?? null);
-  const dist = (p: { area: string; onlineArea?: string | null }) => (loc.city ? milesBetween(loc.city, locCity(p.onlineArea) ?? locCity(p.area)) ?? 60 : 0);
+  // Sort and filters: from the address, or the visitor's last choice (remembered in a cookie).
+  let pick = { sort: sp.sort, f: sp.f, lang: sp.lang, max: sp.max };
+  if (!sp.sf && !sp.sort && !sp.f && !sp.lang && !sp.max) {
+    const saved = new URLSearchParams(decodeURIComponent((await cookies()).get('nf_sf')?.value ?? ''));
+    pick = { sort: saved.get('sort') ?? undefined, f: saved.get('f') ?? undefined, lang: saved.get('lang') ?? undefined, max: saved.get('max') ?? undefined };
+  }
+  const sort: Sort = (SORTS as readonly string[]).includes(pick.sort ?? '') ? (pick.sort as Sort) : 'best';
+  const filters = (pick.f ?? '').split(',').filter((x) => (FILTERS as readonly string[]).includes(x));
+  const max = Number(pick.max) > 0 ? Number(pick.max) : null;
   // Handymen cannot take permit jobs or jobs over $1,000.
   if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman');
   // My pros: hidden ones are left out, saved ones come first.
   const saves = await mySaves();
   pros = pros.filter((p) => saves.get(p.id) !== 'hidden');
-  const fav = (p: { id: string }) => Number(saves.get(p.id) === 'saved');
-  pros = [...pros].sort((a, b) => fav(b) - fav(a) || Number(b.accepting) - Number(a.accepting) || Number(b.online) - Number(a.online) || Math.min(Math.ceil(dist(a) / 8), 4) - Math.min(Math.ceil(dist(b) / 8), 4) || (b.rankScore ?? b.rating ?? 0) - (a.rankScore ?? a.rating ?? 0));
+  const me = await getMe();
+  const sim = me ? await similarPicks(trade ?? guess ?? null, 24) : new Map<string, number>();
+  const today = pacificParts(new Date());
+  const dayOff = (iso: string) => { const p = pacificParts(new Date(iso)); return Math.round((Date.UTC(p.y, p.m - 1, p.d) - Date.UTC(today.y, today.m - 1, today.d)) / 864e5); };
+  type Row = { p: (typeof pros)[number]; d: number | null; next: string | null; slots: string[]; price: number | null; jobs: number; sim: number; fav: number };
+  const fromPrice = (p: (typeof pros)[number]) => { const v = p.services.map((x) => priceFor(p, x.id) ?? 1e9); return v.length ? Math.min(...v) : null; };
+  let rows: Row[] = pros.map((p) => {
+    const slots = openSlots(p, 7);
+    return { p, slots, next: slots[0] ?? null, d: loc.city ? milesBetween(loc.city, locCity(p.onlineArea) ?? locCity(p.area)) : null,
+      price: svc ? priceFor(p, svc.id) : fromPrice(p), jobs: svc ? (p.services.find((x) => x.id === svc.id)?.jobs ?? 0) : p.jobs,
+      sim: sim.get(p.id) ?? 0, fav: Number(saves.get(p.id) === 'saved') };
+  });
+  const has = (f: string) => filters.includes(f);
+  rows = rows.filter(({ p, slots, price, fav }) =>
+    (!has('today') || slots.some((x) => dayOff(x) === 0)) && (!has('tomorrow') || slots.some((x) => dayOff(x) === 1)) &&
+    (!has('weekend') || slots.some((x) => [0, 6].includes(pacificParts(new Date(x)).weekday))) && (!has('urgent') || p.urgent) &&
+    (!has('lic') || p.verified.license) && (!has('id') || p.verified.id) && (!has('ins') || p.verified.insured) &&
+    (!has('solo') || !p.company) && (!has('co') || Boolean(p.company)) && (!has('r45') || (p.reviewCount > 0 && (p.rating ?? 0) >= 4.5)) &&
+    (!has('photos') || p.photos.length > 0) && (!has('mine') || fav === 1) && (!pick.lang || p.languages.includes(pick.lang)) && (!max || (price != null && price <= max)));
+  const by = (f: (r: Row) => number | null, asc = true) => (a: Row, b: Row) => {
+    const x = f(a), y = f(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return asc ? x - y : y - x;
+  };
+  const score = (r: Row) => r.fav * 100 + Number(r.p.accepting) * 20 + Math.min(r.sim, 10) * 2 + ((r.p.rankScore ?? 4.2) - 4.2) * 15
+    + (r.d != null ? Math.max(0, 10 - r.d / 3) : 0) + (r.next && dayOff(r.next) <= 1 ? 5 : 0) + Number(r.p.online) * 3;
+  const order: Record<Sort, (a: Row, b: Row) => number> = {
+    best: by(score, false), rating: by((r) => r.p.rankScore ?? r.p.rating, false), near: by((r) => r.d), similar: (a, b) => b.sim - a.sim || by(score, false)(a, b),
+    soon: by((r) => (r.next ? Date.parse(r.next) : null)), price: by((r) => r.price), fast: by((r) => r.p.responseMin), jobs: by((r) => r.jobs, false),
+  };
+  rows = [...rows].sort((a, b) => b.fav - a.fav || Number(b.p.accepting) - Number(a.p.accepting) || order[sort](a, b));
+  if (sort !== 'best') rows = [...rows].sort((a, b) => Number(b.p.accepting) - Number(a.p.accepting) || order[sort](a, b));
+  // Why each pro is here: two short reasons, the chosen order first.
+  const why = (r: Row) => {
+    const out: string[] = [];
+    const near = r.d != null && r.d <= 30 ? (r.d < 1 ? tr('📍 In your city') : tr('📍 {n} mi from you', { n: r.d })) : null;
+    const simT = r.sim ? tr('👥 Liked by {n} clients with picks like yours', { n: r.sim }) : null;
+    const soon = r.next ? `📅 ${tr('Free')} ${slotLabel(r.next, tr).join(' ')}` : null;
+    const fast = r.p.responseMin ? tr('⏱ Usually replies in ~{n} min', { n: r.p.responseMin }) : null;
+    const jobs = r.jobs > 0 ? tr(svc ? '🔧 {n} such jobs on NovaFides' : '🔧 {n} jobs on NovaFides', { n: r.jobs }) : null;
+    const first = { near, similar: simT, soon, fast, jobs, best: null, rating: null, price: null }[sort];
+    for (const x of [first, simT, near, soon, jobs, fast]) if (x && !out.includes(x) && out.length < 2) out.push(x);
+    return out;
+  };
+  pros = rows.map((r) => r.p);
+  const langs = [...new Set(rows.length ? pros.flatMap((p) => p.languages) : [])].sort();
+  // Saved search ("tell me about new pros") for this trade and city.
+  let watching = false;
+  if (me && isLive()) {
+    let q = (await supabaseServer()).from('saved_searches').select('id').eq('user_id', me.id);
+    q = trade ? q.eq('trade', trade) : q.is('trade', null); q = loc.city ? q.eq('city', loc.city) : q.is('city', null);
+    watching = Boolean((await q.limit(1)).data?.length);
+  }
   const link = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
@@ -65,10 +131,22 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         <div className="chips"><Link className="btn sm" href={`/ask?${new URLSearchParams({ ...(trade ? { trade } : {}), q: sp.q })}`}>{tr('Describe the problem')}</Link><Link className="btn ghost sm" href="/questions">{tr('Ask the pros')}</Link></div>
       </div>}
 
-      <div className="list" style={{ marginTop: 22 }}>
-        {pros.map((p) => <ProCard key={p.id} pro={p} serviceId={svc?.id} saved={saves.get(p.id) === 'saved'} />)}
-        {!pros.length && <div className="card empty">{tr('No pros match yet.')} <Link href="/ask">{tr('Describe your job')}</Link> {tr('and we will find someone.')}</div>}
+      <SearchControls sort={sort} filters={filters} langs={langs} lang={pick.lang ?? ''} max={pick.max ?? ''} hasPrice={Boolean(svc)} />
+      <div className="list" style={{ marginTop: 14 }}>
+        {rows.map((r) => (
+          <div key={r.p.id} className="pc-wrap">
+            <ProCard pro={r.p} serviceId={svc?.id} saved={r.fav === 1} reasons={why(r)} />
+            {!r.p.isDemo && <CompareToggle slug={r.p.slug} name={r.p.name} />}
+          </div>))}
+        {!rows.length && <div className="card empty">{filters.length || pick.lang || max ? <>{tr('No pros match these filters.')} <Link href={link({ f: null, lang: null, max: null, sf: '1' })}>{tr('Clear filters')}</Link></> : <>{tr('No pros match yet.')} <Link href="/ask">{tr('Describe your job')}</Link> {tr('and we will find someone.')}</>}</div>}
       </div>
+      <p className="mu xs" style={{ marginTop: 14 }}>🤝 {tr('Pros never pay for a place in this list. The order depends only on what you choose above.')}</p>
+      {isLive() && <form action={watching ? unsaveSearch : saveSearch} className="savesearch">
+        <input type="hidden" name="trade" value={trade ?? ''} /><input type="hidden" name="city" value={loc.city ?? ''} /><input type="hidden" name="back" value={link({})} />
+        <button className="btn ghost sm">{watching ? `🔕 ${tr('Stop alerts about new pros')}` : `🔔 ${tr('Tell me when a new verified pro joins')}`}</button>
+        <span className="mu xs">{[trade ? tr(TRADES[trade].name) : tr('All trades'), loc.city].filter(Boolean).join(' · ')}</span>
+      </form>}
+      <CompareBar label={tr('Compare')} />
     </div></section>
   );
 }

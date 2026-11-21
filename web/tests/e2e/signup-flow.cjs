@@ -113,7 +113,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  step('business card: short address /max, old address redirects, QR, vCard (no private phone), print sheet of 10');await c.screenshot({path:D+'e_pro2.png',fullPage:true});
  // social: save, hide, my pros, posts, likes, recommendations, popular
  const tom=sql("select slug from pros where display_name='Tom Tech'");
- await c.goto(B+'/max');await c.click('button[aria-pressed=false]:has-text("Save")');await c.waitForSelector('button[aria-pressed=true]:has-text("Saved")');
+ await c.goto(B+'/max');await c.click('button[aria-pressed=false]:has-text("Save")');await c.waitForSelector('button[aria-pressed=true]:has-text("Following")');
  if(sql("select count(*) from pro_saves where status='saved'")!=='1')throw new Error('save not stored');
  await c.goto(B+'/pro/'+tom);await c.click('button:has-text("Hide")');await c.waitForSelector('text=Hidden from your search');
  await c.goto(B+'/search?svc=faucet-replacement');const sr=await c.textContent('main');if(sr.includes('Tom Tech')||!sr.includes('Max Solo')||!sr.includes('My pro'))throw new Error('search did not hide/flag pros');
@@ -218,6 +218,24 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  const tr=await c.goto(B+'/search?today=1');if(tr.status()!==200)throw new Error('today filter');
  await c.goto(B+'/');await c.waitForSelector('.qa2-card');await c.goto(B+'/questions');await c.waitForSelector('a[href^="/questions/"] .qcount, a[href^="/questions/"]');
  step('search with a ZIP: pros near Redwood City first, the place is remembered; open-hours-today filter');
+ // sort + filters are remembered; compare; saved search; client project confirmed by the pro
+ await c.goto(B+'/search?sf=1');await c.selectOption('.sctl-sort select','rating');await c.waitForURL(/sort=rating/);
+ await c.click('.sctl-f > summary');await c.click('.sctl-f .chip >> nth=4');await c.waitForURL(/f=lic/);
+ await c.goto(B+'/search');if((await c.inputValue('.sctl-sort select'))!=='rating')throw new Error('sort not remembered');
+ await a.goto(B+'/search?sf=1');await a.waitForSelector('.cmp-t');if(await a.locator('.cmp-t input').count()<2)throw new Error('need 2 pros to compare');
+ await a.check('.cmp-t input >> nth=0');await a.check('.cmp-t input >> nth=1');await a.click('.cmp-bar a.btn');await a.waitForURL(/\/compare\?p=/);await a.waitForSelector('.cmp-table');
+ await a.evaluate(()=>localStorage.removeItem('nf_cmp'));
+ await c.goto(B+'/search?trade=plumbing&sf=1');await c.click('.savesearch button');await c.waitForSelector('.savesearch:has-text("Stop alerts")');
+ if(sql("select count(*) from saved_searches")!=='1')throw new Error('saved search not stored');
+ step('search: sort and filters remembered, 2 pros compared side by side, alert about new plumbers saved');
+ const maxId=sql("select id from pros where display_name='Max Solo'");
+ await c.goto(B+'/projects/new?pro='+maxId);await c.setInputFiles('.drop input >> nth=0',IMG('w2'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});
+ await c.fill('textarea[name=body]','New faucet in our kitchen, done in an hour.');await c.click('button:has-text("Send to the pro")');await c.waitForURL(/\/client\/.*sent=1/);
+ await s.goto(B+'/account/projects');await s.click('button.confirm-proj');await s.waitForTimeout(1000);
+ if(sql("select status from client_projects")!=='confirmed')throw new Error('project not confirmed');
+ await c.goto(B+'/feed');await c.waitForSelector('.proj:has-text("New faucet in our kitchen")');
+ await c.goto(B+'/'+sql("select slug from pros where id='"+maxId+"'"));await c.waitForSelector('.proj');
+ step('client shared a project with photos → Max confirmed it was his job → it shows in the feed and on his page');
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

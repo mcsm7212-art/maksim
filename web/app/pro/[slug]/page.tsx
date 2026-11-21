@@ -7,7 +7,7 @@ import SkillPassport, { type SkillRow } from '@/components/SkillPassport';
 import WorkPhotos from '@/components/WorkPhotos';
 import { startChat } from '@/app/messages/actions';
 import { serviceById, TRADES, usd } from '@/lib/catalog';
-import { getPro, openSlots } from '@/lib/data';
+import { getPro, listPros, openSlots } from '@/lib/data';
 import { colorWord } from '@/lib/colors';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
 import { dateLabel, slotLabel } from '@/lib/time';
@@ -17,6 +17,10 @@ import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
 import HelpfulButton from '@/components/HelpfulButton';
+import PeerPicks from '@/components/PeerPicks';
+import ProjectCard from '@/components/ProjectCard';
+import { listProjects } from '@/lib/projects';
+import { alsoChosen } from '@/lib/discovery';
 import PostCard from '@/components/PostCard';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -44,7 +48,9 @@ export default async function ProPage({ params, searchParams }: Props) {
   const first = pro.name.split(' ')[0];
   const stats = showStats(pro);
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
-  const [me, saves, saved, posts, colleagues] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id)]);
+  const [me, saves, saved, posts, colleagues, projects] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id), listProjects({ proId: pro.id, limit: 6 })]);
+  const alsoMap = pro.isDemo ? new Map<string, number>() : await alsoChosen(pro.id, 6);
+  const alsoPros = alsoMap.size ? (await listPros()).filter((p) => alsoMap.has(p.id)).sort((a, b) => (alsoMap.get(b.id) ?? 0) - (alsoMap.get(a.id) ?? 0)) : [];
   const voted = new Set<string>();
   if (me && pro.reviews.length) {
     const { data: hv } = await (await supabaseServer()).from('review_helpful').select('review_id').in('review_id', pro.reviews.map((r) => r.id));
@@ -183,9 +189,14 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>
 
         {(posts.length > 0 || isOwner) && <div className="blk">
-          <h2>{tr('Posts')} <small><a href="/feed">{tr('Feed')} →</a></small></h2>
-          {isOwner && <p className="mu sm" style={{ marginTop: 0 }}>{tr('Share new work in the')} <a href="/feed">{tr('Feed')}</a>.</p>}
+          <h2>{tr('Posts')} <small><a href="/feed">{tr('Work & tips')} →</a></small></h2>
+          {isOwner && <p className="mu sm" style={{ marginTop: 0 }}>{tr('Share new work in the')} <a href="/feed">{tr('Work & tips')}</a>.</p>}
           <div className="list">{posts.map((p) => <PostCard key={p.id} p={p} tr={tr} lang={lang} mine={isOwner} meId={me?.id ?? null} path={`/pro/${pro.slug}`} />)}</div>
+        </div>}
+
+        {projects.length > 0 && <div className="blk">
+          <h2>{tr('Client projects')} <small>{tr('confirmed by {name}', { name: first })}</small></h2>
+          <div className="list">{projects.map((p) => <ProjectCard key={p.id} p={p} tr={tr} lang={lang} />)}</div>
         </div>}
 
         {(colleagues.length > 0 || isOwner) && <div className="blk">
@@ -250,6 +261,7 @@ export default async function ProPage({ params, searchParams }: Props) {
           </div>
           {!stats && <p className="mu xs" style={{ marginTop: 14 }}>{tr('Level and detailed skill scores appear after {jobs} jobs and {reviews} reviews on NovaFides.', { jobs: STATS_MIN_JOBS, reviews: STATS_MIN_REVIEWS })}</p>}
         </div>
+        {alsoPros.length > 0 && <div className="blk"><PeerPicks pros={alsoPros} counts={alsoMap} title={tr('Clients who chose {name} also choose', { name: first })} note={tr('Counted from finished jobs, saves and high ratings. Shown only when at least 3 clients agree.')} /></div>}
       </div></div>
       <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo ? <span className="badge p">{tr('Demo profile')}</span> : pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
     </div>

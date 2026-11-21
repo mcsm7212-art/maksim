@@ -19,6 +19,10 @@ const PATTERNS: [RegExp, string][] = [
   [/^(.+) picked your answer as the best\.$/, '{a} picked your answer as the best.'],
   [/^(.+) replied in the Lounge\.$/, '{a} replied in the Lounge.'],
   [/^(.+) recommends you on their page\.$/, '{a} recommends you on their page.'],
+  [/^(.+) shared a project with your work\. Confirm it was your job\.$/, '{a} shared a project with your work. Confirm it was your job.'],
+  [/^(.+) confirmed your project\. It is now public\.$/, '{a} confirmed your project. It is now public.'],
+  [/^(.+) did not confirm your project\.$/, '{a} did not confirm your project.'],
+  [/^New verified pro on NovaFides: (.+)\.$/, 'New verified pro on NovaFides: {a}.'],
 ];
 export function noteText(body: string, tr: T): string {
   const direct = tr(body);

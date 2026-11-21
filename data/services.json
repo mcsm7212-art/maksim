@@ -308,6 +308,14 @@
        6000,
        "job",
        "P"
+      ],
+      [
+       "Water service line replacement (meter to house)",
+       "Замена водопроводной трубы от счётчика до дома",
+       3000,
+       10000,
+       "job",
+       "P"
       ]
      ]
     },
