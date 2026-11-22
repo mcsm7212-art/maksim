@@ -789,3 +789,11 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .sa-radius input{width:100%;accent-color:var(--cu-l,#C08A62)}
 .sa-pin{background:var(--cu-l,#C08A62);border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .leaflet-container{font:inherit}
+.figfield{display:grid;grid-template-columns:200px minmax(0,1fr);gap:14px;align-items:start}
+.figfield .figmaker-stage{height:300px}
+@media (max-width:620px){.figfield{grid-template-columns:1fr}}
+/* preview of the pro page from the profile form */
+.pv{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
+.pv-box{background:var(--bg);border:1px solid var(--line);border-radius:18px;max-width:1080px;width:100%;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.pv-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 6px 12px}
+.pv .figcol{min-height:420px}

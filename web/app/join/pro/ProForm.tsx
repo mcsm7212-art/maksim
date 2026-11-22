@@ -7,13 +7,18 @@ import { marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import PhotoPicker from '@/components/PhotoPicker';
+import FigureField from '@/components/FigureField';
+import ProPreview, { type PreviewData } from '@/components/ProPreview';
+import { flipImage } from '@/lib/cutout';
+import { uploadBlob } from '@/lib/upload';
+import { isLive } from '@/lib/supabase/config';
 import { registerPro, updatePro } from '../actions';
 import { useLang, useT } from '@/components/I18n';
 import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
   name: string; trade: Trade; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; baseLat?: number | null; baseLng?: number | null; radius?: number | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  insured: boolean; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -31,12 +36,29 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
     SERVICES.filter((s) => s.trade === trade).forEach((s) => m.set(s.group, [...(m.get(s.group) ?? []), s]));
     return [...m];
   }, [trade]);
-  const accent = accentFromUniform(uniform);
+  const [figAccent, setFigAccent] = useState<string | null>(I?.figure ? I?.figureAccent ?? null : null);
+  const accent = figAccent ?? accentFromUniform(uniform);
+  const [figure, setFigure] = useState<string | null>(I?.figure ?? null);
+  const [photoOverride, setPhotoOverride] = useState('');
+  const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [flipBusy, setFlipBusy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const mirrorFig = useRef<(() => Promise<void>) | null>(null);
+  // Mirror the small photo (the figure has its own button in FigureField).
+  async function mirrorPhoto() {
+    if (!photo) return; setFlipBusy(true);
+    try { const b = await flipImage(photo); const local = URL.createObjectURL(b); setPhoto(local); if (isLive()) { const u = await uploadBlob(b, 'avatar'); setPhotoOverride(u); setPhoto(u); } } catch { /* keep the photo as it was */ }
+    setFlipBusy(false);
+  }
+  function openPreview() {
+    const f = new FormData(formRef.current ?? undefined); const v = (k: string) => String(f.get(k) ?? '');
+    setPreview({ name: v('name'), trade, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent });
+  }
   const areaRef = useRef<HTMLInputElement>(null); const areaAuto = useRef(!I?.area && !prefill?.area);
   const onTown = (town: string) => { const el = areaRef.current; if (el && (areaAuto.current || !el.value.trim())) { el.value = town; areaAuto.current = true; } };
 
   return (
-    <form action={action} className="list">
+    <form ref={formRef} action={action} className="list">
       {invite && <input type="hidden" name="invite" value={invite} />}
       {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
       <div className="card formcard">
@@ -67,13 +89,16 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16, alignItems: 'center' }}>
           <span style={{ width: 120, height: 150, borderRadius: 14, overflow: 'hidden', display: 'block' }}><Figure name={name || 'You'} accent={accent} photo={photo} /></span>
           <div className="list">
-            <PhotoPicker name="photo_url" prefix="avatar" label={tt(edit ? 'Replace your photo' : 'Add a real photo of you in work clothes')} onChange={(p) => setPhoto(p[0] ?? I?.photo ?? null)} required={!edit} />
+            <PhotoPicker name="photo_url" prefix="avatar" label={tt(edit ? 'Replace your photo' : 'Add a real photo of you in work clothes')} onChange={(p) => { setPhoto(p[0] ?? I?.photo ?? null); setPhotoOverride(''); }} required={!edit} />
+            {photo && <button type="button" className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={mirrorPhoto} disabled={flipBusy}>⇋ {tt('Mirror photo')}</button>}
+            <input type="hidden" name="photo_override" value={photoOverride} />
             <label className="f">{tt("Work-clothes color")}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <input type="color" name="uniform" value={uniform} onChange={(e) => setUniform(e.target.value)} style={{ width: 52, height: 40, border: 0, background: 'none' }} />
               <span className="mu xs">{tt(accent === '#B57A50' ? 'Dark clothes: your page uses NovaFides copper.' : 'Your page will use this color.')}</span></span></label>
           </div>
         </div>
         <span className="mu xs">{tt("Only a real photo of you. We may clean up the background and light, never your face or clothes.")}</span>
+        <FigureField name={name} initial={I?.figure ?? null} accent={accent} onAccent={(c) => setFigAccent(c)} onChange={(u) => { setFigure(u); if (!u) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} />
       </div>
 
       {!edit && <div className="card formcard">
@@ -115,7 +140,15 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: the form checks out, but nothing was saved. Connect the database to accept real sign-ups.")}</div>}
-      <button className="btn" disabled={pending}>{tt(pending ? 'Saving…' : edit ? 'Save changes' : 'Create my profile')}</button>
+      <div className="chips">
+        <button type="button" className="btn ghost" onClick={openPreview}>👁 {tt('Preview my page')}</button>
+        <button className="btn" disabled={pending}>{tt(pending ? 'Saving…' : edit ? 'Save changes' : 'Create my profile')}</button>
+      </div>
+      {preview && <ProPreview d={preview} busy={flipBusy} onClose={() => setPreview(null)} onMirror={async () => {
+        setFlipBusy(true);
+        if (figure && mirrorFig.current) await mirrorFig.current(); else await mirrorPhoto();
+        setFlipBusy(false); setTimeout(openPreview, 50);
+      }} />}
       <span className="mu xs">{edit ? 'To change your trade or license number, contact NovaFides support: they need a new check.' : 'We check your license with CSLB and your ID before your profile goes public. One person, one profile.'}</span>
     </form>
   );

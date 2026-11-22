@@ -28,6 +28,13 @@ function serviceArea(f: FormData) {
   return ok ? { base_lat: lat, base_lng: lng, service_radius_mi: Math.min(150, Math.max(1, r || 15)) } : { base_lat: null, base_lng: null, service_radius_mi: null };
 }
 
+// Full-height photo (background already removed in the browser) and the glow colour taken from the clothes.
+function figureOf(f: FormData, uid: string, cur: string | null) {
+  if (!f.has('figure_url')) return { url: cur, accent: null as string | null };
+  const u = str(f, 'figure_url', 500);
+  return { url: u && ownPhotoUrl(u, uid) ? u : null, accent: isHex(f.get('figure_accent')) ? String(f.get('figure_accent')) : null };
+}
+
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
   const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
@@ -50,7 +57,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (!me) redirect('/login?next=/join/pro');
   if (me.pro) redirect('/account');
   const sb = await supabaseServer();
-  const photo = str(f, 'photo_url', 500);
+  const photo = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
   if (!photo || !ownPhotoUrl(photo, me.id)) return { error: 'Add a real photo of yourself. Clients choose pros by face.' };
   const work = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
@@ -61,7 +68,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((s) => s.trim()).filter(Boolean),
     license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')),
-    photo_url: photo, uniform_color: uniform, accent: accentFromUniform(uniform),
+    photo_url: photo, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
   });
   if (error) return { error: error.message };
   await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
@@ -91,14 +98,17 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
-  const newPhoto = str(f, 'photo_url', 500);
+  const newPhoto = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
+  const fg = figureOf(f, me.id, cur!.figure_url);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').update({
     display_name: name, tiers, years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), ...serviceArea(f), bio: str(f, 'bio', 300),
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((x) => x.trim()).filter(Boolean),
-    insured: Boolean(f.get('insured')), uniform_color: uniform, accent: uniform || !cur!.figure_url ? accentFromUniform(uniform) : cur!.accent, // the full-height photo sets its own glow colour
+    insured: Boolean(f.get('insured')), uniform_color: uniform, figure_url: fg.url,
+    // the full-height photo sets its own glow colour; without it the page uses the work-clothes colour
+    accent: fg.url ? (fg.accent ?? (cur!.figure_url ? cur!.accent : accentFromUniform(uniform))) : accentFromUniform(uniform),
     photo_url: newPhoto && ownPhotoUrl(newPhoto, me.id) ? newPhoto : cur!.photo_url,
   }).eq('id', me.id);
   if (error) return { error: error.message };

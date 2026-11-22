@@ -84,3 +84,13 @@ function glowFrom(bins: Map<number, [number, number, number, number]>): string {
   [r, g, b] = hue < 60 ? [c, x, 0] : hue < 120 ? [x, c, 0] : hue < 180 ? [0, c, x] : hue < 240 ? [0, x, c] : hue < 300 ? [x, 0, c] : [c, 0, x];
   return '#' + [r, g, b].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
 }
+
+/** Mirror an image left↔right (keeps transparency). Works with our uploaded photos and local previews. */
+export async function flipImage(src: string): Promise<Blob> {
+  const img = new Image(); img.crossOrigin = 'anonymous';
+  await new Promise<void>((ok, bad) => { img.onload = () => ok(); img.onerror = () => bad(new Error('Could not open the photo.')); img.src = src; });
+  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const x = c.getContext('2d')!; x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(img, 0, 0);
+  const type = /\.jpe?g($|\?)/i.test(src) ? 'image/jpeg' : 'image/webp';
+  return new Promise<Blob>((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), type, 0.9));
+}

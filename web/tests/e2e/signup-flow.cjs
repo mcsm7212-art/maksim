@@ -25,7 +25,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  // solo pro
  const s=await user(b,'solo@test.local','Max Solo');await s.goto(B+'/join/pro');await s.fill('input[name=name]','Max Solo');await s.fill('input[name=license]','1121547');await avatar(s);
  await s.fill('textarea[name=experience]','Nine years as a plumber, four on my own.');await s.fill('input[name=skills]','Water heaters, Repipes, Leak detection');
- await s.setInputFiles('.drop input >> nth=1',[IMG('w1'),IMG('w2')]);await s.waitForFunction(()=>document.querySelectorAll('input[name=work_url]').length===2);
+ await s.setInputFiles('.drop input[multiple] >> nth=0',[IMG('w1'),IMG('w2')]);await s.waitForFunction(()=>document.querySelectorAll('input[name=work_url]').length===2);
  await s.check('input[name=svc_faucet-replacement]');await s.fill('input[name=price_faucet-replacement]','400');await s.check('input[name=day_0]',{force:true});await s.check('input[name=day_6]',{force:true});
  await s.check('input[name=agree]');await s.click('button:has-text("Create my profile")');await s.waitForURL(/account/);step('solo pro registered');
  for(const n of ['Tom Tech','Max Solo']){await a.goto(B+'/admin');const f=a.locator(`form:has-text("${n}")`);await f.locator('input[name=id_ok]').check();await f.locator('input[name=license_ok]').check();await f.locator('button:has-text("Approve")').click();await a.waitForTimeout(800)}
@@ -270,11 +270,14 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  step('demo profile cannot be booked; My home lists the finished job with the installed Grohe part; phone header is one row with ⋯');
  // full-height photo: background removed in the browser, glow colour from clothes
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
- await s.goto(B+'/account/profile');await s.setInputFiles('.figmaker input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figmaker .fig-sil.cut img',{timeout:120000});
- await s.click('.figmaker button:has-text("Save")');await s.waitForSelector('.figmaker .okmsg');
+ await s.goto(B+'/account/profile');await s.setInputFiles('.figfield input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figfield .fig-sil.cut img',{timeout:120000});
+ await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:60000});
+ const before=await s.inputValue('input[name=figure_url]');await s.click('.figfield button:has-text("Mirror")');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},before,{timeout:60000});
+ await s.click('button:has-text("Preview my page")');await s.waitForSelector('.pv .pname:has-text("Max Solo")');await s.waitForSelector('.pv .fig-sil.cut img');await s.click('.pv button:has-text("Back to editing")');
+ await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
  const fa=sql("select coalesce(figure_url,'')||' '||accent from pros where display_name='Max Solo'");if(!fa.includes('/figure-')||!/#[0-9A-F]{6}$/.test(fa))throw new Error('figure not saved: '+fa);
  await s.goto(B+'/max');await s.waitForSelector('.figcol .fig-sil.cut img');
- step('pro uploaded a full-height photo → background removed in the browser, glow colour '+fa.slice(-7)+' from clothes, shown on the page');
+ step('pro added a full-height photo in the profile form → background removed in the browser, mirrored, previewed, saved; glow colour '+fa.slice(-7)+' from clothes, shown on the page');
  // urgent calls
  await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
  await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');
