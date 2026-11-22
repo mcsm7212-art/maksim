@@ -14,15 +14,16 @@ export default async function EditProfile() {
   if (!me) redirect('/login?next=/account/profile');
   if (!me.pro) redirect('/join/pro');
   const sb = await supabaseServer();
-  const [{ data: p }, { data: svcs }, { data: hours }] = await Promise.all([
+  const [{ data: p }, { data: own }, { data: svcs }, { data: hours }] = await Promise.all([
     sb.from('pros').select('*').eq('id', me.id).single(),
+    sb.from('pro_custom_services').select('name, price').eq('pro_id', me.id).order('id'),
     sb.from('pro_services').select('service_id, price, active').eq('pro_id', me.id),
     sb.from('availability_rules').select('weekday, start_time, end_time').eq('pro_id', me.id),
   ]);
   const initial: ProInitial = {
-    name: p.display_name, trade: p.trade, years: p.years_exp ?? 0, area: p.area ?? '', figure: p.figure_url ?? null, figureAccent: p.accent ?? null, baseLat: p.base_lat != null ? Number(p.base_lat) : null, baseLng: p.base_lng != null ? Number(p.base_lng) : null, radius: p.service_radius_mi ?? null, polygon: Array.isArray(p.service_polygon) ? p.service_polygon : null, languages: (p.languages ?? []).join(', '),
+    name: p.display_name, trade: p.trade, years: p.years_exp ?? 0, area: p.area ?? '', licensed: Boolean(p.license_no) || Boolean(p.company_id), figure: p.figure_url ?? null, figureAccent: p.accent ?? null, baseLat: p.base_lat != null ? Number(p.base_lat) : null, baseLng: p.base_lng != null ? Number(p.base_lng) : null, radius: p.service_radius_mi ?? null, polygon: Array.isArray(p.service_polygon) ? p.service_polygon : null, languages: (p.languages ?? []).join(', '),
     bio: p.bio ?? '', experience: p.experience ?? '', skills: (p.skills ?? []).join(', '), insured: p.insured, uniform: p.uniform_color,
-    photo: p.photo_url, tiers: p.tiers,
+    photo: p.photo_url, tiers: p.tiers, custom: (own ?? []).map((c) => ({ name: c.name, price: c.price != null ? Number(c.price) : null })),
     services: Object.fromEntries((svcs ?? []).filter((x) => x.active).map((x) => [x.service_id, x.price != null ? Number(x.price) : null])),
     days: (hours ?? []).map((h) => h.weekday), start: hours?.[0]?.start_time?.slice(0, 5) ?? '08:00', end: hours?.[0]?.end_time?.slice(0, 5) ?? '18:00',
   };

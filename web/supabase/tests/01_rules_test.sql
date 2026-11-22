@@ -593,4 +593,17 @@ select pg_temp.act(null);
 do $$ begin perform public.invite_prefill('pref1'); raise exception 'FAIL: anon read prefill';
   exception when insufficient_privilege then null; end $$;
 select pg_temp.ok(true, 'visitors cannot read invite details');
+-- 27) a pro's own services; without a license nothing over $1,000
+select pg_temp.act(null); reset role;
+update public.pros set license_no = null, company_id = null where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Garage shelving', 400);
+do $$ begin insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Whole kitchen', 5000); raise exception 'FAIL: unlicensed big job';
+  exception when others then if sqlerrm not like 'license needed%' then raise; end if; end $$;
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_custom_services) = 1, 'own services are public; without a license nothing over $1,000');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+do $$ begin insert into public.pro_custom_services (pro_id, name, price) values ('00000000-0000-0000-0000-0000000000b2', 'Fake', 10); raise exception 'FAIL: wrote another pro''s service';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'only the pro edits their own services');
 \echo ALL RULE TESTS PASSED

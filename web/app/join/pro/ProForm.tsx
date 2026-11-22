@@ -8,6 +8,7 @@ import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
 import FormDraft, { ClearBtn } from '@/components/FormDraft';
+import CustomServices from '@/components/CustomServices';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
 import ProPreview, { type PreviewData } from '@/components/ProPreview';
@@ -17,7 +18,7 @@ import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
   name: string; trade: Trade; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  insured: boolean; licensed?: boolean; custom?: { name: string; price: number | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -37,6 +38,10 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
   }, [trade]);
   const [figAccent, setFigAccent] = useState<string | null>(I?.figure ? I?.figureAccent ?? null : null);
   const accent = figAccent ?? accentFromUniform(uniform);
+  // California: a CSLB license is needed for jobs over $1,000 (labor + materials) or that need a permit.
+  const [licText, setLicText] = useState('');
+  const licensed = Boolean(invite) || (edit ? Boolean(I?.licensed) : licText.replace(/\D/g, '').length >= 6);
+  const needsLic = (s: (typeof SERVICES)[number]) => s.permit || s.hi > 1000;
   const [figure, setFigure] = useState<string | null>(I?.figure ?? null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [flipBusy, setFlipBusy] = useState(false);
@@ -64,7 +69,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
                 <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
           </div>
-          {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<span className="fieldwrap"><input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /><ClearBtn /></span></label>}
+          {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /><ClearBtn /></span></label>}
           <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
           <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
         </div>
@@ -102,18 +107,21 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Services and your prices")}</h3>
         <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>
+        {!licensed && <div className="note xs lic-note">🔒 {tt('Jobs marked red need a CSLB license (over $1,000 with materials, or a permit). Add your license number above, or choose only the other jobs.')}</div>}
         {groups.map(([g, list]) => (
           <details key={g} className="grp" open={I ? list.some((x) => x.id in I.services) : g === groups[0][0]}>
             <summary>{groupName(list[0], lang)} <span className="mu xs">({list.length})</span></summary>
             {list.map((s) => (
-              <div key={s.id} className="sv-row">
+              <div key={s.id} className={`sv-row${!licensed && needsLic(s) ? ' lic' : ''}`}>
                 <input type="checkbox" name={`svc_${s.id}`} defaultChecked={Boolean(I && s.id in I.services)} aria-label={svcName(s, lang)} style={{ accentColor: 'var(--cu)', width: 18, height: 18 }} />
-                <span>{svcName(s, lang)}<br /><small>{tt('Avg')} {usd(marketMid(s))} · {tt('recommended')} {usd(roundPrice(marketMid(s) * 0.95))}{s.permit ? ` · ${tt('permit')}` : ''}</small></span>
+                <span>{svcName(s, lang)}<br /><small>{tt('Avg')} {usd(marketMid(s))} · {tt('recommended')} {usd(roundPrice(marketMid(s) * 0.95))}{s.permit ? ` · ${tt('permit')}` : ''}</small>
+                  {!licensed && needsLic(s) && <small className="lic-msg">🔒 {tt(s.permit ? 'Needs a CSLB license: this job needs a permit' : 'Needs a CSLB license: can cost over $1,000')}</small>}</span>
                 <input className="inp" type="number" name={`price_${s.id}`} min={1} defaultValue={I?.services[s.id] ?? undefined} placeholder={String(Math.round(marketMid(s)))} aria-label={`${svcName(s, lang)} ${tt('price')}`} />
               </div>
             ))}
           </details>
         ))}
+        <CustomServices initial={I?.custom ?? []} licensed={licensed} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
       </div>
 
       <div className="card formcard">

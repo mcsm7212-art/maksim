@@ -27,6 +27,7 @@ import { alsoChosen } from '@/lib/discovery';
 import PostCard from '@/components/PostCard';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
+import { isLive } from '@/lib/supabase/config';
 import { colleaguesOf, mySaves, postsOf, saveCount } from '@/lib/social';
 import { recommendPro, unrecommendPro } from '@/app/social/actions';
 import { toggleColleague } from '@/app/account/work/actions';
@@ -64,6 +65,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   const stats = showStats(pro);
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues, projects] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id), listProjects({ proId: pro.id, limit: 6 })]);
+  const own = isLive() ? (((await (await supabaseServer()).from('pro_custom_services').select('name, price').eq('pro_id', pro.id).order('id')).data ?? []) as { name: string; price: number | null }[]) : [];
   const alsoMap = pro.isDemo ? new Map<string, number>() : await alsoChosen(pro.id, 6);
   const alsoPros = alsoMap.size ? (await listPros()).filter((p) => alsoMap.has(p.id)).sort((a, b) => (alsoMap.get(b.id) ?? 0) - (alsoMap.get(a.id) ?? 0)) : [];
   const voted = new Set<string>();
@@ -267,6 +269,7 @@ export default async function ProPage({ params, searchParams }: Props) {
             const sv = serviceById(s.id); if (!sv) return null;
             return <Link key={s.id} className="prow" href={q({ svc: s.id })} scroll={false} aria-current={s.id === svcId}><span>{svcName(sv, lang)}</span><b>{usd(priceFor(pro, s.id) ?? 0)}</b></Link>;
           })}
+          {own.map((c) => <Link key={c.name} className="prow" href={estHref}><span>{c.name}</span><b>{c.price != null ? usd(Number(c.price)) : tr('In the quote')}</b></Link>)}
         </div>
 
         <div className="blk">

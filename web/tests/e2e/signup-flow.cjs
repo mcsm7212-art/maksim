@@ -242,6 +242,10 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  if(sql("select prefill->>'name' from company_invites where prefill->>'name' is not null")!=='Joe Prefill')throw new Error('prefilled invite missing');
  await o.waitForSelector('.card:has-text("Joe Prefill") a[href^="sms:"]');
  step('client asked Max for a call back (phone + time in the chat); the office added a technician with a prefilled profile and an SMS/email link');
+ await s.goto(B+'/account/profile');await s.click('button:has-text("Add your own service")');await s.fill('input[name=custom_name]','Water softener service');await s.fill('input[name=custom_price]','450');await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
+ if(sql("select name||' '||price::int from pro_custom_services")!=='Water softener service 450')throw new Error('own service not saved');
+ await s.goto(B+'/max');await s.waitForSelector('.prow:has-text("Water softener service")');
+ step('pro added an own service (not in the list) with a price → it shows on his page');
  // draft: typed text survives a reload and a language switch; trash clears a field; non-English text is flagged
  await s.goto(B+'/account/profile');await s.fill('textarea[name=bio]','Тест черновика');await s.waitForTimeout(300);await s.waitForSelector('.en-warn');
  await s.reload();await s.waitForFunction(()=>document.querySelector('textarea[name=bio]').value==='Тест черновика');await s.waitForSelector('.draft-note');

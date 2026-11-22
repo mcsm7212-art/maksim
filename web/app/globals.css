@@ -914,3 +914,12 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .tcard .tlabel{text-align:center;width:100%}
 /* "⋯" menu on a computer: no repeats of what the header already shows (nav links, sound, languages, theme) */
 @media (min-width:761px){.more-menu .in-nav,.more-menu .phone-only{display:none!important}}
+/* services that need a CSLB license when no license is entered */
+.sv-row.lic{background:rgba(224,80,64,.08);border-left:3px solid #E0504A;border-radius:8px;padding-left:8px}
+.sv-row.lic:has(input[type=checkbox]:checked){background:rgba(224,80,64,.18)}
+.lic-msg{display:block;color:#F07A6A;font-size:12px;margin-top:2px}
+.lic-note{border-left-color:#E0504A}
+.custom-svcs{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+.cs-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 32px;gap:8px;align-items:center}
+.cs-row .lic-msg{grid-column:1/-1}
+.cs-del{position:static;opacity:.8;width:32px;height:32px}

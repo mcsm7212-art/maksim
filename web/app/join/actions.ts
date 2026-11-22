@@ -42,6 +42,23 @@ function figureOf(f: FormData, uid: string, cur: string | null) {
   return { url: u && ownPhotoUrl(u, uid) ? u : null, accent: isHex(f.get('figure_accent')) ? String(f.get('figure_accent')) : null };
 }
 
+// California: a CSLB license is needed for jobs over $1,000 (labor + materials) or that need a permit.
+const needsLicense = (id: string) => { const s = serviceById(id); return Boolean(s && (s.permit || s.hi > 1000)); };
+function customOf(f: FormData) {
+  const names = f.getAll('custom_name').map(String), prices = f.getAll('custom_price').map(String);
+  return names.map((n, i) => ({ name: n.trim().slice(0, 80), price: Number(prices[i]) > 0 ? Math.round(Number(prices[i])) : null }))
+    .filter((x) => x.name.length >= 3).slice(0, 20);
+}
+function licenseProblem(services: { service_id: string }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
+  if (licensed) return null;
+  const bad = [...services.filter((x) => needsLicense(x.service_id)).map((x) => serviceById(x.service_id)!.name), ...custom.filter((c) => (c.price ?? 0) > 1000).map((c) => c.name)];
+  return bad.length ? 'Some chosen jobs need a CSLB license (over $1,000 or a permit). They are marked red. Add your license number or remove them.' : null;
+}
+async function saveCustom(sb: Awaited<ReturnType<typeof supabaseServer>>, uid: string, custom: { name: string; price: number | null }[]) {
+  await sb.from('pro_custom_services').delete().eq('pro_id', uid);
+  if (custom.length) await sb.from('pro_custom_services').insert(custom.map((c) => ({ ...c, pro_id: uid })));
+}
+
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
   const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
@@ -58,6 +75,8 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (trade !== 'handyman' && !invite && license.length < 6) return { error: `A CSLB ${TRADES[trade].license} license number is required for ${TRADES[trade].name.toLowerCase()}.` };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
+  const custom = customOf(f);
+  const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };
   if (!isLive()) return { demo: true };
 
   const me = await getMe();
@@ -79,6 +98,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   });
   if (error) return { error: error.message };
   await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
+  await saveCustom(sb, me.id, custom);
   if (work.length) await sb.from('pro_photos').insert(work.map((url) => ({ pro_id: me.id, url })));
   await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
   if (me.role === 'client') await sb.rpc('become', { new_role: 'pro' });
@@ -93,7 +113,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (!me) redirect('/login?next=/account/profile');
   if (!me.pro) redirect('/join/pro');
   const sb = await supabaseServer();
-  const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent').eq('id', me.id).single();
+  const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent, license_no, company_id').eq('id', me.id).single();
   const trade = cur!.trade as Trade;
   const name = str(f, 'name', 60);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
@@ -105,6 +125,8 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
+  const custom = customOf(f);
+  const lp = licenseProblem(services, custom, Boolean(cur!.license_no) || Boolean(cur!.company_id)); if (lp) return { error: lp };
   const newPhoto = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
   const fg = figureOf(f, me.id, cur!.figure_url);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
@@ -123,6 +145,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   await sb.from('pro_services').update({ active: false }).eq('pro_id', me.id).not('service_id', 'in', `(${services.map((x) => x.service_id).join(',')})`);
   const { error: e2 } = await sb.from('pro_services').upsert(services.map((x) => ({ ...x, pro_id: me.id, active: true })), { onConflict: 'pro_id,service_id' });
   if (e2) return { error: e2.message };
+  await saveCustom(sb, me.id, custom);
   await sb.from('availability_rules').delete().eq('pro_id', me.id);
   await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
   return { saved: true };
