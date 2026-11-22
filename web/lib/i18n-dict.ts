@@ -1482,6 +1482,8 @@ export const ES: Record<string, string> = {
 "Jobs marked red need a CSLB license (over $1,000 with materials, or a permit). Add your license number above, or choose only the other jobs.": "Los trabajos en rojo requieren licencia CSLB (más de $1,000 con materiales, o permiso). Agregue su número de licencia arriba o elija solo los demás trabajos.",
 "Some chosen jobs need a CSLB license (over $1,000 or a permit). They are marked red. Add your license number or remove them.": "Algunos trabajos elegidos requieren licencia CSLB (más de $1,000 o permiso). Están en rojo. Agregue su número de licencia o quítelos.",
 "Needs a CSLB license: can cost over $1,000": "Requiere licencia CSLB: puede costar más de $1,000",
+"Select all": "Seleccionar todo",
+"Unselect all": "Quitar todo",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2966,4 +2968,6 @@ export const RU: Record<string, string> = {
 "Jobs marked red need a CSLB license (over $1,000 with materials, or a permit). Add your license number above, or choose only the other jobs.": "Работы, отмеченные красным, требуют лицензии CSLB (дороже $1,000 вместе с материалами или с разрешением). Укажите номер лицензии выше или выберите только остальные работы.",
 "Some chosen jobs need a CSLB license (over $1,000 or a permit). They are marked red. Add your license number or remove them.": "Некоторые выбранные работы требуют лицензии CSLB (дороже $1,000 или с разрешением). Они отмечены красным. Укажите номер лицензии или уберите их.",
 "Needs a CSLB license: can cost over $1,000": "Нужна лицензия CSLB: может стоить дороже $1,000",
+"Select all": "Выбрать все",
+"Unselect all": "Снять все",
 };

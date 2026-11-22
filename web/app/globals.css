@@ -923,3 +923,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .cs-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 32px;gap:8px;align-items:center}
 .cs-row .lic-msg{grid-column:1/-1}
 .cs-del{position:static;opacity:.8;width:32px;height:32px}
+.grp>summary{display:flex;align-items:center;gap:6px}
+.grp-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--mu);padding:4px 10px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:var(--card2)}
+.grp-all:hover{color:var(--ink);border-color:var(--cu-l,#C08A62)}
+.grp-all input{width:16px;height:16px;accent-color:var(--cu);margin:0}

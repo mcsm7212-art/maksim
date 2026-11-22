@@ -9,6 +9,7 @@ import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
 import FormDraft, { ClearBtn } from '@/components/FormDraft';
 import CustomServices from '@/components/CustomServices';
+import GroupAll from '@/components/GroupAll';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
 import ProPreview, { type PreviewData } from '@/components/ProPreview';
@@ -110,7 +111,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         {!licensed && <div className="note xs lic-note">🔒 {tt('Jobs marked red need a CSLB license (over $1,000 with materials, or a permit). Add your license number above, or choose only the other jobs.')}</div>}
         {groups.map(([g, list]) => (
           <details key={g} className="grp" open={I ? list.some((x) => x.id in I.services) : g === groups[0][0]}>
-            <summary>{groupName(list[0], lang)} <span className="mu xs">({list.length})</span></summary>
+            <summary>{groupName(list[0], lang)} <span className="mu xs">({list.length})</span><GroupAll /></summary>
             {list.map((s) => (
               <div key={s.id} className={`sv-row${!licensed && needsLic(s) ? ' lic' : ''}`}>
                 <input type="checkbox" name={`svc_${s.id}`} defaultChecked={Boolean(I && s.id in I.services)} aria-label={svcName(s, lang)} style={{ accentColor: 'var(--cu)', width: 18, height: 18 }} />
