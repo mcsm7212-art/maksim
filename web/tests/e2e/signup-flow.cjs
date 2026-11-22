@@ -9,7 +9,7 @@ async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...d
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
 const IMG=n=>__dirname+'/'+n+'.jpg';
-async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'));await p.waitForSelector('input[name=photo_url]',{state:'attached'})}
+async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG('face'));await p.waitForFunction(()=>(document.querySelector('input[name=photo_override]')?.value||'').length>5,null,{timeout:90000})}
 (async()=>{sql('truncate auth.users, public.companies, public.notifications cascade');sql("insert into storage.buckets (id, name, public) values ('photos','photos',true) on conflict do nothing");await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});const b=await chromium.launch();try{
  // company owner
  const o=await user(b,'owner@test.local','Dana Owner');step('owner signed in by email code');
@@ -273,10 +273,10 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(process.env.MP_MODEL)await s.route(/storage\.googleapis\.com/,r=>r.fulfill({path:process.env.MP_MODEL,contentType:'application/octet-stream'}));
  await s.goto(B+'/account/profile');await s.setInputFiles('.figfield input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figfield .fig-sil.cut img',{timeout:120000});
  await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:60000});
- const before=await s.inputValue('input[name=figure_url]');await s.click('.figfield button:has-text("Mirror")');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},before,{timeout:60000});
+ const before=await s.inputValue('input[name=figure_url]');await s.click('.figfield .flipbtn >> nth=1');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},before,{timeout:60000});
  await s.click('button:has-text("Preview my page")');await s.waitForSelector('.pv .pname:has-text("Max Solo")');await s.waitForSelector('.pv .fig-sil.cut img');await s.click('.pv button:has-text("Back to editing")');
  await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
- const fa=sql("select coalesce(figure_url,'')||' '||accent from pros where display_name='Max Solo'");if(!fa.includes('/figure-')||!/#[0-9A-F]{6}$/.test(fa))throw new Error('figure not saved: '+fa);
+ const fa=sql("select coalesce(figure_url,'')||' '||accent from pros where display_name='Max Solo'");if(!fa.includes('/figure-')||!sql("select photo_url from pros where display_name='Max Solo'").includes('/avatar-')||!/#[0-9A-F]{6}$/.test(fa))throw new Error('figure not saved: '+fa);
  await s.goto(B+'/max');await s.waitForSelector('.figcol .fig-sil.cut img');
  step('pro added a full-height photo in the profile form → background removed in the browser, mirrored, previewed, saved; glow colour '+fa.slice(-7)+' from clothes, shown on the page');
  // urgent calls

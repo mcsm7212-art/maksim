@@ -94,3 +94,19 @@ export async function flipImage(src: string): Promise<Blob> {
   const type = /\.jpe?g($|\?)/i.test(src) ? 'image/jpeg' : 'image/webp';
   return new Promise<Blob>((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), type, 0.9));
 }
+
+/** Square head-and-shoulders picture cut from a full-height figure (for cards and search). Transparent background. */
+export async function avatarFrom(src: string, size = 560): Promise<Blob> {
+  const img = new Image(); img.crossOrigin = 'anonymous';
+  await new Promise<void>((ok, bad) => { img.onload = () => ok(); img.onerror = () => bad(new Error('Could not open the photo.')); img.src = src; });
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true })!; x.drawImage(img, 0, 0);
+  // Center on the head: the middle of the solid pixels in the top 12% of the figure.
+  const top = Math.max(1, Math.round(h * 0.12)); const px = x.getImageData(0, 0, w, top).data;
+  let sum = 0, n = 0; for (let i = 3; i < px.length; i += 4) if (px[i] > 100) { sum += ((i - 3) / 4) % w; n++; }
+  const cx = n ? sum / n : w / 2; const side = Math.min(w, Math.round(h * 0.3));
+  const sx = Math.max(0, Math.min(w - side, Math.round(cx - side / 2))), sy = Math.max(0, Math.round(-side * 0.04));
+  const o = document.createElement('canvas'); o.width = size; o.height = size;
+  o.getContext('2d')!.drawImage(c, sx, sy, side, side, 0, 0, size, size);
+  return new Promise<Blob>((ok, bad) => o.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), 'image/webp', 0.9));
+}

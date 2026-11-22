@@ -1450,6 +1450,13 @@ export const ES: Record<string, string> = {
 "Click the map where you work, or find your city above.": "Haga clic en el mapa donde trabaja o busque su ciudad arriba.",
 "Draw where you work: clients inside this area see you first.": "Dibuje dónde trabaja: los clientes dentro de esta zona le ven primero.",
 "fills in from the map, you can edit it": "se llena desde el mapa, puede cambiarlo",
+"No photo yet": "Todavía no hay foto",
+"Your photo": "Su foto",
+"Choose a photo": "Elegir una foto",
+"One photo is enough: standing, head to shoes, in work clothes. We remove the background on your device, light you up in the colour of your clothes, and make the small picture for cards and search from the same photo.": "Basta una foto: de pie, de la cabeza a los zapatos, con ropa de trabajo. Quitamos el fondo en su dispositivo, le iluminamos con el color de su ropa y de la misma foto hacemos la imagen pequeña para tarjetas y búsqueda.",
+"Small picture for cards and search (made automatically)": "Imagen pequeña para tarjetas y búsqueda (se hace sola)",
+"We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.": "No le encontramos de cuerpo entero, así que esta foto se usa como imagen simple. Para la figura con brillo, tome una foto de la cabeza a los zapatos.",
+"Taken from your clothes in the photo. Pick another colour if you like.": "Tomado de su ropa en la foto. Puede elegir otro color.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2902,4 +2909,11 @@ export const RU: Record<string, string> = {
 "Click the map where you work, or find your city above.": "Нажмите на карту там, где вы работаете, или найдите свой город выше.",
 "Draw where you work: clients inside this area see you first.": "Нарисуйте, где вы работаете: клиенты внутри этой зоны видят вас первыми.",
 "fills in from the map, you can edit it": "заполняется по карте, можно исправить",
+"No photo yet": "Фото пока нет",
+"Your photo": "Ваше фото",
+"Choose a photo": "Выбрать фото",
+"One photo is enough: standing, head to shoes, in work clothes. We remove the background on your device, light you up in the colour of your clothes, and make the small picture for cards and search from the same photo.": "Достаточно одного фото: стоя, с головы до обуви, в рабочей одежде. Мы уберём фон прямо на вашем устройстве, подсветим вас цветом одежды и из этого же фото сделаем маленькое фото для карточек и поиска.",
+"Small picture for cards and search (made automatically)": "Маленькое фото для карточек и поиска (сделано автоматически)",
+"We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.": "Не нашли вас в полный рост, поэтому фото будет обычной картинкой. Для фигуры со свечением нужно фото с головы до обуви.",
+"Taken from your clothes in the photo. Pick another colour if you like.": "Взят с вашей одежды на фото. Можно выбрать другой цвет.",
 };

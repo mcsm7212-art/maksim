@@ -1,60 +1,89 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { cutOut, flipImage } from '@/lib/cutout';
+import { avatarFrom, cutOut, flipImage } from '@/lib/cutout';
 import { uploadBlob } from '@/lib/upload';
 import { isLive } from '@/lib/supabase/config';
 import Figure from './Figure';
 import { useT } from './I18n';
 
+const Arrow = ({ dir }: { dir: 'l' | 'r' }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={dir === 'l' ? { transform: 'scaleX(-1)' } : undefined}>
+    <path d="M4 12a8 8 0 0 1 14-5.3" /><path d="M18 2.5v4.6h-4.6" /><path d="M20 12a8 8 0 0 1-14 5.3" opacity=".35" />
+  </svg>
+);
+
 /**
- * Full-height photo inside the profile form: the background is removed in the browser, the glow colour comes from the clothes,
- * and "Mirror" flips it. The result goes into hidden inputs (figure_url, figure_accent) and is saved with the form.
+ * One photo for the whole profile: a full-height phone photo. The background is removed in the browser, the glow colour
+ * comes from the clothes, and the small square photo for cards and search is cut from it automatically.
+ * Round arrows under the picture mirror it. Results go into hidden inputs and are saved with the form.
  */
-export default function FigureField({ name, initial, accent, onAccent, onChange, bindMirror }: { name: string; initial: string | null; accent: string; onAccent: (c: string) => void; onChange?: (url: string | null) => void; bindMirror?: (fn: () => Promise<void>) => void }) {
+export default function FigureField({ name, initialFigure, initialPhoto, accent, onAccent, onChange, bindMirror, required }: {
+  name: string; initialFigure: string | null; initialPhoto: string | null; accent: string; onAccent: (c: string | null) => void;
+  onChange?: (v: { figure: string | null; photo: string | null }) => void; bindMirror?: (fn: () => Promise<void>) => void; required?: boolean;
+}) {
   const t = useT();
-  const [url, setUrl] = useState<string | null>(initial);   // saved (uploaded) address
-  const [view, setView] = useState<string | null>(initial); // what we show (may be a local preview)
-  const [glow, setGlow] = useState<string>('');
+  const [fig, setFig] = useState<{ view: string | null; url: string | null }>({ view: initialFigure, url: initialFigure });
+  const [ava, setAva] = useState<{ view: string | null; url: string }>({ view: initialPhoto, url: '' });
   const [busy, setBusy] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
-  const put = async (blob: Blob) => {
-    const local = URL.createObjectURL(blob); setView(local); onChange?.(local);
-    if (!isLive()) { setUrl(null); return; }
-    const u = await uploadBlob(blob, 'figure'); setUrl(u); onChange?.(u);
-  };
+  const up = async (b: Blob, prefix: string) => (isLive() ? uploadBlob(b, prefix) : '');
+
+  // Save a figure: upload it and cut the small photo from it.
+  async function putFigure(b: Blob) {
+    const fv = URL.createObjectURL(b); const av = URL.createObjectURL(await avatarFrom(fv));
+    setFig({ view: fv, url: fig.url }); setAva({ view: av, url: ava.url }); onChange?.({ figure: fv, photo: av });
+    const [fu, au] = await Promise.all([up(b, 'figure'), up(await (await fetch(av)).blob(), 'avatar')]);
+    setFig({ view: fv, url: fu || null }); setAva({ view: av, url: au });
+    if (fu) onChange?.({ figure: fu, photo: au || av });
+  }
   async function pick(file?: File) {
     if (!file) return; setErr(null); setBusy(t('Removing the background… (the first time takes up to a minute)'));
     try {
       const c = await cutOut(file);
-      if (c.personShare < 0.06) throw new Error(t('Stand farther back? We need you in full height, head to shoes.'));
-      setGlow(c.accent); onAccent(c.accent); await put(c.blob);
-    } catch (e) { setErr((e as Error).message || t('Could not find a person in this photo.')); }
+      if (c.personShare < 0.06) throw new Error('small');
+      onAccent(c.accent); await putFigure(c.blob);
+    } catch {
+      // No full-height person found: keep the photo as a simple picture (no figure).
+      const v = URL.createObjectURL(file); const u = await up(file, 'avatar').catch(() => '');
+      setFig({ view: null, url: null }); setAva({ view: v, url: u }); onAccent(null); onChange?.({ figure: null, photo: u || v });
+      setErr(t('We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.'));
+    }
     setBusy(null);
   }
   async function mirror() {
-    if (!view) return; setErr(null); setBusy(t('Mirroring…'));
-    try { await put(await flipImage(view)); } catch (e) { setErr((e as Error).message); }
+    setErr(null); setBusy(t('Mirroring…'));
+    try {
+      if (fig.view) await putFigure(await flipImage(fig.view));
+      else if (ava.view) { const b = await flipImage(ava.view); const v = URL.createObjectURL(b); const u = await up(b, 'avatar'); setAva({ view: v, url: u }); onChange?.({ figure: null, photo: u || v }); }
+    } catch (e) { setErr((e as Error).message); }
     setBusy(null);
   }
   useEffect(() => { bindMirror?.(mirror); });
+  const has = Boolean(fig.view || ava.view);
   return (
     <div className="figfield">
-      <div className="figmaker-stage" style={{ ['--acc' as string]: accent }}>
-        {view ? <Figure name={name || 'You'} accent={accent} figure={view} big /> : <div className="mu sm" style={{ padding: 20, textAlign: 'center' }}>{t('No full-height photo yet')}</div>}
+      <div>
+        <div className="figmaker-stage" style={{ ['--acc' as string]: accent }}>
+          {has ? <Figure name={name || 'You'} accent={accent} figure={fig.view} photo={fig.view ? null : ava.view} big={Boolean(fig.view)} />
+            : <div className="mu sm" style={{ padding: 20, textAlign: 'center' }}>{t('No photo yet')}</div>}
+        </div>
+        {has && <div className="flipbar">
+          <button type="button" className="flipbtn" onClick={mirror} disabled={!!busy} title={t('Mirror')} aria-label={t('Mirror')}><Arrow dir="l" /></button>
+          <span className="mu xs">{t('Mirror')}</span>
+          <button type="button" className="flipbtn" onClick={mirror} disabled={!!busy} title={t('Mirror')} aria-label={t('Mirror')}><Arrow dir="r" /></button>
+        </div>}
       </div>
       <div className="list" style={{ gap: 8 }}>
-        <b>{t('Full-height photo for your page')}</b>
-        <span className="mu xs">{t('Any phone photo, standing, head to shoes, in work clothes. We remove the background automatically on your device. You do not need to do anything before.')}</span>
+        <b>{t('Your photo')}</b>
+        <span className="mu xs">{t('One photo is enough: standing, head to shoes, in work clothes. We remove the background on your device, light you up in the colour of your clothes, and make the small picture for cards and search from the same photo.')}</span>
         <label className="drop">
-          <input type="file" accept="image/*" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} disabled={!!busy} />
-          <span><b>{busy ?? (view ? t('Choose another photo') : t('Choose a full-height photo'))}</b><br /><span className="mu xs">{t('JPG or PNG from your phone')}</span></span>
+          <input type="file" accept="image/*" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} disabled={!!busy} required={required && !has} />
+          <span><b>{busy ?? (has ? t('Choose another photo') : t('Choose a photo'))}</b><br /><span className="mu xs">{t('JPG or PNG from your phone')}</span></span>
         </label>
-        {view && <div className="chips">
-          <button type="button" className="btn ghost sm" onClick={mirror} disabled={!!busy}>⇋ {t('Mirror')}</button>
-          <button type="button" className="btn ghost sm" onClick={() => { setUrl(null); setView(null); onChange?.(null); }} disabled={!!busy}>{t('Remove')}</button>
-        </div>}
-        {err && <span className="err xs">{err}</span>}
-        <input type="hidden" name="figure_url" value={url ?? ''} />
-        <input type="hidden" name="figure_accent" value={glow} />
+        {ava.view && fig.view && <span className="ava-mini"><img src={ava.view} alt="" /> <span className="mu xs">{t('Small picture for cards and search (made automatically)')}</span></span>}
+        {err && <span className="note xs">{err}</span>}
+        <input type="hidden" name="figure_url" value={fig.url ?? ''} />
+        <input type="hidden" name="figure_accent" value={fig.view ? accent : ''} />
+        <input type="hidden" name="photo_override" value={ava.url} />
       </div>
     </div>
   );
