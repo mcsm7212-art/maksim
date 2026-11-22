@@ -177,10 +177,20 @@ export default async function ProPage({ params, searchParams }: Props) {
             ? <div className="selprice"><div className="mu">{svcName(selSvc, lang)}</div><div className="big num">≈ {usd(selPrice)}</div>
                 <div className="mu xs">{tr('Trip fee {fee}, credited if you hire.', { fee: usd(pro.tripFee) })}{pro.urgent && pro.urgentFee ? ` · ${tr('Urgent visit +{fee}', { fee: usd(pro.urgentFee) })}` : ''} · <a href="#prices">{tr('What is included')}</a></div></div>
             : fromPrice != null && fromPrice < 1e9 && <div><div className="mu">{tr('Starting at')}</div><div className="big num">{usd(fromPrice)}</div></div>}
-          <div className="cta2" style={{ flex: 1 }}>
-            {pro.accepting && <Link className="btn" href={bookHref()}>{tr('Book {name}', { name: first })} <Icon name="arrow" /></Link>}
-            {pro.accepting && <Link className="btn ghost" href={estHref}>{tr('Ask for estimate')}</Link>}
-            {!pro.isDemo && <form action={startChat} style={{ gridColumn: '1/-1' }}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>}
+          <div className="contact" style={{ flex: 1 }}>
+            <h3>{tr('Contact {name}', { name: first })}</h3>
+            <div className="cta2">
+              {(pro.accepting || pro.isDemo) && <Link className="btn" href={bookHref()}>{tr('Pick a time')} <Icon name="arrow" /></Link>}
+              {(pro.accepting || pro.isDemo) && <Link className="btn ghost" href={estHref}>{tr('Ask for estimate')}</Link>}
+              {pro.isDemo ? <Link className="btn ghost" href={`/callback?pro=${pro.slug}&msg=1`}><Icon name="chat" /> {tr('Message {name}', { name: first })}</Link>
+                : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>}
+              <Link className="btn ghost" href={`/callback?pro=${pro.slug}`}>📞 {tr('Request a call back')}</Link>
+              {pro.publicPhone && <div className="callrow">
+                {pro.isDemo ? <span className="btn ghost off">📞 {pro.publicPhone}</span> : <a className="btn ghost" href={`tel:${pro.publicPhone.replace(/[^\d+]/g, '')}`}>📞 {tr('Call')} {pro.publicPhone}</a>}
+                {pro.callHours && <span className="mu xs">{tr('Calls')}: {pro.callHours}</span>}
+              </div>}
+            </div>
+            <p className="mu xs" style={{ margin: '8px 0 0' }}>{tr('Estimate: describe the problem and add photos, the pro answers in the chat. Call back: leave your number and when it is convenient.')}</p>
           </div>
         </div>
         <div className="chips" style={{ marginTop: 12 }}>
@@ -285,7 +295,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>
         {alsoPros.length > 0 && <div className="blk"><PeerPicks pros={alsoPros} counts={alsoMap} title={tr('Clients who chose {name} also choose', { name: first })} note={tr('Counted from finished jobs, saves and high ratings. Shown only when at least 3 clients agree.')} /></div>}
       </div></div>
-      <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo ? <span className="badge p">{tr('Demo profile')}</span> : pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
+      <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo || pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
     </div>
   );
 }

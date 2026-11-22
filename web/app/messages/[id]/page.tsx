@@ -53,6 +53,7 @@ export default async function Chat({ params, searchParams }: { params: Promise<{
       {cc.peer_id && <p className="mu xs" style={{ marginTop: 0 }}>{tr('Neighbor chat.')} <Link href="/neighbors">{tr('Neighbors')}</Link></p>}
       {qErr && <p className="err">{tr(qErr)}</p>}
       {spx.sent === 'estimate' && <div className="note">✓ {tr('Sent to {name} only. They answer here or send a quote you can accept.', { name: other })}</div>}
+      {spx.sent === 'callback' && <div className="note">✓ {tr('{name} got your call-back request with your number and convenient time. You can also write here.', { name: other })}</div>}
       <Thread id={id} booked={(bk ?? []).length > 0 || Boolean(cc.peer_id)} quotes={quotes} role={iAmPro ? 'pro' : 'client'} quoteForm={quoteForm}
         messages={(msgs ?? []).map((m: any) => ({ id: m.id, body: m.body, photo: m.photo_url, mine: m.sender_id === me.id, at: m.created_at, flagged: m.flagged, who: other }))} />
     </div></section>

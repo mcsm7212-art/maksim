@@ -52,9 +52,9 @@ export default async function Book({ searchParams }: { searchParams: SP }) {
         <img src={refPost?.photos[0] ?? refPhoto?.url ?? ''} alt="" />
         <span><span className="mu xs">{tr('Like this job of {name}', { name: pro?.name.split(' ')[0] ?? name })}</span><br />{refPost?.body ? <span className="sm">{refPost.body.slice(0, 160)}</span> : svc && <b>{svcName(svc, lang)}</b>}</span>
       </div>}
-      {demo && <div className="note" style={{ marginBottom: 16 }}>{tr('This is an example profile. It shows how NovaFides works; requests cannot be sent to it.')} <Link href="/search">{tr('Find a pro')}</Link></div>}
+      {demo && <div className="note" style={{ marginBottom: 16 }}>🧪 {tr('This is an example profile: the form shows how it works, but sending is turned off. With a real pro, your request goes to them.')}</div>}
 
-      {!demo && <BookForm cta={estimate ? tr('Send to {name}', { name: name.split(' ')[0] }) : pro ? tr('Send booking request') : tr('Request a visit')}
+      {<BookForm off={Boolean(demo)} cta={estimate ? tr('Send to {name}', { name: name.split(' ')[0] }) : pro ? tr('Send booking request') : tr('Request a visit')}
         hidden={{ ...(pro ? { pro: pro.slug } : { company: company!.slug }), ...(estimate ? { estimate: '1' } : {}), ...(sp.ref ? { ref: sp.ref } : {}) }}
         summary={{ mode, to: name, svc: svc?.id, t: sp.t, trip: pro ? tr('{fee}, credited if you hire', { fee: usd(pro.tripFee) }) : tr('Set by the company'),
           urgent: pro?.urgent && pro.urgentFee ? `+${usd(pro.urgentFee)}` : undefined,

@@ -584,4 +584,13 @@ select public.decide_project('92000000-0000-0000-0000-000000000001', true);
 select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.client_projects where status = 'confirmed') = 1, 'after the pro confirms, the project is public');
 select pg_temp.ok((select projects = 1 and not is_pro from public.client_card('00000000-0000-0000-0000-0000000000c1')), 'the client card shows confirmed projects');
+-- 26) invites carry a prefilled profile; only signed-in people can read it, and only while the invite is valid
+select pg_temp.act(null); reset role;
+insert into public.company_invites (code, company_id, role, prefill) values ('pref1', '10000000-0000-0000-0000-000000000001', 'technician', '{"name":"Joe Tech","trade":"plumbing"}');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.ok((select public.invite_prefill('pref1') ->> 'name') = 'Joe Tech', 'a technician sees the profile the office prepared');
+select pg_temp.act(null);
+do $$ begin perform public.invite_prefill('pref1'); raise exception 'FAIL: anon read prefill';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok(true, 'visitors cannot read invite details');
 \echo ALL RULE TESTS PASSED

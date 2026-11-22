@@ -60,3 +60,13 @@ export async function toggleColleague(f: FormData) {
   else await sb.from('pro_contacts').delete().eq('pro_id', me.id).eq('colleague_id', id);
   revalidatePath('/account/work'); revalidatePath(String(f.get('path') ?? '/account/work'));
 }
+
+// Phone and call hours shown on the pro's page (optional; empty = hidden).
+export async function saveContact(f: FormData) {
+  const me = await getMe(); if (!me?.pro) redirect('/account');
+  const phone = String(f.get('phone') ?? '').trim().slice(0, 30);
+  const hours = String(f.get('hours') ?? '').trim().slice(0, 80);
+  const ok = phone.replace(/\D/g, '').length >= 10;
+  await (await supabaseServer()).from('pros').update({ public_phone: ok ? phone : null, call_hours: ok && hours ? hours : null }).eq('id', me.id);
+  revalidatePath('/account/work'); revalidatePath(`/${me.pro.slug}`);
+}

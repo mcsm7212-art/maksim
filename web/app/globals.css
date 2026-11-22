@@ -741,3 +741,14 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .svc-group{padding:14px 16px}
 .svc-group ul{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .svc-price{padding:18px;display:flex;flex-direction:column;gap:12px;margin-top:6px}
+/* notes were dark on the light theme (text unreadable) */
+[data-theme="light"] .note,.themed.light .note{background:#FFF3E3;color:#3B2A1C}
+/* contact panel on a pro page */
+.contact h3{margin:0 0 2px;font-size:16px}
+.contact .cta2{margin-top:8px}
+.contact .callrow{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn.off{opacity:.75;cursor:default}
+.steps-reg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.steps-reg .card{padding:16px}
+.steps-reg ol{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--mu)}
+@media (max-width:760px){.steps-reg{grid-template-columns:1fr}}

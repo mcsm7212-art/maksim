@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ActionForm from '@/components/ActionForm';
 import Figure from '@/components/Figure';
-import { saveSchedule, setAccepting, setColleagueChat, toggleColleague } from './actions';
+import { saveContact, saveSchedule, setAccepting, setColleagueChat, toggleColleague } from './actions';
 import { getMe } from '@/lib/auth';
 import { TRADES, type Trade } from '@/lib/catalog';
 import { getLang, getT } from '@/lib/i18n';
@@ -20,7 +20,7 @@ export default async function Work() {
   if (!me.pro) redirect('/join/pro');
   const tr = await getT(); const lang = await getLang(); const sb = await supabaseServer();
   const [{ data: pRow }, { data: rules }, { data: contacts }] = await Promise.all([
-    sb.from('pros').select('accepting, paused_until, colleague_chat, slug').eq('id', me.id).single(),
+    sb.from('pros').select('accepting, paused_until, colleague_chat, slug, public_phone, call_hours').eq('id', me.id).single(),
     sb.from('availability_rules').select('weekday, start_time, end_time').eq('pro_id', me.id),
     sb.from('pro_contacts').select('colleague:pros!pro_contacts_colleague_id_fkey(id, slug, display_name, trade, photo_url, accent)').eq('pro_id', me.id).order('created_at'),
   ]);
@@ -33,6 +33,16 @@ export default async function Work() {
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow"><Link href="/account">{tr('My account')}</Link></div>
       <h2>{tr('Work & chat settings')}</h2>
+
+      <h3>{tr('Phone on my page')}</h3>
+      <form action={saveContact} className="card formcard" style={{ marginBottom: 18 }}>
+        <p className="mu sm" style={{ margin: 0 }}>{tr('Optional. If you add a number, clients see a “Call” button on your page. Without it, clients write to you or ask for a call back.')}</p>
+        <div className="row2">
+          <label className="f">{tr('Phone')}<input className="inp" name="phone" type="tel" inputMode="tel" defaultValue={p.public_phone ?? ''} placeholder="(650) 555-0123" /></label>
+          <label className="f">{tr('When you take calls')}<input className="inp" name="hours" maxLength={80} defaultValue={p.call_hours ?? ''} placeholder={tr('Mon–Fri 8am–6pm')} /></label>
+        </div>
+        <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>
+      </form>
 
       <h3>{tr('New jobs')}</h3>
       <div className="card bk" style={{ marginBottom: 18 }}>

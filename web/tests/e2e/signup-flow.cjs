@@ -152,7 +152,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  step('Lounge: Max passed a job, Tom replied and messaged him (colleague chat), client cannot see the Lounge');
  // taking jobs, schedule, colleague settings, neighbors, construction
  await s.goto(B+'/account/work');await s.click('button:has-text("Pause new jobs")');await s.waitForSelector('text=Not taking new jobs');
- await c.goto(B+'/max');await c.waitForSelector('text=is not taking new jobs right now');if(await c.locator('.pricebox2 a:has-text("Book Max")').count())throw new Error('paused pro still bookable');
+ await c.goto(B+'/max');await c.waitForSelector('text=is not taking new jobs right now');if(await c.locator('.pricebox2 a:has-text("Pick a time")').count())throw new Error('paused pro still bookable');
  await s.click('button:has-text("Take jobs again")');await s.waitForSelector('text=Taking new jobs');
  await s.check('input[name=on_6]');await s.selectOption('select[name=start_6]','09:00');await s.selectOption('select[name=end_6]','13:00');await s.click('button:has-text("Save schedule")');await s.waitForSelector('text=Schedule saved.');
  if(sql("select start_time||'-'||end_time from availability_rules a join pros p on p.id=a.pro_id where p.display_name='Max Solo' and weekday=6")!=='09:00:00-13:00:00')throw new Error('schedule not saved');
@@ -236,6 +236,12 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await c.goto(B+'/feed');await c.waitForSelector('.proj:has-text("New faucet in our kitchen")');
  await c.goto(B+'/'+sql("select slug from pros where id='"+maxId+"'"));await c.waitForSelector('.proj');
  step('client shared a project with photos → Max confirmed it was his job → it shows in the feed and on his page');
+ await c.goto(B+'/callback?pro=max');await c.fill('input[name=phone]','(650) 555-0177');await c.fill('textarea[name=problem]','Water heater leaks from the bottom.');await c.click('form.formcard button.btn');await c.waitForURL(/\/messages\/.*sent=callback/);
+ if(!sql("select body from messages where body like '%Call-back request%'").includes('555-0177'))throw new Error('callback not in chat');
+ await o.goto(B+'/business');await o.click('summary:has-text("Add a technician")');await o.fill('details input[name=name]','Joe Prefill');await o.selectOption('details select[name=trade]','electrical');await o.fill('details input[name=area]','San Carlos');await o.click('button:has-text("Create the invite link")');await o.waitForTimeout(1000);
+ if(sql("select prefill->>'name' from company_invites where prefill->>'name' is not null")!=='Joe Prefill')throw new Error('prefilled invite missing');
+ await o.waitForSelector('.card:has-text("Joe Prefill") a[href^="sms:"]');
+ step('client asked Max for a call back (phone + time in the chat); the office added a technician with a prefilled profile and an SMS/email link');
  for(const u of ['/robots.txt','/sitemap.xml','/manifest.webmanifest','/services','/services/faucet-replacement','/near/redwood-city']){const r=await c.goto(B+u);if(r.status()!==200)throw new Error('page '+u+' '+r.status())}
  await c.goto(B+'/max');if(!(await c.content()).includes('application/ld+json'))throw new Error('no structured data on pro page');
  step('Google: robots, sitemap, app manifest, service and city pages, structured data on the pro page');
@@ -251,7 +257,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  await s.goto(B+'/feed');await s.waitForSelector('text=1 requests from this work');
  step('"I have the same" under Max\'s post → request with the example attached; Max sees 1 request from this work');
  const tomSlug=sql("select slug from pros where display_name='Tom Tech'");sql("update pros set is_demo=true where display_name='Tom Tech'");
- await c.goto(B+'/pro/'+tomSlug);await c.waitForSelector('text=Demo profile');if(await c.locator('.stick3 a:has-text("Pick a time")').count())throw new Error('demo profile bookable');sql("update pros set is_demo=false where display_name='Tom Tech'");
+ await c.goto(B+'/pro/'+tomSlug);await c.waitForSelector('text=Demo profile');await c.click('.stick3 a:has-text("Pick a time")');await c.waitForURL(/\/book\?pro=/);if(!(await c.locator('button.btn:has-text("Send booking request")').isDisabled()))throw new Error('demo profile bookable');sql("update pros set is_demo=false where display_name='Tom Tech'");
  await c.goto(B+'/my-home');await c.waitForSelector('.homejob >> text=Grohe');await c.waitForSelector('.homejob a:has-text("Call again")');
  if(!(await c.locator('.more summary').isVisible())||(await c.locator('.bar .nav').isVisible()))throw new Error('phone header not compact');
  await c.screenshot({path:D+'e_home.png',fullPage:true});

@@ -57,3 +57,8 @@ insert into public.pro_services (pro_id, service_id, price) values
  ('7e570000-0000-4000-8000-00000000000a','adu-construction',null),('7e570000-0000-4000-8000-00000000000a','garage-conversion',null),
  ('7e570000-0000-4000-8000-00000000000a','interior-wall-removal',null)
 on conflict do nothing;
+
+-- Fictional 555-01xx numbers (never assigned) so the demo shows the "Call" button and call hours.
+update public.pros set public_phone = '(650) 555-01' || lpad((10 + row_number)::text, 2, '0'), call_hours = 'Mon–Fri 8am–6pm, Sat 9am–1pm'
+from (select id, row_number() over (order by id) as row_number from public.pros where id::text like '7e570000-0000-4000-8000-00000000000_') d
+where public.pros.id = d.id;

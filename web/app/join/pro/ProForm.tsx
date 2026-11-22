@@ -15,12 +15,12 @@ export interface ProInitial {
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function ProForm({ invite, companyName, initial }: { invite?: string; companyName?: string; initial?: ProInitial }) {
+export default function ProForm({ invite, companyName, initial, prefill }: { invite?: string; companyName?: string; initial?: ProInitial; prefill?: { name?: string; trade?: string; area?: string; years?: number } }) {
   const edit = Boolean(initial); const tt = useT(); const lang = useLang();
   const [state, action, pending] = useActionState(edit ? updatePro : registerPro, undefined);
-  const [trade, setTrade] = useState<Trade>(initial?.trade ?? 'plumbing');
+  const [trade, setTrade] = useState<Trade>(initial?.trade ?? (prefill?.trade as Trade | undefined) ?? 'plumbing');
   const [uniform, setUniform] = useState(initial?.uniform ?? '#15151A');
-  const [name, setName] = useState(initial?.name ?? '');
+  const [name, setName] = useState(initial?.name ?? prefill?.name ?? '');
   const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null);
   const I = initial;
   const groups = useMemo(() => {
@@ -33,7 +33,7 @@ export default function ProForm({ invite, companyName, initial }: { invite?: str
   return (
     <form action={action} className="list">
       {invite && <input type="hidden" name="invite" value={invite} />}
-      {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}</div>}
+      {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
         <div className="row2">
@@ -41,8 +41,8 @@ export default function ProForm({ invite, companyName, initial }: { invite?: str
           <label className="f">{tt("Trade")}<select className="inp" name="trade" value={trade} disabled={edit} onChange={(e) => setTrade(e.target.value as Trade)}>
             {(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tt(TRADES[t].name)}</option>)}</select></label>
           {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /></label>}
-          <label className="f">{tt("Years of experience")}<input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? 5} /></label>
-          <label className="f">{tt("Area you serve")}<input className="inp" name="area" placeholder="Redwood City" defaultValue={I?.area} /></label>
+          <label className="f">{tt("Years of experience")}<input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /></label>
+          <label className="f">{tt("Area you serve")}<input className="inp" name="area" placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /></label>
           <label className="f">{tt("Languages")}<input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /></label>
         </div>
         <label className="f">{tt("Short intro (shown in search)")}<textarea className="inp" name="bio" defaultValue={I?.bio} maxLength={300} placeholder={tt('What you are best at and how you work.')} style={{ minHeight: 70 }} /></label>

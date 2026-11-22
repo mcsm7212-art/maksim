@@ -19,10 +19,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (isLive()) {
     // Public data only, read as an anonymous visitor (no cookies at build time).
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+    // If the database cannot be reached (e.g. a build without it), the sitemap still lists the main pages.
     const [{ data: pros }, { data: qs }] = await Promise.all([
       sb.from('pros').select('slug, created_at').eq('status', 'verified').eq('is_demo', false).limit(5000),
       sb.from('questions').select('id, created_at').order('created_at', { ascending: false }).limit(1000),
-    ]);
+    ]).catch(() => [{ data: [] }, { data: [] }] as { data: { slug?: string; id?: string; created_at: string }[] }[]);
     for (const p of pros ?? []) out.push({ url: `${SITE}/${p.slug}`, lastModified: new Date(p.created_at), changeFrequency: 'weekly', priority: 0.8 });
     for (const q of qs ?? []) out.push({ url: `${SITE}/questions/${q.id}`, lastModified: new Date(q.created_at), changeFrequency: 'monthly', priority: 0.5 });
   }

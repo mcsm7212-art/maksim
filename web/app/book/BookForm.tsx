@@ -7,7 +7,7 @@ import { useT } from '@/components/I18n';
 type Summary = { mode: 'book' | 'estimate' | 'company'; to: string; svc?: string; t?: string; services: Record<string, { name: string; price: number | null }>; slots: Record<string, string>; trip: string; urgent?: string };
 
 /** Booking / estimate form with a live summary: who gets it, what, about how much, when, and what happens next. */
-export default function BookForm({ hidden, children, cta, summary }: { hidden: Record<string, string>; children: React.ReactNode; cta: string; summary: Summary }) {
+export default function BookForm({ hidden, children, cta, summary, off }: { hidden: Record<string, string>; children: React.ReactNode; cta: string; summary: Summary; off?: boolean }) {
   const [state, action, pending] = useActionState(createBooking, undefined); const t = useT();
   const ref = useRef<HTMLFormElement>(null);
   const [v, setV] = useState<Record<string, string>>({});
@@ -38,7 +38,7 @@ export default function BookForm({ hidden, children, cta, summary }: { hidden: R
       </div>
       {state?.error && <div className="err" role="alert">{t(state.error)}</div>}
       {state?.demo && <div className="note">{t('Demo mode: the request was not sent. When the database is connected, this creates a real booking.')}</div>}
-      <button className="btn" disabled={pending}>{pending ? t('Sending…') : cta}</button>
+      <button className="btn" disabled={pending || off}>{pending ? t('Sending…') : cta}</button>
     </form>
   );
 }

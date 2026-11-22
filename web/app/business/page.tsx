@@ -10,7 +10,9 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { slotLabel } from '@/lib/time';
 import { setStatus } from '../account/actions';
 import AutoRefresh from '@/components/AutoRefresh';
-import { assign, inviteManager, inviteTechnician } from './actions';
+import { addTechnician, assign, inviteManager, inviteTechnician } from './actions';
+import InviteShare from '@/components/InviteShare';
+import { TRADES, type Trade } from '@/lib/catalog';
 
 export const metadata = { title: 'Business' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -31,7 +33,7 @@ export default async function Business({ searchParams }: { searchParams: Promise
     sb.from('bookings').select('*, pro:pros!bookings_pro_id_fkey(id, display_name, slug), proposed:pros!bookings_swap_proposed_pro_fkey(display_name), client:profiles!bookings_client_id_fkey(full_name, phone)')
       .eq('company_id', co.id).not('status', 'in', '(done,cancelled)').order('created_at', { ascending: false }).limit(50),
     sb.from('pros').select('id, display_name, slug, status, online_until').eq('company_id', co.id),
-    sb.from('company_invites').select('code, role, expires_at').eq('company_id', co.id).is('used_by', null).gt('expires_at', new Date().toISOString()),
+    sb.from('company_invites').select('code, role, expires_at, prefill').eq('company_id', co.id).is('used_by', null).gt('expires_at', new Date().toISOString()),
   ]);
   const techs = (team ?? []).filter((t) => t.status === 'verified');
 
@@ -74,10 +76,32 @@ export default async function Business({ searchParams }: { searchParams: Promise
       <h3 style={{ marginTop: 30 }}>{tr("Team")}</h3>
       <div className="list">
         {(team ?? []).map((t) => <div key={t.id} className="card bk"><span><b>{t.display_name}</b> <span className="mu sm">· {tr(t.status === 'verified' ? 'verified pro' : 'waiting for verification')}</span></span><Link className="btn ghost sm" href={`/pro/${t.slug}`}>{tr("Profile")}</Link></div>)}
-        {(invites ?? []).map((i) => <div key={i.code} className="card bk"><span className="sm">{tr(i.role === 'manager' ? 'Invite link (manager):' : 'Invite link (technician):')}<br /><code style={{ wordBreak: 'break-all' }}>{origin}/invite/{i.code}</code></span><span className="mu xs">{tr("Send by text or email")}</span></div>)}
+        {(invites ?? []).map((i: any) => (
+          <div key={i.code} className="card formcard">
+            <span className="sm"><b>{i.prefill?.name || tr(i.role === 'manager' ? 'Invite link (manager):' : 'Invite link (technician):')}</b>
+              {i.prefill?.trade && <span className="mu"> · {tr(TRADES[i.prefill.trade as Trade]?.name ?? '')}{i.prefill.area ? ` · ${i.prefill.area}` : ''}</span>}
+              <span className="mu xs"> · {tr('waiting to join')}</span><br /><code style={{ wordBreak: 'break-all' }} className="xs">{origin}/invite/{i.code}</code></span>
+            <InviteShare url={`${origin}/invite/${i.code}`} company={co.name} who={i.prefill?.name?.split(' ')[0]} />
+          </div>))}
+        <details className="card formcard">
+          <summary style={{ cursor: 'pointer' }}><b>+ {tr('Add a technician')}</b> <span className="mu xs">{tr('fill in the basics, the technician finishes the profile')}</span></summary>
+          <form action={addTechnician} className="list" style={{ marginTop: 10 }}>
+            <input type="hidden" name="company" value={co.id} />
+            <div className="row2">
+              <label className="f">{tr('Name clients see')}<input className="inp" name="name" required minLength={3} maxLength={60} placeholder="Mike Reyes" /></label>
+              <label className="f">{tr('Trade')}<select className="inp" name="trade" defaultValue="plumbing">{(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}</select></label>
+            </div>
+            <div className="row2">
+              <label className="f">{tr('Area you serve')}<input className="inp" name="area" maxLength={60} placeholder="Redwood City" /></label>
+              <label className="f">{tr('Years of experience')}<input className="inp" name="years" type="number" min={0} max={60} /></label>
+            </div>
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Create the invite link')}</button>
+            <span className="mu xs">{tr('Then send the link by SMS or email. The technician signs in with their own email, adds a real photo and their services, and joins your team. Reviews and job counts always belong to the technician.')}</span>
+          </form>
+        </details>
         <form action={inviteTechnician} className="chips">
           <input type="hidden" name="company" value={co.id} />
-          <button className="btn sm">{tr("New technician invite")}</button>
+          <button className="btn ghost sm">{tr("New technician invite")}</button>
           <button className="btn ghost sm" formAction={inviteManager}>{tr("New manager invite")}</button>
         </form>
       </div>

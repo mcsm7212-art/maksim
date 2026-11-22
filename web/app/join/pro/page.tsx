@@ -10,6 +10,7 @@ export default async function JoinPro({ searchParams }: { searchParams: Promise<
   const tr = await getT();
   const { invite } = await searchParams;
   let companyName: string | undefined;
+  let prefill: { name?: string; trade?: string; area?: string; years?: number } | undefined;
   if (isLive()) {
     const me = await getMe();
     if (!me) redirect(`/login?next=${encodeURIComponent(`/join/pro${invite ? `?invite=${invite}` : ''}`)}`);
@@ -17,12 +18,13 @@ export default async function JoinPro({ searchParams }: { searchParams: Promise<
     if (invite) {
       const { data } = await (await supabaseServer()).rpc('invite_info', { invite_code: invite });
       companyName = data?.[0]?.company_name;
+      prefill = ((await (await supabaseServer()).rpc('invite_prefill', { invite_code: invite })).data ?? undefined) as typeof prefill;
     }
   }
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow">{invite ? 'Technician' : 'Independent pro'}</div><h2>{tr("Create your pro profile")}</h2>
-      <ProForm invite={invite} companyName={companyName} />
+      <ProForm invite={invite} companyName={companyName} prefill={prefill} />
     </div></section>
   );
 }

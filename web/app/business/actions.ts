@@ -25,3 +25,13 @@ async function createInvite(f: FormData, role: 'technician' | 'manager') {
 }
 export async function inviteTechnician(f: FormData) { await createInvite(f, 'technician'); }
 export async function inviteManager(f: FormData) { await createInvite(f, 'manager'); }
+
+// The office fills in a technician's profile; the technician gets a link, checks it, adds a photo and joins.
+export async function addTechnician(f: FormData) {
+  const sb = await need();
+  const trade = ['plumbing', 'electrical', 'handyman', 'construction'].includes(s(f, 'trade')) ? s(f, 'trade') : 'plumbing';
+  const prefill = { name: s(f, 'name').trim().slice(0, 60), trade, area: s(f, 'area').trim().slice(0, 60), years: Math.max(0, Math.min(60, Number(s(f, 'years')) || 0)) };
+  if (prefill.name.length < 3) redirect('/business?error=' + encodeURIComponent('Enter the technician’s name.'));
+  await sb.from('company_invites').insert({ company_id: s(f, 'company'), role: 'technician', prefill });
+  revalidatePath('/business');
+}

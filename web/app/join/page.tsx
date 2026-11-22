@@ -22,6 +22,19 @@ export default async function Join() {
           <span className="mu sm">{tr("Your brand colors, your team. Clients chat with your office, book a technician or let you assign one.")}</span>
           <span className="btn sm" style={{ marginTop: 'auto', alignSelf: 'flex-start' }}>{tr("Register company")}</span></Link>
       </div>
+      <h3 style={{ marginTop: 30 }}>{tr('How sign-up works')}</h3>
+      <div className="steps-reg">
+        <div className="card"><b>👤 {tr('Client')}</b><ol>
+          <li>{tr('Tap “Sign in”, enter your email.')}</li><li>{tr('Enter the 6-digit code from the email. Done: no password, no form.')}</li>
+          <li>{tr('Pick a pro and book, ask for an estimate or a call back.')}</li></ol></div>
+        <div className="card"><b>🔧 {tr('Independent pro')}</b><ol>
+          <li>{tr('“Create pro profile” → email and code.')}</li><li>{tr('Fill in the profile: real photo, trade, CSLB license, services and prices, days and hours.')}</li>
+          <li>{tr('NovaFides checks the license and ID, then the profile goes public.')}</li></ol></div>
+        <div className="card"><b>🏢 {tr('Company')}</b><ol>
+          <li>{tr('“Register company” → email and code → company name, license, colors.')}</li>
+          <li>{tr('Add technicians on the Business page: fill in a technician’s name and trade yourself, or just create an invite link.')}</li>
+          <li>{tr('Send the link by text or email. The technician opens it, checks the prepared profile, adds a photo and joins your team.')}</li></ol></div>
+      </div>
       <p className="mu sm" style={{ marginTop: 18 }}>{tr("Technician at a company? Ask your office for an invite link.")}</p>
     </div></section>
   );

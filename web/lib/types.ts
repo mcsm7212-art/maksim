@@ -95,6 +95,9 @@ export interface Pro {
   urgentFee: number | null;
   responseMin: number | null;
   tripFee: number;
+  /** Phone and call hours the pro chose to show (null = not shown) */
+  publicPhone?: string | null;
+  callHours?: string | null;
   rating: number | null;
   reviewCount: number;
   /** Cautious score for ordering: few reviews are pulled toward the platform average */
