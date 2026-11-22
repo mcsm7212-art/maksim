@@ -21,11 +21,18 @@ async function uniqueSlug(table: 'pros' | 'companies', base: string) {
   return `${root}-${Date.now().toString(36)}`;
 }
 
-// Service area from the map: a California point and a radius in miles (or nothing).
+// Service area from the map: a polygon of [lat, lng] points (anywhere in the US), plus its center and reach for sorting.
 function serviceArea(f: FormData) {
-  const lat = Number(f.get('base_lat')), lng = Number(f.get('base_lng')), r = Math.round(Number(f.get('radius')));
-  const ok = f.get('base_lat') !== '' && Number.isFinite(lat) && Number.isFinite(lng) && lat > 32 && lat < 42.5 && lng > -125 && lng < -114;
-  return ok ? { base_lat: lat, base_lng: lng, service_radius_mi: Math.min(150, Math.max(1, r || 15)) } : { base_lat: null, base_lng: null, service_radius_mi: null };
+  const none = { base_lat: null, base_lng: null, service_radius_mi: null, service_polygon: null };
+  let pts: [number, number][] = [];
+  try { pts = JSON.parse(String(f.get('service_polygon') ?? '[]')); } catch { return none; }
+  if (!Array.isArray(pts)) return none;
+  pts = pts.filter((p) => Array.isArray(p) && p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]) && p[0] > 17 && p[0] < 72 && p[1] > -180 && p[1] < -60)
+    .slice(0, 60).map(([a, b]) => [Math.round(a * 1e5) / 1e5, Math.round(b * 1e5) / 1e5]);
+  if (pts.length < 3) return none;
+  const lat = pts.reduce((s, p) => s + p[0], 0) / pts.length, lng = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+  const r = Math.max(...pts.map(([a, b]) => { const dy = (a - lat) * 69, dx = (b - lng) * 69 * Math.cos((lat * Math.PI) / 180); return Math.hypot(dx, dy); }));
+  return { base_lat: Math.round(lat * 1e5) / 1e5, base_lng: Math.round(lng * 1e5) / 1e5, service_radius_mi: Math.min(1500, Math.max(1, Math.round(r))), service_polygon: pts };
 }
 
 // Full-height photo (background already removed in the browser) and the glow colour taken from the clothes.

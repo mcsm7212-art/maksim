@@ -98,7 +98,7 @@ export interface Pro {
   /** Phone and call hours the pro chose to show (null = not shown) */
   publicPhone?: string | null;
   /** Service area: center and radius in miles, if the pro set it on the map */
-  serviceArea?: { lat: number; lng: number; radius: number } | null;
+  serviceArea?: { lat: number; lng: number; radius: number; polygon?: [number, number][] | null } | null;
   callHours?: string | null;
   rating: number | null;
   reviewCount: number;

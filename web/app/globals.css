@@ -797,3 +797,10 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .pv-box{background:var(--bg);border:1px solid var(--line);border-radius:18px;max-width:1080px;width:100%;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .pv-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 6px 12px}
 .pv .figcol{min-height:420px}
+.sa-v{background:var(--cu-l,#C08A62);border:3px solid #fff;border-radius:50%;box-shadow:0 1px 6px rgba(0,0,0,.55);cursor:grab}
+.sa-mid{background:#fff;border:2px solid var(--cu-l,#C08A62);border-radius:50%;opacity:.85;cursor:copy}
+.sa-mid:hover{opacity:1;transform:scale(1.2)}
+.sa-map{height:380px}
+/* OpenStreetMap is light; on the dark site make it dark so it matches */
+:root:not([data-theme="light"]) .sa-map .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.9) saturate(.6)}
+:root:not([data-theme="light"]) .sa-map{background:#191b20}

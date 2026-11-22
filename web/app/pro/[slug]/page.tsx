@@ -213,9 +213,9 @@ export default async function ProPage({ params, searchParams }: Props) {
 
         {pro.serviceArea && <div className="blk">
           <h2>{tr('Service area')}</h2>
-          <p className="mu sm" style={{ margin: '0 0 10px' }}>{tr('Travels up to {n} mi{from}', { n: pro.serviceArea.radius, from: pro.area ? ` · ${pro.area}` : '' })}</p>
-          {/* Only the circle is shown, its center rounded: never the pro's exact address. */}
-          <ServiceAreaMap readOnly lat={+pro.serviceArea.lat.toFixed(2)} lng={+pro.serviceArea.lng.toFixed(2)} radius={pro.serviceArea.radius} />
+          <p className="mu sm" style={{ margin: '0 0 10px' }}>{pro.serviceArea.polygon ? (pro.area || '') : tr('Travels up to {n} mi{from}', { n: pro.serviceArea.radius, from: pro.area ? ` · ${pro.area}` : '' })}</p>
+          {/* The area the pro drew (or a circle around a rounded center): never the pro's exact address. */}
+          <ServiceAreaMap readOnly polygon={pro.serviceArea.polygon} lat={+pro.serviceArea.lat.toFixed(2)} lng={+pro.serviceArea.lng.toFixed(2)} radius={pro.serviceArea.radius} />
         </div>}
 
         {pro.skillTags.length > 0 && <div className="blk">

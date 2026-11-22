@@ -242,12 +242,13 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select prefill->>'name' from company_invites where prefill->>'name' is not null")!=='Joe Prefill')throw new Error('prefilled invite missing');
  await o.waitForSelector('.card:has-text("Joe Prefill") a[href^="sms:"]');
  step('client asked Max for a call back (phone + time in the chat); the office added a technician with a prefilled profile and an SMS/email link');
- await s.goto(B+'/account/profile');await s.waitForSelector('.sa-map .leaflet-container, .sa-map.leaflet-container');await s.fill('.sa-bar input','Redwood City');await s.click('.sa-bar button:has-text("Find")');await s.waitForFunction(()=>document.querySelector('input[name=base_lat]')?.value!=='');
- await s.locator('.sa-radius input').fill('20');await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
- if(sql("select service_radius_mi||' '||round(base_lat,1) from pros where display_name='Max Solo'")!=='20 37.5')throw new Error('service area not saved: '+sql("select service_radius_mi, base_lat from pros where display_name='Max Solo'"));
+ await s.goto(B+'/account/profile');await s.waitForSelector('.sa-map.leaflet-container');await s.fill('.sa-bar input','Redwood City');await s.click('.sa-bar button:has-text("Find")');await s.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10);
+ await s.click('.sa button:has-text("Bigger area")');await s.click('.sa button:has-text("Bigger area")');await s.locator('.sa-mid').first().click();await s.waitForFunction(()=>JSON.parse(document.querySelector('input[name=service_polygon]').value).length===9);
+ await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
+ if(sql("select jsonb_array_length(service_polygon)||' '||(service_radius_mi>10)::text from pros where display_name='Max Solo'")!=='9 true')throw new Error('service area not saved: '+sql("select service_polygon, service_radius_mi from pros where display_name='Max Solo'"));
  await c.goto(B+'/search?sf=1&loc=94061');await c.waitForSelector('.why:has-text("Works in your area")');
  await c.goto(B+'/max');await c.waitForSelector('.sa.ro .leaflet-container');
- step('Max set his service area on the map (Redwood City, 20 mi) → a client in 94061 sees “Works in your area”; the circle shows on his page');
+ step('Max drew his service area on the map (Redwood City, made bigger, added a corner point) → a client in 94061 sees “Works in your area”; the area shows on his page');
  for(const u of ['/robots.txt','/sitemap.xml','/manifest.webmanifest','/services','/services/faucet-replacement','/near/redwood-city']){const r=await c.goto(B+u);if(r.status()!==200)throw new Error('page '+u+' '+r.status())}
  await c.goto(B+'/max');if(!(await c.content()).includes('application/ld+json'))throw new Error('no structured data on pro page');
  step('Google: robots, sitemap, app manifest, service and city pages, structured data on the pro page');

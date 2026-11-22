@@ -45,7 +45,7 @@ function mapPro(p: Row, stats?: Row): Pro {
     isDemo: Boolean(p.is_demo),
     accepting: !p.is_demo && ((p.accepting !== false) || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }))), pausedUntil: p.paused_until ?? null,
     urgent: Boolean(!p.is_demo && p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95), publicPhone: p.public_phone ?? null, callHours: p.call_hours ?? null,
-    serviceArea: p.base_lat != null && p.base_lng != null ? { lat: Number(p.base_lat), lng: Number(p.base_lng), radius: Number(p.service_radius_mi ?? 15) } : null,
+    serviceArea: p.base_lat != null && p.base_lng != null ? { lat: Number(p.base_lat), lng: Number(p.base_lng), radius: Number(p.service_radius_mi ?? 15), polygon: Array.isArray(p.service_polygon) ? p.service_polygon : null } : null,
     rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), rankScore: s?.rank_score != null ? Number(s.rank_score) : null, jobs: Number(s?.jobs ?? 0),
     skills: s?.rating != null ? {
       punctuality: s.punctuality / 20, workmanship: s.workmanship / 20, cleanliness: s.cleanliness / 20, communication: s.communication / 20, pricing: s.pricing / 20,
