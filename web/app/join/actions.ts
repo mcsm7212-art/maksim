@@ -21,6 +21,13 @@ async function uniqueSlug(table: 'pros' | 'companies', base: string) {
   return `${root}-${Date.now().toString(36)}`;
 }
 
+// Service area from the map: a California point and a radius in miles (or nothing).
+function serviceArea(f: FormData) {
+  const lat = Number(f.get('base_lat')), lng = Number(f.get('base_lng')), r = Math.round(Number(f.get('radius')));
+  const ok = f.get('base_lat') !== '' && Number.isFinite(lat) && Number.isFinite(lng) && lat > 32 && lat < 42.5 && lng > -125 && lng < -114;
+  return ok ? { base_lat: lat, base_lng: lng, service_radius_mi: Math.min(150, Math.max(1, r || 15)) } : { base_lat: null, base_lng: null, service_radius_mi: null };
+}
+
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
   const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
@@ -49,7 +56,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').insert({
     id: me.id, slug: await uniqueSlug('pros', name), display_name: name, trade, tiers,
-    years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), bio: str(f, 'bio', 300),
+    years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), ...serviceArea(f), bio: str(f, 'bio', 300),
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((s) => s.trim()).filter(Boolean),
@@ -87,7 +94,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   const newPhoto = str(f, 'photo_url', 500);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').update({
-    display_name: name, tiers, years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), bio: str(f, 'bio', 300),
+    display_name: name, tiers, years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), ...serviceArea(f), bio: str(f, 'bio', 300),
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((x) => x.trim()).filter(Boolean),

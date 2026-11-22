@@ -4,7 +4,7 @@ const sql=q=>execSync(`PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -tAc "$
 async function code(email){for(let i=0;i<20;i++){const r=await (await fetch('http://127.0.0.1:54324/api/v1/search?query=to:'+encodeURIComponent(email))).json();
   if(r.messages&&r.messages.length){const m=await (await fetch('http://127.0.0.1:54324/api/v1/message/'+r.messages[0].ID)).json();const c=(m.Text||m.HTML).match(/\b(\d{6})\b/);if(c)return c[1]}await new Promise(r=>setTimeout(r,500))}throw new Error('no mail for '+email)}
 async function user(b,email,name,mobile){const c=await b.newContext(mobile?{...devices['iPhone 13']}:{viewport:{width:1200,height:900}});const p=await c.newPage();
-  p.on('pageerror',e=>errs.push(email+' '+p.url()+' '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(email+' console '+m.text().slice(0,200))});
+  p.on('pageerror',e=>errs.push(email+' '+p.url()+' '+e.message));p.on('console',m=>{if(m.type()==='error'&&!/ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED/.test(m.text()))errs.push(email+' console '+m.text().slice(0,200))}); // map tiles cannot load without internet in the test box
   await p.goto(B+'/login');await p.fill('input[type=email]',email);if(name)await p.fill('input[autocomplete=name]',name);await p.check('input[name=agree]');await p.click('text=Email me a sign-in code');
   await p.waitForSelector('input[autocomplete=one-time-code]');await p.fill('input[autocomplete=one-time-code]',await code(email));await p.click('button:has-text("Sign in")');await p.waitForURL(/account/);return p}
 const step=s=>console.log('✓',s);
@@ -220,7 +220,7 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  step('search with a ZIP: pros near Redwood City first, the place is remembered; open-hours-today filter');
  // sort + filters are remembered; compare; saved search; client project confirmed by the pro
  await c.goto(B+'/search?sf=1');await c.selectOption('.sctl-sort select','rating');await c.waitForURL(/sort=rating/);
- await c.click('.sctl-f > summary');await c.click('.sctl-f .chip >> nth=4');await c.waitForURL(/f=lic/);
+ await c.click('.sctl-f > summary');await c.click('.sctl-f .chip:has-text("License checked")');await c.waitForURL(/f=lic/);
  await c.goto(B+'/search');if((await c.inputValue('.sctl-sort select'))!=='rating')throw new Error('sort not remembered');
  await a.goto(B+'/search?sf=1');await a.waitForSelector('.cmp-t');if(await a.locator('.cmp-t input').count()<2)throw new Error('need 2 pros to compare');
  await a.check('.cmp-t input >> nth=0');await a.check('.cmp-t input >> nth=1');await a.click('.cmp-bar a.btn');await a.waitForURL(/\/compare\?p=/);await a.waitForSelector('.cmp-table');
@@ -242,6 +242,12 @@ async function avatar(p){await p.setInputFiles('.drop input >> nth=0',IMG('face'
  if(sql("select prefill->>'name' from company_invites where prefill->>'name' is not null")!=='Joe Prefill')throw new Error('prefilled invite missing');
  await o.waitForSelector('.card:has-text("Joe Prefill") a[href^="sms:"]');
  step('client asked Max for a call back (phone + time in the chat); the office added a technician with a prefilled profile and an SMS/email link');
+ await s.goto(B+'/account/profile');await s.waitForSelector('.sa-map .leaflet-container, .sa-map.leaflet-container');await s.fill('.sa-bar input','Redwood City');await s.click('.sa-bar button:has-text("Find")');await s.waitForFunction(()=>document.querySelector('input[name=base_lat]')?.value!=='');
+ await s.locator('.sa-radius input').fill('20');await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
+ if(sql("select service_radius_mi||' '||round(base_lat,1) from pros where display_name='Max Solo'")!=='20 37.5')throw new Error('service area not saved: '+sql("select service_radius_mi, base_lat from pros where display_name='Max Solo'"));
+ await c.goto(B+'/search?sf=1&loc=94061');await c.waitForSelector('.why:has-text("Works in your area")');
+ await c.goto(B+'/max');await c.waitForSelector('.sa.ro .leaflet-container');
+ step('Max set his service area on the map (Redwood City, 20 mi) → a client in 94061 sees “Works in your area”; the circle shows on his page');
  for(const u of ['/robots.txt','/sitemap.xml','/manifest.webmanifest','/services','/services/faucet-replacement','/near/redwood-city']){const r=await c.goto(B+u);if(r.status()!==200)throw new Error('page '+u+' '+r.status())}
  await c.goto(B+'/max');if(!(await c.content()).includes('application/ld+json'))throw new Error('no structured data on pro page');
  step('Google: robots, sitemap, app manifest, service and city pages, structured data on the pro page');

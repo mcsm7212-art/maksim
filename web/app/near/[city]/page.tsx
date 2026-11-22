@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProCard from '@/components/ProCard';
-import { CITIES, locCity, milesBetween } from '@/lib/areas';
+import { CITIES, milesBetween } from '@/lib/areas';
+import { miles, proPoint } from '@/lib/geo';
 import { TRADES, type Trade } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
 import { getLang } from '@/lib/i18n';
@@ -25,8 +26,10 @@ export default async function CityPage({ params }: Props) {
   const c = cityBySlug((await params).city); if (!c) notFound();
   const lang = await getLang(); const tr = makeT(lang);
   const all = await listPros();
-  const dist = (p: (typeof all)[number]) => milesBetween(c.name, locCity(p.onlineArea) ?? locCity(p.area)) ?? 99;
-  const near = all.filter((p) => dist(p) <= 12).sort((a, b) => dist(a) - dist(b) || (b.rankScore ?? 0) - (a.rankScore ?? 0));
+  const here = { lat: c.lat, lng: c.lon };
+  const dist = (p: (typeof all)[number]) => { const pp = proPoint(p); return pp ? miles(here, pp) : 99; };
+  // In the pro's map circle, or within 12 miles when the pro has not drawn one.
+  const near = all.filter((p) => (p.serviceArea ? dist(p) <= p.serviceArea.radius + 0.5 : dist(p) <= 12)).sort((a, b) => dist(a) - dist(b) || (b.rankScore ?? 0) - (a.rankScore ?? 0));
   const others = CITIES.filter((x) => x.name !== c.name).sort((a, b) => (milesBetween(c.name, a.name) ?? 99) - (milesBetween(c.name, b.name) ?? 99)).slice(0, 8);
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 900 }}>

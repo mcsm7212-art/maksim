@@ -62,3 +62,10 @@ on conflict do nothing;
 update public.pros set public_phone = '(650) 555-01' || lpad((10 + row_number)::text, 2, '0'), call_hours = 'Mon–Fri 8am–6pm, Sat 9am–1pm'
 from (select id, row_number() over (order by id) as row_number from public.pros where id::text like '7e570000-0000-4000-8000-00000000000_') d
 where public.pros.id = d.id;
+
+-- Service areas on the map (circle around each demo pro's city).
+update public.pros p set base_lat = v.lat, base_lng = v.lng, service_radius_mi = v.r
+from (values ('Mei Tanaka',37.563,-122.3255,15),('Daniel Brooks',37.4852,-122.2364,25),('Marcus Hill',37.4852,-122.2364,20),('Sofia Reyes',37.5072,-122.2605,12),
+             ('Kenji Nakamura',37.453,-122.1817,20),('Renee Jackson',37.5585,-122.2711,10),('Laura Bennett',37.5841,-122.3661,18),('Carlos Mendoza',37.563,-122.3255,30),
+             ('Roberto Alvarez',37.4852,-122.2364,35),('Priya Raman',37.3688,-122.0363,40)) v(name, lat, lng, r)
+where p.display_name = v.name and p.id::text like '7e570000-0000-4000-8000-00000000000_';

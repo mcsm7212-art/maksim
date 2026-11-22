@@ -1,5 +1,8 @@
 'use client';
-import { useActionState, useMemo, useState } from 'react';
+import { useActionState, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const ServiceAreaMap = dynamic(() => import('@/components/ServiceAreaMap'), { ssr: false, loading: () => <div className="sa-map" /> });
 import { marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/catalog';
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
@@ -10,7 +13,7 @@ import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
   name: string; trade: Trade; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  insured: boolean; baseLat?: number | null; baseLng?: number | null; radius?: number | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -29,6 +32,8 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
     return [...m];
   }, [trade]);
   const accent = accentFromUniform(uniform);
+  const areaRef = useRef<HTMLInputElement>(null); const areaAuto = useRef(!I?.area && !prefill?.area);
+  const onTown = (town: string) => { const el = areaRef.current; if (el && (areaAuto.current || !el.value.trim())) { el.value = town; areaAuto.current = true; } };
 
   return (
     <form action={action} className="list">
@@ -42,13 +47,18 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
             {(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tt(TRADES[t].name)}</option>)}</select></label>
           {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /></label>}
           <label className="f">{tt("Years of experience")}<input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /></label>
-          <label className="f">{tt("Area you serve")}<input className="inp" name="area" placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /></label>
+          <label className="f">{tt("Area you serve")}<input className="inp" name="area" ref={areaRef} onInput={() => { areaAuto.current = false; }} placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /></label>
           <label className="f">{tt("Languages")}<input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /></label>
         </div>
         <label className="f">{tt("Short intro (shown in search)")}<textarea className="inp" name="bio" defaultValue={I?.bio} maxLength={300} placeholder={tt('What you are best at and how you work.')} style={{ minHeight: 70 }} /></label>
         <label className="f">{tt("Your experience")}<textarea className="inp" name="experience" defaultValue={I?.experience} maxLength={2000} placeholder={tt('Where you worked, for how long, what jobs you have done most. E.g. 9 years as a plumber, 4 on my own. Water heaters, repipes, sewer lines.')} /></label>
         <label className="f">{tt("Your skills, separated by commas")}<input className="inp" name="skills" defaultValue={I?.skills} maxLength={300} placeholder={tt('Tankless water heaters, Repipes, Leak detection')} /></label>
         <label className="chk"><input type="checkbox" name="insured" defaultChecked={I?.insured} /> {tt("I carry liability insurance")}</label>
+      </div>
+      <div className="card formcard">
+        <h3 style={{ margin: 0 }}>{tt('Service area on the map')}</h3>
+        <span className="mu sm">{tt('Clients near this circle see you first. Anywhere in California.')}</span>
+        <ServiceAreaMap lat={I?.baseLat} lng={I?.baseLng} radius={I?.radius ?? 15} onTown={onTown} />
         {trade === 'handyman' && <span className="mu xs">{tt("Handymen can take jobs under $1,000 total (labor and materials), no permits, nothing inside walls (California B&P Code §7048).")}</span>}
       </div>
 

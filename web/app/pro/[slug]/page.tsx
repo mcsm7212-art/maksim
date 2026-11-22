@@ -18,6 +18,7 @@ import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
 import HelpfulButton from '@/components/HelpfulButton';
 import PeerPicks from '@/components/PeerPicks';
+import ServiceAreaMap from '@/components/ServiceAreaMap';
 import ProjectCard from '@/components/ProjectCard';
 import { listProjects } from '@/lib/projects';
 import { SITE } from '@/lib/seo';
@@ -208,6 +209,13 @@ export default async function ProPage({ params, searchParams }: Props) {
           <h2>{tr('About {name}', { name: first })}</h2>
           {pro.bio && <p style={{ margin: '0 0 10px' }}>{pro.bio}</p>}
           {pro.experience && <p className="mu" style={{ margin: 0 }}>{pro.experience}</p>}
+        </div>}
+
+        {pro.serviceArea && <div className="blk">
+          <h2>{tr('Service area')}</h2>
+          <p className="mu sm" style={{ margin: '0 0 10px' }}>{tr('Travels up to {n} mi{from}', { n: pro.serviceArea.radius, from: pro.area ? ` · ${pro.area}` : '' })}</p>
+          {/* Only the circle is shown, its center rounded: never the pro's exact address. */}
+          <ServiceAreaMap readOnly lat={+pro.serviceArea.lat.toFixed(2)} lng={+pro.serviceArea.lng.toFixed(2)} radius={pro.serviceArea.radius} />
         </div>}
 
         {pro.skillTags.length > 0 && <div className="blk">

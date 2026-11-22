@@ -16,5 +16,5 @@ export async function alsoChosen(proId: string, lim = 6): Promise<Map<string, nu
 
 export const SORTS = ['best', 'rating', 'near', 'similar', 'soon', 'price', 'fast', 'jobs'] as const;
 export type Sort = (typeof SORTS)[number];
-export const FILTERS = ['today', 'tomorrow', 'weekend', 'urgent', 'lic', 'id', 'ins', 'solo', 'co', 'r45', 'photos', 'mine'] as const;
+export const FILTERS = ['today', 'tomorrow', 'weekend', 'urgent', 'area', 'lic', 'id', 'ins', 'solo', 'co', 'r45', 'photos', 'mine'] as const;
 export type Filter = (typeof FILTERS)[number];

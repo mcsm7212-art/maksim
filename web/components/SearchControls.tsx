@@ -8,6 +8,7 @@ const SORT_LABEL: Record<string, string> = {
 };
 const FILTER_GROUPS: [string, [string, string][]][] = [
   ['When', [['today', 'Today'], ['tomorrow', 'Tomorrow'], ['weekend', 'Weekend'], ['urgent', '⚡ Urgent calls']]],
+  ['Where', [['area', '📍 Works in my area']]],
   ['Checks', [['lic', 'License checked'], ['id', 'ID checked'], ['ins', 'Insured']]],
   ['Who', [['solo', 'Independent pro'], ['co', 'Company']]],
   ['Quality', [['r45', '★ 4.5+'], ['photos', 'Has work photos'], ['mine', '♥ My pros']]],

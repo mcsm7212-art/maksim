@@ -97,6 +97,8 @@ export interface Pro {
   tripFee: number;
   /** Phone and call hours the pro chose to show (null = not shown) */
   publicPhone?: string | null;
+  /** Service area: center and radius in miles, if the pro set it on the map */
+  serviceArea?: { lat: number; lng: number; radius: number } | null;
   callHours?: string | null;
   rating: number | null;
   reviewCount: number;

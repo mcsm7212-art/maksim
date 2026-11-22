@@ -13,7 +13,7 @@ import SearchBox from '@/components/SearchBox';
 import { searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
 import { getLoc } from '@/lib/loc';
-import { locCity, milesBetween } from '@/lib/areas';
+import { covers, miles, proPoint } from '@/lib/geo';
 import { mySaves } from '@/lib/social';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
@@ -51,25 +51,26 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const sim = me ? await similarPicks(trade ?? guess ?? null, 24) : new Map<string, number>();
   const today = pacificParts(new Date());
   const dayOff = (iso: string) => { const p = pacificParts(new Date(iso)); return Math.round((Date.UTC(p.y, p.m - 1, p.d) - Date.UTC(today.y, today.m - 1, today.d)) / 864e5); };
-  type Row = { p: (typeof pros)[number]; d: number | null; next: string | null; slots: string[]; price: number | null; jobs: number; sim: number; fav: number };
+  type Row = { p: (typeof pros)[number]; d: number | null; cov: boolean | null; next: string | null; slots: string[]; price: number | null; jobs: number; sim: number; fav: number };
   const fromPrice = (p: (typeof pros)[number]) => { const v = p.services.map((x) => priceFor(p, x.id) ?? 1e9); return v.length ? Math.min(...v) : null; };
   let rows: Row[] = pros.map((p) => {
     const slots = openSlots(p, 7);
-    return { p, slots, next: slots[0] ?? null, d: loc.city ? milesBetween(loc.city, locCity(p.onlineArea) ?? locCity(p.area)) : null,
+    const pp = loc.pt ? proPoint(p) : null;
+    return { p, slots, next: slots[0] ?? null, d: loc.pt && pp ? Math.round(miles(loc.pt, pp)) : null, cov: covers(p, loc.pt),
       price: svc ? priceFor(p, svc.id) : fromPrice(p), jobs: svc ? (p.services.find((x) => x.id === svc.id)?.jobs ?? 0) : p.jobs,
       sim: sim.get(p.id) ?? 0, fav: Number(saves.get(p.id) === 'saved') };
   });
   const has = (f: string) => filters.includes(f);
-  rows = rows.filter(({ p, slots, price, fav }) =>
+  rows = rows.filter((r) => { const { p, slots, price, fav } = r; return (
     (!has('today') || slots.some((x) => dayOff(x) === 0)) && (!has('tomorrow') || slots.some((x) => dayOff(x) === 1)) &&
     (!has('weekend') || slots.some((x) => [0, 6].includes(pacificParts(new Date(x)).weekday))) && (!has('urgent') || p.urgent) &&
     (!has('lic') || p.verified.license) && (!has('id') || p.verified.id) && (!has('ins') || p.verified.insured) &&
     (!has('solo') || !p.company) && (!has('co') || Boolean(p.company)) && (!has('r45') || (p.reviewCount > 0 && (p.rating ?? 0) >= 4.5)) &&
-    (!has('photos') || p.photos.length > 0) && (!has('mine') || fav === 1) && (!pick.lang || p.languages.includes(pick.lang)) && (!max || (price != null && price <= max)));
+    (!has('photos') || p.photos.length > 0) && (!has('area') || r.cov === true) && (!has('mine') || fav === 1) && (!pick.lang || p.languages.includes(pick.lang)) && (!max || (price != null && price <= max))); });
   const by = (f: (r: Row) => number | null, asc = true) => (a: Row, b: Row) => {
     const x = f(a), y = f(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return asc ? x - y : y - x;
   };
-  const score = (r: Row) => r.fav * 100 + Number(r.p.accepting) * 20 + Math.min(r.sim, 10) * 2 + ((r.p.rankScore ?? 4.2) - 4.2) * 15
+  const score = (r: Row) => (r.cov === true ? 15 : r.cov === false ? -10 : 0) + r.fav * 100 + Number(r.p.accepting) * 20 + Math.min(r.sim, 10) * 2 + ((r.p.rankScore ?? 4.2) - 4.2) * 15
     + (r.d != null ? Math.max(0, 10 - r.d / 3) : 0) + (r.next && dayOff(r.next) <= 1 ? 5 : 0) + Number(r.p.online) * 3;
   const order: Record<Sort, (a: Row, b: Row) => number> = {
     best: by(score, false), rating: by((r) => r.p.rankScore ?? r.p.rating, false), near: by((r) => r.d), similar: (a, b) => b.sim - a.sim || by(score, false)(a, b),
@@ -80,7 +81,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   // Why each pro is here: two short reasons, the chosen order first.
   const why = (r: Row) => {
     const out: string[] = [];
-    const near = r.d != null && r.d <= 30 ? (r.d < 1 ? tr('📍 In your city') : tr('📍 {n} mi from you', { n: r.d })) : null;
+    const near = r.cov ? tr('📍 Works in your area') : r.d != null && r.d <= 30 ? (r.d < 1 ? tr('📍 In your city') : tr('📍 {n} mi from you', { n: r.d })) : null;
     const simT = r.sim ? tr('👥 Liked by {n} clients with picks like yours', { n: r.sim }) : null;
     const soon = r.next ? `📅 ${tr('Free')} ${slotLabel(r.next, tr).join(' ')}` : null;
     const fast = r.p.responseMin ? tr('⏱ Usually replies in ~{n} min', { n: r.p.responseMin }) : null;

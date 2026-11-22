@@ -22,7 +22,7 @@ export default async function EditProfile() {
     sb.from('availability_rules').select('weekday, start_time, end_time').eq('pro_id', me.id),
   ]);
   const initial: ProInitial = {
-    name: p.display_name, trade: p.trade, years: p.years_exp ?? 0, area: p.area ?? '', languages: (p.languages ?? []).join(', '),
+    name: p.display_name, trade: p.trade, years: p.years_exp ?? 0, area: p.area ?? '', baseLat: p.base_lat != null ? Number(p.base_lat) : null, baseLng: p.base_lng != null ? Number(p.base_lng) : null, radius: p.service_radius_mi ?? null, languages: (p.languages ?? []).join(', '),
     bio: p.bio ?? '', experience: p.experience ?? '', skills: (p.skills ?? []).join(', '), insured: p.insured, uniform: p.uniform_color,
     photo: p.photo_url, tiers: p.tiers,
     services: Object.fromEntries((svcs ?? []).filter((x) => x.active).map((x) => [x.service_id, x.price != null ? Number(x.price) : null])),
