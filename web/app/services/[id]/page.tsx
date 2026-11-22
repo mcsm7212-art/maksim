@@ -25,7 +25,7 @@ export default async function ServicePage({ params }: Props) {
   const s = serviceById((await params).id); if (!s) notFound();
   const lang = await getLang(); const tr = makeT(lang);
   let pros = await listPros({ serviceId: s.id });
-  if (s.permit || s.hi > 1000) pros = pros.filter((p) => p.trade !== 'handyman');
+  if (s.permit || s.hi > 1000) pros = pros.filter((p) => p.trade !== 'handyman' && Boolean(p.license)); // jobs over $1,000 or with a permit need a CSLB license
   pros = [...pros].sort((a, b) => Number(b.accepting) - Number(a.accepting) || (b.rankScore ?? 0) - (a.rankScore ?? 0)).slice(0, 6);
   const related = SERVICES.filter((x) => x.group === s.group && x.trade === s.trade && x.id !== s.id).slice(0, 8);
   const ld = { '@context': 'https://schema.org', '@type': 'Service', name: s.name, serviceType: TRADES[s.trade].name, areaServed: 'San Francisco Bay Area', url: `${SITE}/services/${s.id}`,

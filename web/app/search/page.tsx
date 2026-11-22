@@ -43,7 +43,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const filters = (pick.f ?? '').split(',').filter((x) => (FILTERS as readonly string[]).includes(x));
   const max = Number(pick.max) > 0 ? Number(pick.max) : null;
   // Handymen cannot take permit jobs or jobs over $1,000.
-  if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman');
+  if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman' && Boolean(p.license)); // jobs over $1,000 or with a permit need a CSLB license
   // My pros: hidden ones are left out, saved ones come first.
   const saves = await mySaves();
   pros = pros.filter((p) => saves.get(p.id) !== 'hidden');

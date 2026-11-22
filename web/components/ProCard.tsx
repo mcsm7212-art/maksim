@@ -30,6 +30,7 @@ export default async function ProCard({ pro, serviceId, saved, reasons }: { pro:
         <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
           {pro.reviewCount > 0 && pro.rating != null ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {pro.reviewCount}</span> : <span className="badge n">{tr('New')}</span>}
           {pro.verified.license && pro.license && <span className="badge ok">{tr('License')} ✓</span>}
+          {!pro.license && <span className="badge n" title={tr('Without a CSLB license: jobs under $1,000 with materials, no permit')}>{tr('Jobs under $1,000')}</span>}
           {saved && <span className="badge cu">♥ {tr('My pro')}</span>}
           {pro.founding && <span className="badge cu">★ {tr('Founding Pro')}</span>}
           {pro.photos.length > 0 && <span className="badge n">{tr('{n} work photos', { n: pro.photos.length })}</span>}

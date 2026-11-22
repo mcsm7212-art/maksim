@@ -263,6 +263,12 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  for(const u of ['/robots.txt','/sitemap.xml','/manifest.webmanifest','/services','/services/faucet-replacement','/near/redwood-city']){const r=await c.goto(B+u);if(r.status()!==200)throw new Error('page '+u+' '+r.status())}
  await c.goto(B+'/max');if(!(await c.content()).includes('application/ld+json'))throw new Error('no structured data on pro page');
  step('Google: robots, sitemap, app manifest, service and city pages, structured data on the pro page');
+ const nl=await user(b,'nolic@test.local','Nick Nolicense');await nl.goto(B+'/join/pro');await nl.fill('input[name=name]','Nick Nolicense');await avatar(nl);
+ await nl.click('details.grp >> nth=0');await nl.check('input[name=svc_faucet-replacement]');await nl.click('summary:has-text("Water Heaters")');await nl.check('input[name=svc_tank-water-heater-replacement]');
+ if(!(await nl.locator('.sv-row.lic').count()))throw new Error('no red rows without license');await nl.check('input[name=agree]');await nl.click('button:has-text("Create my profile")');await nl.waitForSelector('.err:has-text("CSLB license")');
+ await nl.uncheck('input[name=svc_tank-water-heater-replacement]');await nl.click('button:has-text("Create my profile")');await nl.waitForURL(/account/);
+ if(sql("select coalesce(license_no,'none') from pros where display_name='Nick Nolicense'")!=='none')throw new Error('unlicensed pro not created');
+ step('a plumber without a license can join for jobs under $1,000; a water heater replacement is refused until a license is added');
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

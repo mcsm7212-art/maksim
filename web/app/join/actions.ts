@@ -72,7 +72,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!(trade in TRADES)) return { error: 'Choose your trade.' };
   if (!f.get('agree')) return { error: 'Please confirm your licenses and agree to the Terms of Use.' };
-  if (trade !== 'handyman' && !invite && license.length < 6) return { error: `A CSLB ${TRADES[trade].license} license number is required for ${TRADES[trade].name.toLowerCase()}.` };
+  // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   if (!services.length) return { error: 'Choose at least one service you offer.' };
   if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
   const custom = customOf(f);

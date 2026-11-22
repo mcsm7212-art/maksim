@@ -61,7 +61,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
-        <span className="mu xs">🇺🇸 {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
+        <span className="mu xs">✎ {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
         <div className="row2">
           <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mike Reyes" /><ClearBtn /></span></label>
           <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
@@ -70,7 +70,8 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
                 <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
           </div>
-          {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /><ClearBtn /></span></label>}
+          {!invite && !edit && <label className="f">CSLB license # ({TRADES[trade].license || 'B'}) <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
+            <span className="mu xs">{tt('No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
           <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
           <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
         </div>
