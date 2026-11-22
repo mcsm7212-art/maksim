@@ -46,10 +46,10 @@ export default async function Home() {
   const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
   return (
     <>
-      <section className="hero pad"><div className="in hero-grid">
+      <section className="hero pad"><div className={`in hero-grid${lineup.length ? '' : ' solo'}`}>
         <div>
           <div className="eyebrow">{t('Bay Area · San Francisco to San Jose')}</div>
-          <h1>{t('Pick your pro.')}<br /><span>{t('Not a lead auction.')}</span></h1>
+          <h1>{t('Pick your pro.')}<br /><span>{t('Only they will call you.')}</span></h1>
           <p>{t('Verified plumbers, electricians, handymen and builders with real photos, their own work and honest reviews. You choose one pro. Your request goes only to them.')}</p>
           <SearchBox loc={loc.text} />
           <p className="sbox-only">{t('Your request goes only to the pro you choose.')}</p>
@@ -58,7 +58,7 @@ export default async function Home() {
           {lineup.map((p, i) => (
             <Link key={p.id} href={`/${p.slug}`} className={`lu-fig lu-${i}`} style={{ ['--acc' as string]: p.accent }}>
               <img src={p.figureUrl!} alt={p.name} loading={i ? 'lazy' : 'eager'} />
-              <span className="lu-tag"><b>{first(p.name)}</b>{t(TRADES[p.trade].name)}</span>
+              <span className="lu-tag" title={t(TRADES[p.trade].name)}><b>{first(p.name)}</b></span>
             </Link>
           ))}
           <i className="lu-floor" aria-hidden />
@@ -72,9 +72,10 @@ export default async function Home() {
           <div className="urg-txt">
             <b>{t('Need a pro today?')}</b>
             <span className="urg-stats">
-              <Link href="/online?urgent=1"><b className="num">{urgentCount}</b> {t('take urgent calls now')}</Link>
-              <Link href="/search?today=1"><b className="num">{todayCount}</b> {t('have open hours today')}</Link>
-              <Link href="/online"><b className="num">{onlineCount}</b> {t('online on the site')}</Link>
+              {/* Only numbers above zero: a row of zeros tells a visitor the site is empty. */}
+              {urgentCount > 0 && <Link href="/online?urgent=1"><b className="num">{urgentCount}</b> {t('take urgent calls now')}</Link>}
+              {todayCount > 0 && <Link href="/search?today=1"><b className="num">{todayCount}</b> {t('have open hours today')}</Link>}
+              {onlineCount > 0 && <Link href="/online"><b className="num">{onlineCount}</b> {t('online on the site')}</Link>}
             </span>
             <span className="mu2 xs">{t('“Online” only means the pro is on the site now. The pro confirms if they can come. Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.')}</span>
           </div>
@@ -94,7 +95,7 @@ export default async function Home() {
 
 
       <section className="sec pad"><div className="in">
-        <div className="eyebrow">{t('How it works')}</div><h2>{t('Three steps, no lead auction')}</h2>
+        <div className="eyebrow">{t('How it works')}</div><h2>{t('Three simple steps')}</h2>
         <ol className="steps3">
           <li className="card"><span className="ic"><Icon name="camera" size={22} /></span><b>{t('Describe or take a photo')}</b><span className="mu sm">{t('Type it in your own words or snap the problem. We suggest the job and the typical price.')}</span></li>
           <li className="card"><span className="ic"><Icon name="shield" size={22} /></span><b>{t('Choose one pro')}</b><span className="mu sm">{t('Compare faces, checked licenses, real work photos, prices and honest reviews. Your request goes only to the pro you pick.')}</span></li>

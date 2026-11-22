@@ -752,3 +752,13 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .steps-reg .card{padding:16px}
 .steps-reg ol{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--mu)}
 @media (max-width:760px){.steps-reg{grid-template-columns:1fr}}
+/* headline fits in two lines next to the line-up of pros; full width when there is no line-up */
+@media (min-width:901px){
+  .hero-grid{grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr)}
+  .hero-grid h1{font-size:clamp(40px,4.1vw,56px)}
+  html[lang="es"] .hero-grid h1{font-size:clamp(38px,3.6vw,50px)}
+  .hero-grid.solo{grid-template-columns:1fr}
+  .hero-grid.solo h1{font-size:clamp(40px,5.4vw,68px)}
+  .hero-grid .lineup{height:420px}
+  .hero-grid .lu-1{left:-6%}.hero-grid .lu-0{left:24%}.hero-grid .lu-2{right:-8%}
+}

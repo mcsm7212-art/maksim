@@ -162,7 +162,7 @@ export const ES: Record<string, string> = {
 "Paid on time": "Pagó a tiempo",
 "Permit usually required.": "Normalmente se requiere permiso.",
 "Photo": "Foto",
-"Pick your pro.": "Elija a su profesional.",
+"Pick your pro.": "Elige a tu profesional.",
 "Please enter the job address.": "Escriba la dirección del trabajo.",
 "Please pick a time.": "Elija una hora.",
 "Plumbing": "Plomería",
@@ -1407,6 +1407,10 @@ export const ES: Record<string, string> = {
 "{name} will call you back": "{name} le devolverá la llamada",
 "“Create pro profile” → email and code.": "“Crear perfil de profesional” → correo y código.",
 "“Register company” → email and code → company name, license, colors.": "“Registrar empresa” → correo y código → nombre, licencia, colores.",
+"Only they will call you.": "Solo te llamará quien elijas.",
+"Three simple steps": "Tres pasos sencillos",
+"A client’s request is never sold to five pros who then race to call first. The client picks you, and the request goes only to you.": "La solicitud de un cliente nunca se vende a cinco profesionales que compiten por llamar primero. El cliente le elige a usted y la solicitud le llega solo a usted.",
+"Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.": "Encuentre un plomero, electricista, handyman o constructor verificado en el Área de la Bahía. Fotos reales, trabajos reales, reseñas honestas. Usted elige un profesional y su solicitud le llega solo a esa persona. Gratis para clientes.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1571,7 +1575,7 @@ export const RU: Record<string, string> = {
 "Paid on time": "Оплатил вовремя",
 "Permit usually required.": "Обычно нужно разрешение (permit).",
 "Photo": "Фото",
-"Pick your pro.": "Выберите своего мастера.",
+"Pick your pro.": "Выберите мастера.",
 "Please enter the job address.": "Укажите адрес работы.",
 "Please pick a time.": "Выберите время.",
 "Plumbing": "Сантехника",
@@ -2816,4 +2820,8 @@ export const RU: Record<string, string> = {
 "{name} will call you back": "{name} вам перезвонит",
 "“Create pro profile” → email and code.": "«Создать профиль мастера» → email и код.",
 "“Register company” → email and code → company name, license, colors.": "«Зарегистрировать компанию» → email и код → название, лицензия, цвета.",
+"Only they will call you.": "Звонить будет только он.",
+"Three simple steps": "Три простых шага",
+"A client’s request is never sold to five pros who then race to call first. The client picks you, and the request goes only to you.": "Заявку клиента не продают пятерым мастерам, которые потом наперегонки звонят первыми. Клиент выбирает вас, и заявка приходит только вам.",
+"Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.": "Проверенные сантехники, электрики, хендимены и строители в Bay Area. Настоящие фото, настоящие работы, честные отзывы. Вы выбираете одного мастера, и заявка уходит только ему. Для клиентов бесплатно.",
 };

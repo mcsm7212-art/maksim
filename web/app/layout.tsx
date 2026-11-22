@@ -10,16 +10,22 @@ import { actionCount } from '@/lib/order-count';
 import { SITE } from '@/lib/seo';
 import './globals.css';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE),
-  title: { default: 'NovaFides Marketplace · Pick your pro in the Bay Area', template: '%s · NovaFides' },
-  description: 'Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.',
-  applicationName: 'NovaFides',
-  icons: { icon: [{ url: '/emblem.png' }, { url: '/icon-192.png', sizes: '192x192' }], apple: '/apple-touch-icon.png' },
-  appleWebApp: { capable: true, title: 'NovaFides', statusBarStyle: 'black-translucent' },
-  openGraph: { type: 'website', siteName: 'NovaFides Marketplace', images: [{ url: '/og.png', width: 1200, height: 630, alt: 'NovaFides: pick your pro, not a lead auction' }] },
-  twitter: { card: 'summary_large_image', images: ['/og.png'] },
-};
+// The tab title and description follow the visitor's language.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  const title = `NovaFides · ${t('Pick your pro.')} ${t('Only they will call you.')}`;
+  const description = t('Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.');
+  return {
+    metadataBase: new URL(SITE),
+    title: { default: title, template: '%s · NovaFides' },
+    description,
+    applicationName: 'NovaFides',
+    icons: { icon: [{ url: '/emblem.png' }, { url: '/icon-192.png', sizes: '192x192' }], apple: '/apple-touch-icon.png' },
+    appleWebApp: { capable: true, title: 'NovaFides', statusBarStyle: 'black-translucent' },
+    openGraph: { type: 'website', siteName: 'NovaFides Marketplace', title, description, images: [{ url: '/og.png', width: 1200, height: 630, alt: title }] },
+    twitter: { card: 'summary_large_image', images: ['/og.png'] },
+  };
+}
 export const viewport: Viewport = { themeColor: '#0C0C0E', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
