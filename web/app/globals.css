@@ -821,3 +821,27 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .trade-pick label:has(input:checked){border-color:var(--cu-l,#C08A62);background:color-mix(in srgb,var(--cu-l,#C08A62) 14%,var(--card2));font-weight:600}
 .trade-pick label:has(input:disabled){cursor:default;opacity:.6}
 .trade-pick label:has(input:checked:disabled){opacity:1}
+
+/* ===== theme picker: Light / Dark / System with small previews ===== */
+.themesel{position:relative}
+.themesel>summary{list-style:none}
+.themesel>summary::-webkit-details-marker{display:none}
+.theme-menu{min-width:300px;padding:10px}
+.theme-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tcard{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer;color:var(--mu);font:inherit;font-size:13px}
+.tcard .tprev{position:relative;width:100%;aspect-ratio:4/3;border-radius:12px;border:2px solid var(--line);overflow:hidden;display:block;transition:border-color .15s ease,transform .15s ease}
+.tcard:hover .tprev{transform:translateY(-2px)}
+.tcard.on .tprev{border-color:var(--cu-l,#C08A62);box-shadow:0 0 0 2px color-mix(in srgb,var(--cu-l,#C08A62) 30%,transparent)}
+.tcard.on .tlabel{color:var(--cu-l,#C08A62);font-weight:600}
+.tprev.light{background:#F6F3EE}
+.tprev.dark{background:#16161A}
+.tprev.system{background:linear-gradient(135deg,#F6F3EE 50%,#16161A 50%)}
+.tprev i{position:absolute;left:14%;height:5px;border-radius:3px;background:#9A938B}
+.tprev i:nth-child(1){top:20%;width:46%}.tprev i:nth-child(2){top:34%;width:30%}
+.tprev.dark i{background:#5A5752}
+.tprev b{position:absolute;right:14%;bottom:16%;width:16%;aspect-ratio:1;border-radius:50%;background:#C08A62}
+.more-theme{padding:8px 6px 4px;border-top:1px solid var(--line);margin-top:4px}
+@media (min-width:1200px){.hdr-me .themesel .tg-label{display:inline}}
+@media (max-width:760px){.hdr-me > .themesel{display:none}}
+.themesel .theme-menu{right:auto;left:50%;margin-left:-160px;width:320px}
+.themesel>summary.themebtn{font-size:13px;height:36px;padding:0 10px}

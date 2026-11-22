@@ -1458,6 +1458,8 @@ export const ES: Record<string, string> = {
 "We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.": "No le encontramos de cuerpo entero, así que esta foto se usa como imagen simple. Para la figura con brillo, tome una foto de la cabeza a los zapatos.",
 "Taken from your clothes in the photo. Pick another colour if you like.": "Tomado de su ropa en la foto. Puede elegir otro color.",
 "The trade cannot be changed after sign-up. Write to us if it is wrong.": "El oficio no se puede cambiar después del registro. Escríbanos si está mal.",
+"System": "Sistema",
+"Appearance": "Apariencia",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2918,4 +2920,6 @@ export const RU: Record<string, string> = {
 "We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.": "Не нашли вас в полный рост, поэтому фото будет обычной картинкой. Для фигуры со свечением нужно фото с головы до обуви.",
 "Taken from your clothes in the photo. Pick another colour if you like.": "Взят с вашей одежды на фото. Можно выбрать другой цвет.",
 "The trade cannot be changed after sign-up. Write to us if it is wrong.": "Специальность нельзя изменить после регистрации. Напишите нам, если она указана неверно.",
+"System": "Системная",
+"Appearance": "Внешний вид",
 };

@@ -34,6 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang} data-theme={theme}>
       <head>
+        {/* "System" theme: follow the device before the page paints, and remember what the device uses. */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var c=document.cookie;if(!/(^|; )theme=system/.test(c))return;var s=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';var o=(c.match(/(^|; )theme_sys=(\\w+)/)||[])[2];document.documentElement.dataset.theme=s;if(o!==s){document.cookie='theme_sys='+s+'; path=/; max-age=31536000; samesite=lax';location.reload();}}catch(e){}})();` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}

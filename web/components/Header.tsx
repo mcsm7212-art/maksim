@@ -8,14 +8,14 @@ import LangSwitch from './LangSwitch';
 import AccountMenu from './AccountMenu';
 import ThemeToggle from './ThemeToggle';
 import UiFeel from './UiFeel';
-import { getTheme } from '@/lib/theme';
+import { getThemeChoice } from '@/lib/theme';
 import NavLink from './NavLink';
 import MoreMenu from './MoreMenu';
 import Link2 from 'next/link';
 import NavProgress from './NavProgress';
 
 export default async function Header() {
-  const me = await getMe(); const t = await getT(); const theme = await getTheme();
+  const me = await getMe(); const t = await getT(); const theme = await getThemeChoice();
   return (
     <>
       {!isLive() && <div className="demo">{t('Demo mode: sample pros, sign-up turns on when the database is connected.')}</div>}
@@ -59,7 +59,8 @@ export default async function Header() {
               <Link2 href="/questions">{t('Questions')}</Link2>
               <Link2 href="/photo">📷 {t('Search by photo')}</Link2>
               {!me?.pro && <Link2 href="/join">{t('For pros')}</Link2>}
-              <div className="more-row"><UiFeel engine={false} /><ThemeToggle initial={theme} /><Suspense><LangSwitch /></Suspense></div>
+              <div className="more-row"><UiFeel engine={false} /><Suspense><LangSwitch /></Suspense></div>
+              <div className="more-theme"><ThemeToggle initial={theme} inline /></div>
             </MoreMenu>
           </div>
         </div>
