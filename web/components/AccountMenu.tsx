@@ -2,10 +2,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import { useHoverIntent } from './useHoverIntent';
 
 /** "My account ▾" dropdown in the header. Closes on navigation and on a click outside. */
 export default function AccountMenu({ label, links, signOut }: { label: string; links: { href: string; text: string }[]; signOut: string }) {
-  const ref = useRef<HTMLDetailsElement>(null); const path = usePathname();
+  const ref = useRef<HTMLDetailsElement>(null); useHoverIntent(ref); const path = usePathname();
   useEffect(() => { if (ref.current) ref.current.open = false; }, [path]);
   useEffect(() => {
     const close = (e: MouseEvent) => { if (ref.current?.open && !ref.current.contains(e.target as Node)) ref.current.open = false; };

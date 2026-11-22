@@ -6,6 +6,7 @@ const ServiceAreaMap = dynamic(() => import('@/components/ServiceAreaMap'), { ss
 import { marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/catalog';
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
+import Icon from '@/components/Icon';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
 import ProPreview, { type PreviewData } from '@/components/ProPreview';
@@ -55,8 +56,12 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
         <div className="row2">
           <label className="f">{tt("Name clients see")}<input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mike Reyes" /></label>
-          <label className="f">{tt("Trade")}<select className="inp" name="trade" value={trade} disabled={edit} onChange={(e) => setTrade(e.target.value as Trade)}>
-            {(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tt(TRADES[t].name)}</option>)}</select></label>
+          <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
+            <div className="trade-pick">{(Object.keys(TRADES) as Trade[]).map((t) => (
+              <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />
+                <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
+            {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
+          </div>
           {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /></label>}
           <label className="f">{tt("Years of experience")}<input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /></label>
           <label className="f">{tt("Languages")}<input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /></label>

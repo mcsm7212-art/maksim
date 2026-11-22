@@ -810,3 +810,14 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .flipbtn:disabled{opacity:.5;cursor:default}
 .ava-mini{display:flex;align-items:center;gap:10px}
 .ava-mini img{width:48px;height:48px;border-radius:12px;object-fit:cover;background:var(--card2)}
+/* invisible bridge over the gap between the button and its menu, so the mouse never "falls off" on the way */
+.acct-menu::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}
+/* trade picker: four big buttons instead of a dropdown */
+.trade-pick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.trade-pick{grid-template-columns:1fr 1fr}}
+.trade-pick label{display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;cursor:pointer;font-size:14px;background:var(--card2);transition:border-color .15s ease,background-color .15s ease}
+.trade-pick label:hover{border-color:color-mix(in srgb,var(--cu-l,#C08A62) 50%,var(--line))}
+.trade-pick input{position:absolute;opacity:0;pointer-events:none}
+.trade-pick label:has(input:checked){border-color:var(--cu-l,#C08A62);background:color-mix(in srgb,var(--cu-l,#C08A62) 14%,var(--card2));font-weight:600}
+.trade-pick label:has(input:disabled){cursor:default;opacity:.6}
+.trade-pick label:has(input:checked:disabled){opacity:1}
