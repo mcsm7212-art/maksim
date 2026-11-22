@@ -9,7 +9,19 @@ begin
   for p in select * from (values
     ('6',6,'Renee Jackson','renee-jackson','handyman',11,'Foster City',array['English'],'#2F7A55',
      'Small jobs done right: doors, locks, caulking, smoke detectors, childproofing.',
-     '11 years of handyman work for families and seniors. Careful, tidy, on time.',array['Doors and locks','Caulking','Childproofing'])
+     '11 years of handyman work for families and seniors. Careful, tidy, on time.',array['Doors and locks','Caulking','Childproofing']),
+    ('7',7,'Laura Bennett','laura-bennett','plumbing',15,'Burlingame',array['English'],'#1F8A8A',
+     'Water heaters, leaks and main water lines. I explain the options and the price before I start.',
+     '15 years of residential plumbing on the Peninsula, including copper and PEX service lines.',array['Water heaters','Main water lines','Leak detection']),
+    ('8',8,'Carlos Mendoza','carlos-mendoza','electrical',12,'San Mateo',array['English','Spanish'],'#D9763A',
+     'EV chargers, lighting and panel upgrades. Hablo español. Permits handled when the city needs them.',
+     '12 years as a licensed electrician, residential and small commercial.',array['EV chargers','Panel upgrades','Lighting']),
+    ('9',9,'Roberto Alvarez','roberto-alvarez','construction',24,'Redwood City',array['English','Spanish'],'#4F7F6E',
+     'Decks, fences, patios and foundation repair. A clear written scope before any deposit.',
+     '24 years building and repairing homes around Redwood City. Licensed B general contractor.',array['Decks and fences','Foundations','Framing']),
+    ('a',10,'Priya Raman','priya-raman','construction',14,'Sunnyvale',array['English','Hindi','Tamil'],'#B46A3C',
+     'Kitchen and bath remodels, ADUs and garage conversions, from plans to final inspection.',
+     '14 years as a general contractor in the South Bay. One schedule, one point of contact.',array['Remodels','ADUs','Permits and inspections'])
   ) as t(c,n,name,slug,trade,yrs,area,langs,accent,bio,exp,skills)
   loop
     uid := ('7e570000-0000-4000-8000-00000000000'||p.c)::uuid;
@@ -31,5 +43,17 @@ end $$;
 insert into public.pro_services (pro_id, service_id, price) values
  ('7e570000-0000-4000-8000-000000000006','door-repair-and-adjustment',160),('7e570000-0000-4000-8000-000000000006','door-lock-and-hardware-replacement',150),
  ('7e570000-0000-4000-8000-000000000006','caulking-kitchen-bath-windows',170),('7e570000-0000-4000-8000-000000000006','battery-smoke-detector-replacement',120),
- ('7e570000-0000-4000-8000-000000000006','childproofing',240),('7e570000-0000-4000-8000-000000000006','weatherstripping',150)
+ ('7e570000-0000-4000-8000-000000000006','childproofing',240),('7e570000-0000-4000-8000-000000000006','weatherstripping',150),
+ ('7e570000-0000-4000-8000-000000000007','water-heater-repair',null),('7e570000-0000-4000-8000-000000000007','tankless-water-heater-installation',null),
+ ('7e570000-0000-4000-8000-000000000007','water-service-line-replacement-meter-to-house',null),('7e570000-0000-4000-8000-000000000007','leak-detection',350),
+ ('7e570000-0000-4000-8000-000000000007','pipe-leak-repair',420),('7e570000-0000-4000-8000-000000000007','shut-off-valve-replacement',260),
+ ('7e570000-0000-4000-8000-000000000008','level-2-ev-charger-installation',null),('7e570000-0000-4000-8000-000000000008','panel-upgrade-100a-to-200a',null),
+ ('7e570000-0000-4000-8000-000000000008','light-fixture-replacement',230),('7e570000-0000-4000-8000-000000000008','recessed-lighting',290),
+ ('7e570000-0000-4000-8000-000000000008','ceiling-fan-installation',400),('7e570000-0000-4000-8000-000000000008','gfci-outlet-installation',210),
+ ('7e570000-0000-4000-8000-000000000009','deck-building',null),('7e570000-0000-4000-8000-000000000009','new-fence-installation',null),
+ ('7e570000-0000-4000-8000-000000000009','concrete-patio-or-driveway',null),('7e570000-0000-4000-8000-000000000009','foundation-repair',null),
+ ('7e570000-0000-4000-8000-000000000009','structural-framing-repair',null),
+ ('7e570000-0000-4000-8000-00000000000a','kitchen-remodel',null),('7e570000-0000-4000-8000-00000000000a','bathroom-remodel',null),
+ ('7e570000-0000-4000-8000-00000000000a','adu-construction',null),('7e570000-0000-4000-8000-00000000000a','garage-conversion',null),
+ ('7e570000-0000-4000-8000-00000000000a','interior-wall-removal',null)
 on conflict do nothing;

@@ -38,8 +38,9 @@ export default async function Home() {
   const questions = (await listQuestions({}, 4));
   // Pros with a full-height figure: real pros first (best cautious score), demo examples only to fill the gap.
   const withFig = pros.filter((p) => p.figureUrl);
-  const shown = [...withFig.filter((p) => !p.isDemo).sort((a, b) => (b.rankScore ?? 0) - (a.rankScore ?? 0)), ...withFig.filter((p) => p.isDemo)].slice(0, 8);
-  const lineup = shown.slice(0, 3);
+  const shown = [...withFig.filter((p) => !p.isDemo).sort((a, b) => (b.rankScore ?? 0) - (a.rankScore ?? 0)), ...withFig.filter((p) => p.isDemo).sort((a, b) => b.id.localeCompare(a.id))].slice(0, 10);
+  // Hero line-up: up to 3 pros of different trades.
+  const lineup = shown.filter((p, i) => shown.findIndex((x) => x.trade === p.trade) === i).slice(0, 3);
   const anyDemo = shown.some((p) => p.isDemo);
   const first = (n: string) => n.split(' ')[0];
   const popular = pop.map((id) => pros.find((p) => p.id === id)).filter((p): p is (typeof pros)[number] => Boolean(p)).filter((p) => !online.some((o) => o.id === p.id)).slice(0, 4);
