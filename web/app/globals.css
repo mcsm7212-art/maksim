@@ -762,3 +762,19 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
   .hero-grid .lineup{height:420px}
   .hero-grid .lu-1{left:-6%}.hero-grid .lu-0{left:24%}.hero-grid .lu-2{right:-8%}
 }
+
+/* ===== sound and light/dark switches: visible, with a text label ===== */
+.themebtn,.soundbtn{display:inline-flex;align-items:center;gap:6px;width:auto!important;padding:0 10px;height:36px;border:1px solid var(--line)!important;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;white-space:nowrap}
+.themebtn:hover,.soundbtn:hover{background:var(--card2)}
+.soundbtn[aria-pressed="true"]{border-color:color-mix(in srgb,var(--cu-l,#C08A62) 60%,var(--line))!important}
+.tg-label{display:none}
+@media (min-width:761px){.hdr-me > .themebtn,.hdr-me > .soundbtn{display:inline-flex}}
+@media (min-width:1200px){.hdr-me > .themebtn .tg-label,.hdr-me > .soundbtn .tg-label{display:inline}}
+/* in the "⋯" menu (phones): two clear buttons with labels */
+.more-menu .more-row{flex-wrap:wrap}
+.more-menu .more-row .themebtn,.more-menu .more-row .soundbtn{flex:1 1 130px;justify-content:flex-start;height:40px}
+.more-menu .more-row .tg-label{display:inline}
+.themebtn,.soundbtn{display:inline-flex!important;flex-direction:row;place-items:unset}
+@media (max-width:760px){.hdr-me > .themebtn,.hdr-me > .soundbtn{display:none!important}}
+.more-menu .more-row .themebtn,.more-menu .more-row .soundbtn{height:auto;min-height:40px;padding:8px 12px;font-size:14px}
+.hdr-me > .themebtn .tg-label,.hdr-me > .soundbtn .tg-label{font-size:13px}

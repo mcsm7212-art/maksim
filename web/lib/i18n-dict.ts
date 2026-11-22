@@ -1411,6 +1411,9 @@ export const ES: Record<string, string> = {
 "Three simple steps": "Tres pasos sencillos",
 "A client’s request is never sold to five pros who then race to call first. The client picks you, and the request goes only to you.": "La solicitud de un cliente nunca se vende a cinco profesionales que compiten por llamar primero. El cliente le elige a usted y la solicitud le llega solo a usted.",
 "Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.": "Encuentre un plomero, electricista, handyman o constructor verificado en el Área de la Bahía. Fotos reales, trabajos reales, reseñas honestas. Usted elige un profesional y su solicitud le llega solo a esa persona. Gratis para clientes.",
+"Sound on": "Sonido activado",
+"Sound off": "Sonido apagado",
+"Sound": "Sonido",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -1759,7 +1762,7 @@ export const RU: Record<string, string> = {
 "Could not join. Ask the office for a new link.": "Не удалось присоединиться. Попросите в офисе новую ссылку.",
 "Create my profile": "Создать профиль",
 "Create your pro profile": "Создайте профиль мастера",
-"Dark": "Тёмный",
+"Dark": "Тёмная",
 "Dark clothes: your page uses NovaFides copper.": "Тёмная одежда: страница будет в меди NovaFides.",
 "Day board": "Экран дня",
 "Deep teal": "Тёмно-бирюзовый",
@@ -1793,7 +1796,7 @@ export const RU: Record<string, string> = {
 "Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.": "Оставьте цену пустой, чтобы взять среднюю по Bay Area. Новым мастерам советуем ставить примерно на 5% ниже средней, пока нет отзывов.",
 "License active and name matches": "Лицензия активна, имя совпадает",
 "License, rating, prices and the Book button keep the NovaFides look on every page so clients can trust them.": "Лицензия, рейтинг, цены и кнопка записи везде в стиле NovaFides, чтобы клиенты им доверяли.",
-"Light": "Светлый",
+"Light": "Светлая",
 "Low rating. You can reply after {time}. A calm reply an hour later reads much better to future clients.": "Низкая оценка. Ответить можно после {time}. Спокойный ответ через час выглядит для будущих клиентов гораздо лучше.",
 "Main trade": "Основная профессия",
 "Moderation": "Модерация",
@@ -2824,4 +2827,7 @@ export const RU: Record<string, string> = {
 "Three simple steps": "Три простых шага",
 "A client’s request is never sold to five pros who then race to call first. The client picks you, and the request goes only to you.": "Заявку клиента не продают пятерым мастерам, которые потом наперегонки звонят первыми. Клиент выбирает вас, и заявка приходит только вам.",
 "Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.": "Проверенные сантехники, электрики, хендимены и строители в Bay Area. Настоящие фото, настоящие работы, честные отзывы. Вы выбираете одного мастера, и заявка уходит только ему. Для клиентов бесплатно.",
+"Sound on": "Звук вкл.",
+"Sound off": "Звук выкл.",
+"Sound": "Звук",
 };
