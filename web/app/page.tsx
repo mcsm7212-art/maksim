@@ -68,7 +68,7 @@ export default async function Home() {
 
       <section className="pad" style={{ marginTop: 4 }}><div className="in">
         <div className="card urgent urg2">
-          <span className="urg-ic"><Icon name="bolt" size={20} /></span>
+          <img className="ic3d urg3d" src="/icons/3d/emergency.webp" alt="" width={56} height={56} />
           <div className="urg-txt">
             <b>{t('Need a pro today?')}</b>
             <span className="urg-stats">
@@ -85,7 +85,7 @@ export default async function Home() {
       <section className="pad" style={{ marginTop: 16 }}><div className="in grid3 grid4">
         {(Object.keys(TRADES) as Trade[]).map((k) => (
           <Link key={k} href={`/search?trade=${k}`} className="card trade">
-            <span className="ic"><Icon name={TRADES[k].icon} size={24} /></span>
+            <img className="ic3d" src={`/icons/3d/${k}.webp`} alt="" width={84} height={84} loading="lazy" />
             <h3>{t(TRADES[k].name)}</h3>
             <span className="mu sm">{t(TRADES[k].blurb)}</span>
             <span className="xs mu2" style={{ marginTop: 'auto' }}>{TRADES[k].license ? t('Needs a CSLB {lic} license: each pro shows if it is checked', { lic: TRADES[k].license }) : t('No license only for jobs under $1,000 total, with no permit and no hired workers')}</span>
@@ -97,9 +97,9 @@ export default async function Home() {
       <section className="sec pad"><div className="in">
         <div className="eyebrow">{t('How it works')}</div><h2>{t('Three simple steps')}</h2>
         <ol className="steps3">
-          <li className="card"><span className="ic"><Icon name="camera" size={22} /></span><b>{t('Describe or take a photo')}</b><span className="mu sm">{t('Type it in your own words or snap the problem. We suggest the job and the typical price.')}</span></li>
-          <li className="card"><span className="ic"><Icon name="shield" size={22} /></span><b>{t('Choose one pro')}</b><span className="mu sm">{t('Compare faces, checked licenses, real work photos, prices and honest reviews. Your request goes only to the pro you pick.')}</span></li>
-          <li className="card"><span className="ic"><Icon name="chat" size={22} /></span><b>{t('Agree in the chat')}</b><span className="mu sm">{t('The pro sends a clear quote. You accept, pick a time, and everything stays in your order and in My home.')}</span></li>
+          <li className="card"><img className="ic3d sm" src="/icons/3d/photo-search.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Describe or take a photo')}</b><span className="mu sm">{t('Type it in your own words or snap the problem. We suggest the job and the typical price.')}</span></li>
+          <li className="card"><img className="ic3d sm" src="/icons/3d/verified.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Choose one pro')}</b><span className="mu sm">{t('Compare faces, checked licenses, real work photos, prices and honest reviews. Your request goes only to the pro you pick.')}</span></li>
+          <li className="card"><img className="ic3d sm" src="/icons/3d/chat.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Agree in the chat')}</b><span className="mu sm">{t('The pro sends a clear quote. You accept, pick a time, and everything stays in your order and in My home.')}</span></li>
         </ol>
       </div></section>
 

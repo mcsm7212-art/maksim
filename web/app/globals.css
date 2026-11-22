@@ -866,3 +866,23 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .clear-btn:hover{background:var(--card2);color:#E0705A}
 .fieldwrap>.inp:placeholder-shown+.clear-btn{display:none}
 .en-warn{border-left-color:#D9A23A}
+/* theme cards with landscapes (day / night / split), copper glow and a check on the chosen one */
+.tcard .tprev{background:none!important;border-radius:14px;border:2px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 14px rgba(0,0,0,.35)}
+.tprev i:not(.tcut),.tprev b{display:none}
+.tscene{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tnight{position:absolute;inset:0;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.tcut{position:absolute;inset:0;background:linear-gradient(to top left,transparent calc(50% - 1px),rgba(255,255,255,.85) 50%,transparent calc(50% + 1px))}
+.tcard.on .tprev{border-color:#E39A4E;box-shadow:0 0 0 1px #E39A4E,0 0 18px rgba(227,154,78,.55),inset 0 1px 0 rgba(255,255,255,.2)}
+.tcard.on .tlabel{color:#F0A45A}
+.tcheck{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:#E8913F;color:#1a1208;font-size:12px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 10px rgba(232,145,63,.6)}
+.theme-menu{min-width:340px}
+.themesel .theme-menu{width:360px;margin-left:-180px}
+.tcard .tlabel{font-size:13.5px;color:var(--ink)}
+.tprev i.tcut{left:0;top:0;width:auto;height:auto;border-radius:0;background:linear-gradient(to top left,transparent calc(50% - 1px),rgba(255,255,255,.9) 50%,transparent calc(50% + 1px))}
+/* 3D copper icons (NovaFides icon kit): big tiles for trades, smaller for steps and urgent help */
+.ic3d{width:84px;height:84px;object-fit:contain;display:block;margin:-6px 0 2px -6px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35));transition:transform .25s ease}
+.ic3d.sm{width:60px;height:60px;margin:-4px 0 2px -4px}
+.card.trade:hover .ic3d{transform:translateY(-3px) scale(1.04)}
+.urg3d{width:56px;height:56px;margin:0;flex:none}
+@media (max-width:760px){.grid4 .trade .ic3d{width:54px;height:54px;margin:-4px 0 0 -4px}}
+[data-theme="light"] .ic3d{filter:drop-shadow(0 6px 10px rgba(60,40,20,.2))}
