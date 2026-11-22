@@ -912,3 +912,5 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .mm-sect{display:block;padding:12px 10px 4px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cu-l,#C08A62);border-top:1px solid var(--line);margin-top:6px}
 .more-menu{min-width:330px;max-height:calc(100vh - 90px);overflow-y:auto}
 .tcard .tlabel{text-align:center;width:100%}
+/* "⋯" menu on a computer: no repeats of what the header already shows (nav links, sound, languages, theme) */
+@media (min-width:761px){.more-menu .in-nav,.more-menu .phone-only{display:none!important}}

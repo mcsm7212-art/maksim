@@ -55,14 +55,14 @@ export default async function Header() {
             <Suspense><LangSwitch /></Suspense>
             <MoreMenu>
               <Link2 href="/companies" className="mm"><Ic3d name="company" size={38} /><span><b>{t('Companies')}</b><small>{t('Licensed companies and their teams')}</small></span></Link2>
-              <Link2 href="/online" className="mm"><Ic3d name="location" size={38} /><span><b>{t('Online now')} <i className="dot-live" /></b><small>{t('Pros on the site right now, by city')}</small></span></Link2>
+              <Link2 href="/online" className="mm in-nav"><Ic3d name="location" size={38} /><span><b>{t('Online now')} <i className="dot-live" /></b><small>{t('Pros on the site right now, by city')}</small></span></Link2>
               <Link2 href="/feed" className="mm"><Ic3d name="handyman" size={38} /><span><b>{t('Work & tips')}</b><small>{t('Real jobs and advice from pros')}</small></span></Link2>
-              <Link2 href="/questions" className="mm"><Ic3d name="chat" size={38} /><span><b>{t('Questions')}</b><small>{t('Ask, verified pros answer')}</small></span></Link2>
+              <Link2 href="/questions" className="mm in-nav"><Ic3d name="chat" size={38} /><span><b>{t('Questions')}</b><small>{t('Ask, verified pros answer')}</small></span></Link2>
               <Link2 href="/photo" className="mm"><Ic3d name="photo-search" size={38} /><span><b>{t('Search by photo')}</b><small>{t('Snap the problem, find the job')}</small></span></Link2>
-              {!me?.pro && <Link2 href="/join" className="mm"><Ic3d name="verified" size={38} /><span><b>{t('For pros')}</b><small>{t('Free during the launch')}</small></span></Link2>}
-              <span className="mm-sect">{t('Interface settings')}</span>
-              <div className="more-row"><UiFeel engine={false} /><Suspense><LangSwitch /></Suspense></div>
-              <div className="more-theme"><ThemeToggle initial={theme} inline /></div>
+              {!me?.pro && <Link2 href="/join" className="mm in-nav"><Ic3d name="verified" size={38} /><span><b>{t('For pros')}</b><small>{t('Free during the launch')}</small></span></Link2>}
+              <span className="mm-sect phone-only">{t('Interface settings')}</span>
+              <div className="more-row phone-only"><UiFeel engine={false} /><Suspense><LangSwitch /></Suspense></div>
+              <div className="more-theme phone-only"><ThemeToggle initial={theme} inline /></div>
             </MoreMenu>
           </div>
         </div>
