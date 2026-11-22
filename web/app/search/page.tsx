@@ -10,7 +10,7 @@ import { pacificParts, slotLabel } from '@/lib/time';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import SearchBox from '@/components/SearchBox';
-import { searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
+import { licenseNeeded, searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
 import { getLoc } from '@/lib/loc';
 import { covers, miles, proPoint } from '@/lib/geo';
@@ -43,7 +43,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const filters = (pick.f ?? '').split(',').filter((x) => (FILTERS as readonly string[]).includes(x));
   const max = Number(pick.max) > 0 ? Number(pick.max) : null;
   // Handymen cannot take permit jobs or jobs over $1,000.
-  if (svc && (svc.permit || svc.hi > 1000)) pros = pros.filter((p) => p.trade !== 'handyman' && Boolean(p.license)); // jobs over $1,000 or with a permit need a CSLB license
+  if (svc) pros = pros.filter((p) => (p.trade !== 'handyman' && Boolean(p.license)) || !licenseNeeded(svc, priceFor(p, svc.id))); // jobs over $1,000 or with a permit need a CSLB license
   // My pros: hidden ones are left out, saved ones come first.
   const saves = await mySaves();
   pros = pros.filter((p) => saves.get(p.id) !== 'hidden');

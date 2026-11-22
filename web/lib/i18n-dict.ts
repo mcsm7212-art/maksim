@@ -1488,6 +1488,11 @@ export const ES: Record<string, string> = {
 "No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.": "¿Sin licencia? Puede unirse igual: acepta trabajos de menos de $1,000 con materiales, sin permiso. Los trabajos que requieren licencia están en rojo abajo.",
 "Jobs under $1,000": "Trabajos de menos de $1,000",
 "Without a CSLB license: jobs under $1,000 with materials, no permit": "Sin licencia CSLB: trabajos de menos de $1,000 con materiales, sin permiso",
+"Needs a CSLB license: your price is $1,000 or more": "Requiere licencia CSLB: su precio es de $1,000 o más",
+"Jobs marked red need a CSLB license: your price is $1,000 or more (with materials), or the job needs a permit. Add your license number above, lower the price, or choose only the other jobs.": "Los trabajos en rojo requieren licencia CSLB: su precio es de $1,000 o más (con materiales) o el trabajo necesita permiso. Agregue su número de licencia arriba, baje el precio o elija solo los demás trabajos.",
+"Some chosen jobs need a CSLB license (your price is $1,000 or more, or a permit is needed). They are marked red. Add your license number, lower the price or remove them.": "Algunos trabajos elegidos requieren licencia CSLB (su precio es de $1,000 o más, o se necesita permiso). Están marcados en rojo. Agregue su número de licencia, baje el precio o quítelos.",
+"To change your trade or license number, contact NovaFides support: they need a new check.": "Para cambiar su oficio o número de licencia, contacte al soporte de NovaFides: se necesita una nueva verificación.",
+"We check your license with CSLB and your ID before your profile goes public. One person, one profile.": "Verificamos su licencia con CSLB y su identificación antes de publicar su perfil. Una persona, un perfil.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2978,4 +2983,9 @@ export const RU: Record<string, string> = {
 "No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.": "Нет лицензии? Всё равно можно зарегистрироваться: вы берёте работы до $1,000 вместе с материалами, без разрешения. Работы, которым нужна лицензия, ниже отмечены красным.",
 "Jobs under $1,000": "Работы до $1,000",
 "Without a CSLB license: jobs under $1,000 with materials, no permit": "Без лицензии CSLB: работы до $1,000 с материалами, без разрешения",
+"Needs a CSLB license: your price is $1,000 or more": "Нужна лицензия CSLB: ваша цена $1,000 или больше",
+"Jobs marked red need a CSLB license: your price is $1,000 or more (with materials), or the job needs a permit. Add your license number above, lower the price, or choose only the other jobs.": "Работы, отмеченные красным, требуют лицензию CSLB: ваша цена $1,000 или больше (с материалами) или нужно разрешение. Укажите номер лицензии выше, снизьте цену или выберите только другие работы.",
+"Some chosen jobs need a CSLB license (your price is $1,000 or more, or a permit is needed). They are marked red. Add your license number, lower the price or remove them.": "Для некоторых выбранных работ нужна лицензия CSLB (ваша цена $1,000 или больше, или нужно разрешение). Они отмечены красным. Укажите номер лицензии, снизьте цену или уберите их.",
+"To change your trade or license number, contact NovaFides support: they need a new check.": "Чтобы сменить профессию или номер лицензии, напишите в поддержку NovaFides: нужна новая проверка.",
+"We check your license with CSLB and your ID before your profile goes public. One person, one profile.": "Мы проверяем вашу лицензию в CSLB и ваш документ, прежде чем профиль станет публичным. Один человек — один профиль.",
 };

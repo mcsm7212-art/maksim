@@ -1,7 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
+import { licenseNeeded, serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -43,16 +43,16 @@ function figureOf(f: FormData, uid: string, cur: string | null) {
 }
 
 // California: a CSLB license is needed for jobs over $1,000 (labor + materials) or that need a permit.
-const needsLicense = (id: string) => { const s = serviceById(id); return Boolean(s && (s.permit || s.hi > 1000)); };
+const needsLicense = (x: { service_id: string; price?: number | null }) => { const s = serviceById(x.service_id); return Boolean(s && licenseNeeded(s, x.price)); };
 function customOf(f: FormData) {
   const names = f.getAll('custom_name').map(String), prices = f.getAll('custom_price').map(String);
   return names.map((n, i) => ({ name: n.trim().slice(0, 80), price: Number(prices[i]) > 0 ? Math.round(Number(prices[i])) : null }))
     .filter((x) => x.name.length >= 3).slice(0, 20);
 }
-function licenseProblem(services: { service_id: string }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
+function licenseProblem(services: { service_id: string; price?: number | null }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
   if (licensed) return null;
-  const bad = [...services.filter((x) => needsLicense(x.service_id)).map((x) => serviceById(x.service_id)!.name), ...custom.filter((c) => (c.price ?? 0) > 1000).map((c) => c.name)];
-  return bad.length ? 'Some chosen jobs need a CSLB license (over $1,000 or a permit). They are marked red. Add your license number or remove them.' : null;
+  const bad = [...services.filter(needsLicense).map((x) => serviceById(x.service_id)!.name), ...custom.filter((c) => (c.price ?? 0) >= 1000).map((c) => c.name)];
+  return bad.length ? 'Some chosen jobs need a CSLB license (your price is $1,000 or more, or a permit is needed). They are marked red. Add your license number, lower the price or remove them.' : null;
 }
 async function saveCustom(sb: Awaited<ReturnType<typeof supabaseServer>>, uid: string, custom: { name: string; price: number | null }[]) {
   await sb.from('pro_custom_services').delete().eq('pro_id', uid);

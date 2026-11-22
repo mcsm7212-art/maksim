@@ -51,6 +51,8 @@ export const TRADES: Record<Trade, { name: string; license: string; icon: string
 export const roundPrice = (n: number) => (n < 200 ? Math.round(n / 5) * 5 : n < 2000 ? Math.round(n / 10) * 10 : Math.round(n / 50) * 50);
 export const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 export const marketMid = (s: Service) => (s.lo + s.hi) / 2;
+/** California: a CSLB license is needed when the job (labor + materials) is $1,000 or more, or needs a permit. Uses the pro's own price; the market average if none is set. */
+export const licenseNeeded = (s: Service, price?: number | null) => s.permit || (price && price > 0 ? price : marketMid(s)) >= 1000;
 
 
 export function searchServices(query: string, trade?: Trade | null, limit = 8): Service[] {
