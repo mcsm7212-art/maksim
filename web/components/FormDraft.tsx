@@ -28,7 +28,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   const restore = () => {
     const f = form.current; if (!f) return false;
     let data: Saved = {}; try { data = JSON.parse(localStorage.getItem(key) ?? '{}'); } catch { return false; }
-    if (!Object.keys(data).length) return false;
+    if (!Object.keys(data).length) return Boolean(localStorage.getItem(`${key}_photo`));
     const els = fields(f);
     // Radios first (the trade decides which services are shown), then everything else.
     els.filter((el) => el.type === 'radio' && data[`${el.name}=${el.value}`] === true && !(el as HTMLInputElement).checked).forEach((el) => (el as HTMLInputElement).click());
@@ -46,7 +46,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   useEffect(() => {
     const f = form.current; if (!f) return;
     if (id === 'pro-edit') { try { localStorage.removeItem('nf_draft_pro-new'); } catch { /* storage off */ } } // the new-profile draft is no longer needed
-    if (done) { try { localStorage.removeItem(key); } catch { /* storage off */ } }
+    if (done) { try { localStorage.removeItem(key); localStorage.removeItem(`${key}_photo`); } catch { /* storage off */ } }
     else if (restore()) setRestored(true);
     ready.current = true;
     const save = () => {
@@ -68,7 +68,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   useEffect(() => { if (again) restore(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [again]);
 
   return <>
-    {restored && <div className="note xs draft-note">↺ {t('We kept what you typed before. Nothing is saved on the site until you press Save.')} <button type="button" className="linkbtn xs" onClick={() => { try { localStorage.removeItem(key); } catch { /* */ } location.reload(); }}>{t('Start over')}</button></div>}
+    {restored && <div className="note xs draft-note">↺ {t('We kept what you typed before. Nothing is saved on the site until you press Save.')} <button type="button" className="linkbtn xs" onClick={() => { try { localStorage.removeItem(key); localStorage.removeItem(`${key}_photo`); } catch { /* */ } location.reload(); }}>{t('Start over')}</button></div>}
     {foreign.length > 0 && <div className="note xs en-warn">⚠ {t('Please write in English. Most clients in the Bay Area read English. Not in English yet:')} <b>{foreign.join(', ')}</b></div>}
   </>;
 }

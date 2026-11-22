@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Ic3d from '@/components/Ic3d';
 import { notFound } from 'next/navigation';
 import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
@@ -159,7 +160,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>
 
         <details className="card trustinfo">
-          <summary>🛡 {tr('What NovaFides checked')}</summary>
+          <summary className="sum-ic"><Ic3d name="verified" size={30} />{tr('What NovaFides checked')}</summary>
           <ul>
             {pro.trade !== 'handyman' && <li className={pro.verified.license ? 'y' : 'n'}><b>{tr('CSLB license')}</b>: {pro.verified.license && pro.license
               ? <>{tr('license #{n} is active in the official CSLB database', { n: pro.license })}{pro.checkedAt.license && ` · ${tr('checked {date}', { date: dateLabel(pro.checkedAt.license, lang) })}`} · <a href={`https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/LicenseDetail.aspx?LicNum=${pro.license}`} target="_blank" rel="noreferrer">{tr('check on cslb.ca.gov')}</a></>
@@ -212,7 +213,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>}
 
         {pro.serviceArea && <div className="blk">
-          <h2>{tr('Service area')}</h2>
+          <h2 className="h-ic"><Ic3d name="location" size={40} />{tr('Service area')}</h2>
           <p className="mu sm" style={{ margin: '0 0 10px' }}>{pro.serviceArea.polygon ? (pro.area || '') : tr('Travels up to {n} mi{from}', { n: pro.serviceArea.radius, from: pro.area ? ` · ${pro.area}` : '' })}</p>
           {/* The area the pro drew (or a circle around a rounded center): never the pro's exact address. */}
           <ServiceAreaMap readOnly polygon={pro.serviceArea.polygon} lat={+pro.serviceArea.lat.toFixed(2)} lng={+pro.serviceArea.lng.toFixed(2)} radius={pro.serviceArea.radius} />
@@ -287,7 +288,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>}
 
         <div className="blk">
-          <h2>{tr('Reviews')} <small>{pro.reviewCount}</small></h2>
+          <h2 className="h-ic"><Ic3d name="reviews" size={40} />{tr('Reviews')} <small>{pro.reviewCount}</small></h2>
           <p className="mu xs" style={{ marginTop: -6 }}>{tr('Every review stays visible. A review counts less in the rating only when its author follows an unusual pattern, and a moderator checks it.')} <Link href="/rules#reviews">{tr('How the rating works')}</Link></p>
           <div className="list">
             {pro.reviews.filter((r) => (r.weight ?? 1) >= 1).map((r) => reviewCard(r))}

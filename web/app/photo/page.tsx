@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Ic3d from '@/components/Ic3d';
 import PhotoSearch from '@/components/PhotoSearch';
 import PartSearch from '@/components/PartSearch';
 import ProCard from '@/components/ProCard';
@@ -30,7 +31,7 @@ export default async function Photo({ searchParams }: { searchParams: Promise<{ 
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 860 }}>
       <div className="eyebrow">{tr('Like Google Lens, for home repairs')}</div>
-      <h2>{tr('Search by photo')}</h2>
+      <h2 className="h-ic"><Ic3d name="photo-search" size={54} />{tr('Search by photo')}</h2>
       {!visionEnabled() && <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <b>{tr('Automatic photo recognition is coming soon.')}</b>
         <span className="mu sm">{tr('For now, send your photos straight to a pro: they will tell you what it is and what it costs.')}</span>

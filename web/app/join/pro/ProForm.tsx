@@ -83,7 +83,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
 
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Photo and page color")}</h3>
-        <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} required={!edit}
+        <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} required={!edit} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_photo`}
           onAccent={(c) => setFigAccent(c)} onChange={({ figure: f, photo: p }) => { setFigure(f); setPhoto(p); if (!f) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} />
         <label className="f">{tt("Work-clothes color")}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="color" name="uniform" value={uniform} onChange={(e) => { setUniform(e.target.value); setFigAccent(null); }} style={{ width: 52, height: 40, border: 0, background: 'none' }} />

@@ -13,6 +13,7 @@ import NavLink from './NavLink';
 import MoreMenu from './MoreMenu';
 import Link2 from 'next/link';
 import NavProgress from './NavProgress';
+import Ic3d from './Ic3d';
 
 export default async function Header() {
   const me = await getMe(); const t = await getT(); const theme = await getThemeChoice();
@@ -53,12 +54,13 @@ export default async function Header() {
             <ThemeToggle initial={theme} />
             <Suspense><LangSwitch /></Suspense>
             <MoreMenu>
-              <Link2 href="/companies">{t('Companies')}</Link2>
-              <Link2 href="/online">● {t('Online now')}</Link2>
-              <Link2 href="/feed">{t('Work & tips')}</Link2>
-              <Link2 href="/questions">{t('Questions')}</Link2>
-              <Link2 href="/photo">📷 {t('Search by photo')}</Link2>
-              {!me?.pro && <Link2 href="/join">{t('For pros')}</Link2>}
+              <Link2 href="/companies" className="mm"><Ic3d name="company" size={38} /><span><b>{t('Companies')}</b><small>{t('Licensed companies and their teams')}</small></span></Link2>
+              <Link2 href="/online" className="mm"><Ic3d name="location" size={38} /><span><b>{t('Online now')} <i className="dot-live" /></b><small>{t('Pros on the site right now, by city')}</small></span></Link2>
+              <Link2 href="/feed" className="mm"><Ic3d name="handyman" size={38} /><span><b>{t('Work & tips')}</b><small>{t('Real jobs and advice from pros')}</small></span></Link2>
+              <Link2 href="/questions" className="mm"><Ic3d name="chat" size={38} /><span><b>{t('Questions')}</b><small>{t('Ask, verified pros answer')}</small></span></Link2>
+              <Link2 href="/photo" className="mm"><Ic3d name="photo-search" size={38} /><span><b>{t('Search by photo')}</b><small>{t('Snap the problem, find the job')}</small></span></Link2>
+              {!me?.pro && <Link2 href="/join" className="mm"><Ic3d name="verified" size={38} /><span><b>{t('For pros')}</b><small>{t('Free during the launch')}</small></span></Link2>}
+              <span className="mm-sect">{t('Interface settings')}</span>
               <div className="more-row"><UiFeel engine={false} /><Suspense><LangSwitch /></Suspense></div>
               <div className="more-theme"><ThemeToggle initial={theme} inline /></div>
             </MoreMenu>

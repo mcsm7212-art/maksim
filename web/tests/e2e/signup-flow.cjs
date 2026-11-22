@@ -281,11 +281,12 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await s.goto(B+'/account/profile');await s.setInputFiles('.figfield input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figfield .fig-sil.cut img',{timeout:120000});
  await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:60000});
  const before=await s.inputValue('input[name=figure_url]');await s.click('.figfield .flipbtn >> nth=1');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},before,{timeout:60000});
+ await s.goto(B+'/lang?to=ru&back=%2Faccount%2Fprofile');await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:20000});await s.goto(B+'/lang?to=en&back=%2Faccount%2Fprofile');await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:20000});
  await s.click('button:has-text("Preview my page")');await s.waitForSelector('.pv .pname:has-text("Max Solo")');await s.waitForSelector('.pv .fig-sil.cut img');await s.click('.pv button:has-text("Back to editing")');
  await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);
  const fa=sql("select coalesce(figure_url,'')||' '||accent from pros where display_name='Max Solo'");if(!fa.includes('/figure-')||!sql("select photo_url from pros where display_name='Max Solo'").includes('/avatar-')||!/#[0-9A-F]{6}$/.test(fa))throw new Error('figure not saved: '+fa);
  await s.goto(B+'/max');await s.waitForSelector('.figcol .fig-sil.cut img');
- step('pro added a full-height photo in the profile form → background removed in the browser, mirrored, previewed, saved; glow colour '+fa.slice(-7)+' from clothes, shown on the page');
+ step('pro added a full-height photo in the profile form → background removed in the browser, mirrored, kept after a language switch, previewed, saved; glow colour '+fa.slice(-7)+' from clothes, shown on the page');
  // urgent calls
  await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
  await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');

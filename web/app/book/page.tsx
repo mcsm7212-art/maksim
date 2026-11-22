@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Ic3d from '@/components/Ic3d';
 import { notFound } from 'next/navigation';
 import Figure from '@/components/Figure';
 import PhotoPicker from '@/components/PhotoPicker';
@@ -72,7 +73,7 @@ export default async function Book({ searchParams }: { searchParams: SP }) {
         </div>
 
         {mode !== 'estimate' && <div className="card step">
-          <h3><i>2</i>{tr('When')}</h3>
+          <h3><i>2</i>{tr('When')} <Ic3d name="calendar" size={30} className="h3-ic" /></h3>
           {pro ? (
             <div className="tbtn">
               {slots.slice(0, 18).map((t) => { const [d, h] = slotLabel(t, tr); return <label key={t}><input type="radio" name="t" value={t} defaultChecked={t === sp.t} required />{d} · {h}</label>; })}

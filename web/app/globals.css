@@ -886,3 +886,29 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .urg3d{width:56px;height:56px;margin:0;flex:none}
 @media (max-width:760px){.grid4 .trade .ic3d{width:54px;height:54px;margin:-4px 0 0 -4px}}
 [data-theme="light"] .ic3d{filter:drop-shadow(0 6px 10px rgba(60,40,20,.2))}
+/* theme cards like the mockup: glassy frame, gloss, copper glow and a check badge on the chosen one */
+.theme-cards{gap:12px}
+.tcard .tprev{border-radius:16px;border:1.5px solid rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px rgba(0,0,0,.45);overflow:visible}
+.tcard .tprev .tscene,.tcard .tprev .tnight{border-radius:14px;overflow:hidden}
+.tcard .tprev::after{content:"";position:absolute;inset:0;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 38%);pointer-events:none}
+.tcard .tprev{position:relative}
+.tcard.on .tprev{border:2px solid #F0A04B;box-shadow:0 0 0 1px rgba(240,160,75,.6),0 0 22px rgba(240,160,75,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.tcheck{top:-8px;right:-8px;width:24px;height:24px;background:radial-gradient(circle at 35% 30%,#F7B86A,#D97A2B);color:#fff;font-size:13px;border:2px solid rgba(20,14,8,.85);box-shadow:0 0 12px rgba(240,160,75,.75);z-index:2}
+.tcard .tlabel{font-weight:600;font-size:14px;color:var(--ink)}
+.tcard.on .tlabel{color:#F3A653}
+.tprev i.tcut{background:linear-gradient(to top left,transparent calc(50% - 1.2px),rgba(255,255,255,.95) 50%,transparent calc(50% + 1.2px))!important;border-radius:14px}
+/* 3D icons in headings and the "⋯" menu */
+.ic3d-i{object-fit:contain;flex:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
+.h-ic{display:flex;align-items:center;gap:12px}
+.sum-ic{display:flex!important;align-items:center;gap:8px}
+.h3-ic{vertical-align:middle;margin-left:4px}
+.more-menu a.mm{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px}
+.more-menu a.mm span{display:flex;flex-direction:column;min-width:0}
+.more-menu a.mm b{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.more-menu a.mm small{font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more-menu a.mm::after{content:"›";margin-left:auto;color:var(--mu2,#888);font-size:20px}
+.more-menu a.mm:hover{background:var(--card2)}
+.dot-live{width:7px;height:7px;border-radius:50%;background:#3FBF6B;box-shadow:0 0 6px #3FBF6B;display:inline-block}
+.mm-sect{display:block;padding:12px 10px 4px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cu-l,#C08A62);border-top:1px solid var(--line);margin-top:6px}
+.more-menu{min-width:330px;max-height:calc(100vh - 90px);overflow-y:auto}
+.tcard .tlabel{text-align:center;width:100%}

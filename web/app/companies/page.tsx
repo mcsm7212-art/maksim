@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Ic3d from '@/components/Ic3d';
 import { TRADES } from '@/lib/catalog';
 import { listCompanies } from '@/lib/data';
 import { getT } from '@/lib/i18n';
@@ -8,7 +9,7 @@ export default async function Companies() {
   const list = await listCompanies(); const tr = await getT();
   return (
     <section className="sec pad"><div className="in">
-      <div className="eyebrow">{tr('Licensed companies')}</div><h2>{tr('Companies')}</h2>
+      <div className="eyebrow">{tr('Licensed companies')}</div><h2 className="h-ic"><Ic3d name="company" size={54} />{tr('Companies')}</h2>
       <p className="mu">{tr('Chat with the office, pick a specific technician, or let the office assign one.')}</p>
       <div className="grid3" style={{ marginTop: 16 }}>
         {list.map((c) => (

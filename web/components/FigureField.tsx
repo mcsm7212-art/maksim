@@ -17,8 +17,8 @@ const Arrow = ({ dir }: { dir: 'l' | 'r' }) => (
  * comes from the clothes, and the small square photo for cards and search is cut from it automatically.
  * Round arrows under the picture mirror it. Results go into hidden inputs and are saved with the form.
  */
-export default function FigureField({ name, initialFigure, initialPhoto, accent, onAccent, onChange, bindMirror, required }: {
-  name: string; initialFigure: string | null; initialPhoto: string | null; accent: string; onAccent: (c: string | null) => void;
+export default function FigureField({ name, initialFigure, initialPhoto, accent, onAccent, onChange, bindMirror, required, draftKey }: {
+  name: string; initialFigure: string | null; initialPhoto: string | null; accent: string; onAccent: (c: string | null) => void; draftKey?: string;
   onChange?: (v: { figure: string | null; photo: string | null }) => void; bindMirror?: (fn: () => Promise<void>) => void; required?: boolean;
 }) {
   const t = useT();
@@ -58,6 +58,23 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
     setBusy(null);
   }
   useEffect(() => { bindMirror?.(mirror); });
+  // Keep the uploaded photo in the draft too: it comes back after a reload or a language switch.
+  useEffect(() => {
+    if (!draftKey) return;
+    try {
+      const d = JSON.parse(localStorage.getItem(draftKey) ?? 'null') as { figure: string | null; photo: string; accent: string | null } | null;
+      if (d && (d.figure || d.photo)) {
+        setFig({ view: d.figure, url: d.figure }); setAva({ view: d.photo || null, url: d.photo });
+        if (d.accent) onAccent(d.accent); onChange?.({ figure: d.figure, photo: d.photo || null });
+      }
+    } catch { /* no draft */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!draftKey) return;
+    // Only uploaded addresses are kept (local previews die with the page).
+    try { if (fig.url || ava.url) localStorage.setItem(draftKey, JSON.stringify({ figure: fig.url, photo: ava.url, accent: fig.url ? accent : null })); } catch { /* storage off */ }
+  }, [draftKey, fig.url, ava.url, accent]);
   const has = Boolean(fig.view || ava.view);
   return (
     <div className="figfield">

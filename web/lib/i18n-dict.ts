@@ -1465,6 +1465,12 @@ export const ES: Record<string, string> = {
 "Please write in English. Most clients in the Bay Area read English. Not in English yet:": "Escriba en inglés, por favor. La mayoría de los clientes del Área de la Bahía lee en inglés. Aún no está en inglés:",
 "Clear this field": "Borrar este campo",
 "Write your profile in English: most clients in the Bay Area read English.": "Escriba su perfil en inglés: la mayoría de los clientes del Área de la Bahía lee en inglés.",
+"Licensed companies and their teams": "Empresas con licencia y sus equipos",
+"Pros on the site right now, by city": "Profesionales en el sitio ahora, por ciudad",
+"Real jobs and advice from pros": "Trabajos reales y consejos de profesionales",
+"Ask, verified pros answer": "Pregunte, responden profesionales verificados",
+"Snap the problem, find the job": "Fotografíe el problema y encuentre el trabajo",
+"Interface settings": "Ajustes de la interfaz",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2093,7 +2099,7 @@ export const RU: Record<string, string> = {
 "Founding Pro": "Мастер-основатель",
 "Joined NovaFides during the launch": "Присоединился к NovaFides на старте",
 "No lead fees. Free during the launch.": "Без платы за заявки. На старте бесплатно.",
-"Free during the launch": "На старте бесплатно",
+"Free during the launch": "Бесплатно на время запуска",
 "Right now NovaFides charges nothing: no subscription, no lead fees, no card needed. A subscription will start only later, and only after we notify every pro by email and in the account at least 30 days in advance, with the exact start date. Pros who join now become Founding Pros and keep special terms.": "Сейчас NovaFides ничего не берёт: ни подписки, ни платы за заявки, карта не нужна. Подписка начнётся только позже и только после того, как мы минимум за 30 дней сообщим каждому мастеру по email и в кабинете точную дату начала. Мастера, которые присоединятся сейчас, становятся мастерами-основателями и сохраняют особые условия.",
 "Prices for pros": "Цены для мастеров",
 "During the launch NovaFides is free for pros and clients. When a subscription for pros is introduced, we will announce it at least 30 days in advance by email and in every pro account, with the exact start date and price. Nothing is charged without that notice. Pros who joined during the launch are Founding Pros and keep special terms. For clients, searching and booking stay free.": "На старте NovaFides бесплатен и для мастеров, и для клиентов. Когда появится подписка для мастеров, мы объявим о ней минимум за 30 дней по email и в кабинете каждого мастера, с точной датой начала и ценой. Без такого уведомления деньги не списываются. Мастера, присоединившиеся на старте, — мастера-основатели и сохраняют особые условия. Для клиентов поиск и запись остаются бесплатными.",
@@ -2932,4 +2938,10 @@ export const RU: Record<string, string> = {
 "Please write in English. Most clients in the Bay Area read English. Not in English yet:": "Пожалуйста, пишите по-английски: большинство клиентов в Bay Area читают по-английски. Пока не на английском:",
 "Clear this field": "Очистить поле",
 "Write your profile in English: most clients in the Bay Area read English.": "Заполняйте профиль на английском: большинство клиентов в Bay Area читают по-английски.",
+"Licensed companies and their teams": "Лицензированные компании и их команды",
+"Pros on the site right now, by city": "Мастера на сайте прямо сейчас, по городам",
+"Real jobs and advice from pros": "Настоящие работы и советы мастеров",
+"Ask, verified pros answer": "Спросите — ответят проверенные мастера",
+"Snap the problem, find the job": "Сфотографируйте проблему — найдём работу",
+"Interface settings": "Настройки интерфейса",
 };

@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useT } from './I18n';
 import { useHoverIntent } from './useHoverIntent';
 
@@ -12,23 +12,44 @@ const icons: Record<Choice, React.ReactNode> = {
   system: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" /></svg>,
 };
 
-/** Small landscape for a theme card: mountains by day (sun) or by night (moon and stars). */
+/** Landscape for a theme card: snowy mountains at sunset with a sun (day) or under a moon and stars (night). */
 function Scene({ kind }: { kind: 'day' | 'night' }) {
-  const day = kind === 'day'; const id = `sky-${kind}`;
+  // Unique ids: the picker is on the page twice (header and menu), and a hidden copy would break shared gradients.
+  const d = kind === 'day'; const k = `${kind}${useId().replace(/:/g, '')}`;
+  const stars = [[12, 9], [24, 18], [40, 7], [52, 16], [66, 5], [78, 14], [96, 6], [108, 17], [116, 9], [30, 28], [86, 26], [4, 22]];
   return (
     <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden className="tscene">
-      <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-        {day ? <><stop offset="0" stopColor="#F3B27A" /><stop offset=".55" stopColor="#E9C9A8" /><stop offset="1" stopColor="#B9A6B8" /></>
-          : <><stop offset="0" stopColor="#0E1424" /><stop offset=".6" stopColor="#1C2A44" /><stop offset="1" stopColor="#2B3A55" /></>}
-      </linearGradient></defs>
-      <rect width="120" height="80" fill={`url(#${id})`} />
-      {day ? <circle cx="88" cy="22" r="8" fill="#FFF3D6" /> : <>
-        <path d="M30 14a9 9 0 1 0 9 13 7 7 0 1 1-9-13z" fill="#F4EBD0" />
-        {[[70, 10], [92, 18], [104, 8], [58, 22], [112, 28], [80, 6]].map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r=".9" fill="#fff" opacity=".85" />)}</>}
-      <path d="M0 62 L22 40 L36 52 L58 26 L80 50 L96 38 L120 56 V80 H0Z" fill={day ? '#8D7F9C' : '#2E3B57'} />
-      <path d="M58 26 L52 34 L57 33 L61 38 L64 32Z" fill={day ? '#C9A9A0' : '#5B6A88'} opacity=".8" />
-      <path d="M0 70 L30 54 L52 66 L78 50 L120 68 V80 H0Z" fill={day ? '#5E5470' : '#1B2438'} />
-      {day && [6, 12, 18, 24].map((x) => <path key={x} d={`M${x} 80 L${x + 3} 66 L${x + 6} 80Z`} fill="#3D3848" />)}
+      <defs>
+        <linearGradient id={`sky-${k}`} x1="0" y1="0" x2="0" y2="1">
+          {d ? <><stop offset="0" stopColor="#E9A56A" /><stop offset=".45" stopColor="#F2C79A" /><stop offset=".75" stopColor="#C9A9B8" /><stop offset="1" stopColor="#8E86A8" /></>
+            : <><stop offset="0" stopColor="#080D1C" /><stop offset=".5" stopColor="#14203A" /><stop offset="1" stopColor="#2A3A5E" /></>}
+        </linearGradient>
+        <radialGradient id={`glow-${k}`} cx={d ? '.72' : '.28'} cy={d ? '.32' : '.25'} r=".45">
+          <stop offset="0" stopColor={d ? '#FFF1C9' : '#E8E4D0'} stopOpacity={d ? '.95' : '.35'} /><stop offset="1" stopColor={d ? '#FFE0B0' : '#8FA2C8'} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`far-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={d ? '#A59AB8' : '#3A4A6E'} /><stop offset="1" stopColor={d ? '#8A82A2' : '#2A3756'} /></linearGradient>
+        <linearGradient id={`peak-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={d ? '#8C7E9E' : '#33415F'} /><stop offset="1" stopColor={d ? '#5D5374' : '#1D2740'} /></linearGradient>
+        <linearGradient id={`mist-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={d ? '#F6D9B8' : '#6E83AE'} stopOpacity="0" /><stop offset="1" stopColor={d ? '#F6D9B8' : '#6E83AE'} stopOpacity=".45" /></linearGradient>
+      </defs>
+      <rect width="120" height="80" fill={`url(#sky-${k})`} />
+      <rect width="120" height="80" fill={`url(#glow-${k})`} />
+      {d ? <circle cx="86" cy="24" r="7.5" fill="#FFF6DE" /> : <>
+        {stars.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 ? 0.55 : 0.9} fill="#fff" opacity={i % 2 ? 0.7 : 0.95} />)}
+        <path d="M31 12a10 10 0 1 0 10 15 8 8 0 1 1-10-15z" fill="#F7EED2" />
+      </>}
+      {/* far range */}
+      <path d="M0 52 L14 40 L24 46 L38 33 L50 44 L62 36 L74 45 L90 31 L104 42 L120 36 V80 H0Z" fill={`url(#far-${k})`} opacity=".9" />
+      {/* main peak with snow and a lit side */}
+      <path d="M18 70 L60 22 L102 70Z" fill={`url(#peak-${k})`} />
+      <path d="M60 22 L102 70 L74 70 L66 48 Z" fill={d ? '#4E4566' : '#151D33'} opacity=".55" />
+      <path d="M60 22 L52 32 L56 31 L59 35 L62 30 L66 33 L68 30Z" fill={d ? '#FBEFE6' : '#C9D3E6'} opacity=".95" />
+      {/* mist */}
+      <rect y="52" width="120" height="16" fill={`url(#mist-${k})`} />
+      {/* foreground hills */}
+      <path d="M0 66 Q20 58 38 64 T76 62 T120 60 V80 H0Z" fill={d ? '#4C4462' : '#162036'} />
+      <path d="M0 74 Q30 66 60 72 T120 70 V80 H0Z" fill={d ? '#352F45' : '#0E1526'} />
+      {/* pines */}
+      {(d ? [3, 9, 15, 21, 104, 111] : [4, 11, 108, 114]).map((x, i) => <path key={x} d={`M${x} 78 L${x + 3.2} ${62 + (i % 2) * 4} L${x + 6.4} 78Z`} fill={d ? '#2A2436' : '#0A101E'} />)}
     </svg>
   );
 }
