@@ -242,6 +242,13 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  if(sql("select prefill->>'name' from company_invites where prefill->>'name' is not null")!=='Joe Prefill')throw new Error('prefilled invite missing');
  await o.waitForSelector('.card:has-text("Joe Prefill") a[href^="sms:"]');
  step('client asked Max for a call back (phone + time in the chat); the office added a technician with a prefilled profile and an SMS/email link');
+ // draft: typed text survives a reload and a language switch; trash clears a field; non-English text is flagged
+ await s.goto(B+'/account/profile');await s.fill('textarea[name=bio]','Тест черновика');await s.waitForTimeout(300);await s.waitForSelector('.en-warn');
+ await s.reload();await s.waitForFunction(()=>document.querySelector('textarea[name=bio]').value==='Тест черновика');await s.waitForSelector('.draft-note');
+ await s.goto(B+'/lang?to=es&back=%2Faccount%2Fprofile');await s.waitForFunction(()=>document.querySelector('textarea[name=bio]')?.value==='Тест черновика');await s.goto(B+'/lang?to=en&back=%2Faccount%2Fprofile');
+ await s.hover('textarea[name=bio]');await s.click('textarea[name=bio] + .clear-btn');if((await s.inputValue('textarea[name=bio]'))!=='')throw new Error('trash did not clear');
+ await s.click('.draft-note button');await s.waitForLoadState('load');await s.waitForTimeout(800);
+ step('profile form keeps typed text after reload and language switch, trash button clears a field, non-English text is flagged');
  await s.goto(B+'/account/profile');await s.waitForSelector('.sa-map.leaflet-container');await s.fill('.sa-bar input','Redwood City');await s.click('.sa-bar button:has-text("Find")');await s.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10);
  await s.click('.sa button:has-text("Bigger area")');await s.click('.sa button:has-text("Bigger area")');await s.locator('.sa-mid').first().click();await s.waitForFunction(()=>JSON.parse(document.querySelector('input[name=service_polygon]').value).length===9);
  await s.click('button:has-text("Save changes")');await s.waitForTimeout(1500);

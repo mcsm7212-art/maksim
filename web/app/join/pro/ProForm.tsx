@@ -7,6 +7,7 @@ import { marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
+import FormDraft, { ClearBtn } from '@/components/FormDraft';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
 import ProPreview, { type PreviewData } from '@/components/ProPreview';
@@ -54,27 +55,28 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
+        <span className="mu xs">🇺🇸 {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
         <div className="row2">
-          <label className="f">{tt("Name clients see")}<input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mike Reyes" /></label>
+          <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mike Reyes" /><ClearBtn /></span></label>
           <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
             <div className="trade-pick">{(Object.keys(TRADES) as Trade[]).map((t) => (
               <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />
                 <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
           </div>
-          {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /></label>}
-          <label className="f">{tt("Years of experience")}<input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /></label>
-          <label className="f">{tt("Languages")}<input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /></label>
+          {!invite && !edit && <label className="f">CSLB license # {trade === 'handyman' ? '(optional)' : `(${TRADES[trade].license})`}<span className="fieldwrap"><input className="inp" name="license" inputMode="numeric" placeholder="1234567" required={trade !== 'handyman'} /><ClearBtn /></span></label>}
+          <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
+          <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
         </div>
-        <label className="f">{tt("Short intro (shown in search)")}<textarea className="inp" name="bio" defaultValue={I?.bio} maxLength={300} placeholder={tt('What you are best at and how you work.')} style={{ minHeight: 70 }} /></label>
-        <label className="f">{tt("Your experience")}<textarea className="inp" name="experience" defaultValue={I?.experience} maxLength={2000} placeholder={tt('Where you worked, for how long, what jobs you have done most. E.g. 9 years as a plumber, 4 on my own. Water heaters, repipes, sewer lines.')} /></label>
-        <label className="f">{tt("Your skills, separated by commas")}<input className="inp" name="skills" defaultValue={I?.skills} maxLength={300} placeholder={tt('Tankless water heaters, Repipes, Leak detection')} /></label>
+        <label className="f">{tt("Short intro (shown in search)")}<span className="fieldwrap"><textarea className="inp" name="bio" defaultValue={I?.bio} maxLength={300} placeholder={tt('What you are best at and how you work.')} style={{ minHeight: 70 }} /><ClearBtn /></span></label>
+        <label className="f">{tt("Your experience")}<span className="fieldwrap"><textarea className="inp" name="experience" defaultValue={I?.experience} maxLength={2000} placeholder={tt('Where you worked, for how long, what jobs you have done most. E.g. 9 years as a plumber, 4 on my own. Water heaters, repipes, sewer lines.')} /><ClearBtn /></span></label>
+        <label className="f">{tt("Your skills, separated by commas")}<span className="fieldwrap"><input className="inp" name="skills" defaultValue={I?.skills} maxLength={300} placeholder={tt('Tankless water heaters, Repipes, Leak detection')} /><ClearBtn /></span></label>
         <label className="chk"><input type="checkbox" name="insured" defaultChecked={I?.insured} /> {tt("I carry liability insurance")}</label>
       </div>
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt('Service area on the map')}</h3>
         <span className="mu sm">{tt('Draw where you work: clients inside this area see you first.')}</span>
-        <label className="f">{tt("Area you serve")} <span className="mu xs">({tt('fills in from the map, you can edit it')})</span><input className="inp" name="area" ref={areaRef} onInput={() => { areaAuto.current = false; }} placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /></label>
+        <label className="f">{tt("Area you serve")} <span className="mu xs">({tt('fills in from the map, you can edit it')})</span><span className="fieldwrap"><input className="inp" name="area" ref={areaRef} onInput={() => { areaAuto.current = false; }} placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /><ClearBtn /></span></label>
         <ServiceAreaMap polygon={I?.polygon} lat={I?.baseLat} lng={I?.baseLng} radius={I?.radius ?? 15} onTown={onTown} />
         {trade === 'handyman' && <span className="mu xs">{tt("Handymen can take jobs under $1,000 total (labor and materials), no permits, nothing inside walls (California B&P Code §7048).")}</span>}
       </div>
@@ -125,6 +127,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
 
       {!edit && <label className="agree"><input type="checkbox" name="agree" required />
         <span>{tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
+      <FormDraft form={formRef} id={edit ? 'pro-edit' : 'pro-new'} done={Boolean(state?.saved)} again={state?.error ? state : undefined} />
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: the form checks out, but nothing was saved. Connect the database to accept real sign-ups.")}</div>}

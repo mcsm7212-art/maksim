@@ -1460,6 +1460,11 @@ export const ES: Record<string, string> = {
 "The trade cannot be changed after sign-up. Write to us if it is wrong.": "El oficio no se puede cambiar después del registro. Escríbanos si está mal.",
 "System": "Sistema",
 "Appearance": "Apariencia",
+"We kept what you typed before. Nothing is saved on the site until you press Save.": "Guardamos lo que escribió antes. No se guarda en el sitio hasta que presione Guardar.",
+"Start over": "Empezar de nuevo",
+"Please write in English. Most clients in the Bay Area read English. Not in English yet:": "Escriba en inglés, por favor. La mayoría de los clientes del Área de la Bahía lee en inglés. Aún no está en inglés:",
+"Clear this field": "Borrar este campo",
+"Write your profile in English: most clients in the Bay Area read English.": "Escriba su perfil en inglés: la mayoría de los clientes del Área de la Bahía lee en inglés.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2922,4 +2927,9 @@ export const RU: Record<string, string> = {
 "The trade cannot be changed after sign-up. Write to us if it is wrong.": "Специальность нельзя изменить после регистрации. Напишите нам, если она указана неверно.",
 "System": "Системная",
 "Appearance": "Внешний вид",
+"We kept what you typed before. Nothing is saved on the site until you press Save.": "Мы сохранили то, что вы вводили раньше. На сайте ничего не сохранится, пока вы не нажмёте «Сохранить».",
+"Start over": "Начать заново",
+"Please write in English. Most clients in the Bay Area read English. Not in English yet:": "Пожалуйста, пишите по-английски: большинство клиентов в Bay Area читают по-английски. Пока не на английском:",
+"Clear this field": "Очистить поле",
+"Write your profile in English: most clients in the Bay Area read English.": "Заполняйте профиль на английском: большинство клиентов в Bay Area читают по-английски.",
 };
