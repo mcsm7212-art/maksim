@@ -74,7 +74,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
           : <form action={setAccepting}><input type="hidden" name="take" value="1" /><button className="btn">▶ {tr('Take jobs')}</button></form>}
         <div className="desk-row">
           {online
-            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● {row?.online_area ? tr('Online in {city}', { city: row.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
+            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm online-btn"><i className="dot-live" aria-hidden />{row?.online_area ? tr('Online in {city}', { city: row.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
             : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={row?.online_area ?? row?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
                 {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
                 <input type="hidden" name="hours" value={4} /><button className="btn ghost sm">{tr('Go online for 4 h')}</button></form>}

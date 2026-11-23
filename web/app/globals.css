@@ -1167,3 +1167,5 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 }
 .card-link:focus-visible{outline:2px solid var(--cu-l,#C08A62);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.desk-card:hover,.di-link:hover{transform:none}}
+.online-btn{border-color:rgba(63,178,127,.6);color:var(--ink)}
+.onl .dot{animation:dot-live 2.6s ease-in-out infinite}
