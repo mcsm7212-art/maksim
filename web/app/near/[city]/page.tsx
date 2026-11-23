@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ProCard from '@/components/ProCard';
 import { CITIES, milesBetween } from '@/lib/areas';
 import { miles, proPoint } from '@/lib/geo';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
 import { getLang } from '@/lib/i18n';
 import { makeT } from '@/lib/i18n-core';
@@ -37,7 +37,7 @@ export default async function CityPage({ params }: Props) {
       <h2>{tr('Home pros in {city}', { city: c.name })}</h2>
       <p className="mu" style={{ maxWidth: '64ch' }}>{tr('Verified pros who work in and near {city}: real photos, their own work and honest reviews. You choose one pro; your request goes only to them.', { city: c.name })}</p>
       <div className="chips"><Link className="btn" href={`/search?loc=${encodeURIComponent(c.name)}`}>{tr('Find a pro')}</Link><Link className="btn ghost" href="/services">{tr('Services and typical prices')}</Link></div>
-      {(Object.keys(TRADES) as Trade[]).map((t) => {
+      {TRADE_KEYS.map((t) => {
         const list = near.filter((p) => p.trade === t).slice(0, 4);
         return (
           <div key={t} style={{ marginTop: 24 }}>

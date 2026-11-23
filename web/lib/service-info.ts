@@ -6,10 +6,12 @@ export const PRICE_FACTORS: Record<Trade, string[]> = {
   electrical: ['Distance from the panel and how the wires can be run (attic, wall, crawl space)', 'Whether the panel has room and enough capacity', 'Permit and inspection, when the city requires them', 'Fixtures or devices supplied by you or by the pro', 'Wall and ceiling repair after the work'],
   handyman: ['Time on site and number of items', 'Wall type and height (drywall, plaster, brick, tall ceilings)', 'Materials and hardware', 'Haul-away of old items', 'Larger jobs ($1,000+ or with a permit) need a licensed contractor'],
   construction: ['Size, layout and finishes you choose', 'Plans, engineering and permits', 'Structural changes (walls, beams, foundation)', 'Site access and haul-away', 'Schedule and how many trades are involved'],
+  other: ['Size of the job', 'Materials', 'Access and time on site'],
 };
 export const TRADE_LICENSE_NOTE: Record<Trade, string> = {
   plumbing: 'In California, plumbing work over $1,000 (labor and materials) needs a CSLB C-36 license.',
   electrical: 'In California, electrical work over $1,000 (labor and materials) needs a CSLB C-10 license.',
   handyman: 'Without a contractor license, a person may only take jobs under $1,000 total, with no building permit and no hired workers.',
   construction: 'In California, building work over $1,000 needs a CSLB license (usually B, general building).',
+  other: 'In California, most work of $1,000 or more (labor and materials) needs a CSLB license.',
 };

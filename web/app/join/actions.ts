@@ -46,8 +46,9 @@ function figureOf(f: FormData, uid: string, cur: string | null) {
 const needsLicense = (x: { service_id: string; price?: number | null }) => { const s = serviceById(x.service_id); return Boolean(s && licenseNeeded(s, x.price)); };
 function customOf(f: FormData) {
   const names = f.getAll('custom_name').map(String), prices = f.getAll('custom_price').map(String);
-  return names.map((n, i) => ({ name: n.trim().slice(0, 80), price: Number(prices[i]) > 0 ? Math.round(Number(prices[i])) : null }))
-    .filter((x) => x.name.length >= 3).slice(0, 20);
+  const cats = f.getAll('custom_cat').map(String);
+  return names.map((n, i) => ({ name: n.trim().slice(0, 80), price: Number(prices[i]) > 0 ? Math.round(Number(prices[i])) : null, category: (cats[i] ?? '').trim().slice(0, 60) || null }))
+    .filter((x) => x.name.length >= 3).slice(0, 60);
 }
 function licenseProblem(services: { service_id: string; price?: number | null }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
   if (licensed) return null;
@@ -72,6 +73,8 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!(trade in TRADES)) return { error: 'Choose your trade.' };
+  const ownTrade = trade === 'other' ? str(f, 'custom_trade', 40) : '';
+  if (trade === 'other' && ownTrade.length < 2) return { error: 'Write the name of your trade.' };
   if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   const custom = customOf(f);
@@ -87,7 +90,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const work = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').insert({
-    id: me.id, slug: await uniqueSlug('pros', name), display_name: name, trade, tiers,
+    id: me.id, slug: await uniqueSlug('pros', name), display_name: name, trade, custom_trade: ownTrade || null, tiers,
     years_exp: Number(str(f, 'years')) || 0, area: str(f, 'area', 60), ...serviceArea(f), bio: str(f, 'bio', 300),
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),

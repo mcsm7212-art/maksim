@@ -2,7 +2,7 @@ import Link from 'next/link';
 import AreaMap from '@/components/AreaMap';
 import ProCard from '@/components/ProCard';
 import { cityOf } from '@/lib/areas';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { listPros } from '@/lib/data';
 import { getT } from '@/lib/i18n';
 
@@ -39,7 +39,7 @@ export default async function Online({ searchParams }: { searchParams: Promise<{
       {urgent && <p className="mu2 xs" style={{ marginTop: 8 }}>{tr('Smell gas? Leave the house first and call PG&E at 1-800-743-5000 or 911.')}</p>}
       <div className="chips" style={{ margin: '10px 0 14px' }}>
         <Link className="chip" aria-pressed={!trade} href={href({ trade: null })}>{tr('All trades')}</Link>
-        {(Object.keys(TRADES) as Trade[]).map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={href({ trade: t })}>{tr(TRADES[t].name)}</Link>)}
+        {TRADE_KEYS.map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={href({ trade: t })}>{tr(TRADES[t].name)}</Link>)}
       </div>
       <AreaMap counts={counts} selected={city} hrefFor={(c) => href({ city: c })} />
       <div className="mu xs" style={{ marginTop: 6 }}>{tr('Schematic map, not to scale.')}</div>

@@ -7,7 +7,7 @@ import { loungeDelete, loungePost, loungeReply } from '@/app/community/actions';
 import { startChat } from '@/app/messages/actions';
 import { getMe } from '@/lib/auth';
 import { CITIES } from '@/lib/areas';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { loungeFeed } from '@/lib/community';
 import { getLang, getT } from '@/lib/i18n';
 import { isLive } from '@/lib/supabase/config';
@@ -37,7 +37,7 @@ export default async function Lounge({ searchParams }: { searchParams: Promise<{
           <textarea className="inp" name="body" maxLength={1500} required style={{ minHeight: 80 }} placeholder={tr('E.g. “Panel upgrade in Belmont next Tuesday, need a second electrician for half a day.”')} />
           <div className="chips">
             <select className="inp" name="trade" defaultValue="" style={{ width: 'auto' }} aria-label={tr('Trade')}><option value="">{tr('Any trade')}</option>
-              {(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}</select>
+              {TRADE_KEYS.map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}</select>
             <select className="inp" name="city" defaultValue="" style={{ width: 'auto' }} aria-label={tr('City')}><option value="">{tr('City (optional)')}</option>
               {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
           </div>

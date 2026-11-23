@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Figure from '@/components/Figure';
 import { priceFor } from '@/components/ProCard';
-import { serviceById, TRADES, usd } from '@/lib/catalog';
+import { serviceById, TRADES, usd, tradeLabel } from '@/lib/catalog';
 import { getPro, openSlots } from '@/lib/data';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
@@ -20,7 +20,7 @@ export default async function Compare({ searchParams }: { searchParams: SP }) {
   const yes = (v: boolean, date?: string | null) => (v ? <span className="tchip">✓ {date ? new Date(date).toLocaleDateString(lang === 'ru' ? 'ru-RU' : lang === 'es' ? 'es-US' : 'en-US', { month: 'short', year: 'numeric' }) : ''}</span> : <span className="mu">—</span>);
   const from = (p: Pro) => { const v = p.services.map((x) => priceFor(p, x.id) ?? 1e9); const m = v.length ? Math.min(...v) : 1e9; return m < 1e9 ? m : null; };
   const rows: [string, (p: Pro) => React.ReactNode][] = [
-    [tr('Trade'), (p) => <>{tr(TRADES[p.trade].name)}<br /><span className="mu xs">{p.company ? p.company.name : tr('Independent')}{p.area ? ` · ${p.area}` : ''}</span></>],
+    [tr('Trade'), (p) => <>{tr(tradeLabel(p))}<br /><span className="mu xs">{p.company ? p.company.name : tr('Independent')}{p.area ? ` · ${p.area}` : ''}</span></>],
     [tr('Rating'), (p) => (p.reviewCount > 0 && p.rating != null ? <>★ {p.rating.toFixed(1)} <span className="mu xs">· {tr(p.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: p.reviewCount })}</span></> : <span className="mu">{tr('Just joined')}</span>)],
     [svc ? svcName(svc, lang) : tr('Price'), (p) => { const v = svc ? priceFor(p, svc.id) : from(p); return v != null ? <b className="num">{svc ? '≈ ' : `${tr('from')} `}{usd(v)}</b> : <span className="mu">{tr('In the quote')}</span>; }],
     [tr('Trip fee'), (p) => usd(p.tripFee)],

@@ -3,7 +3,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const ServiceAreaMap = dynamic(() => import('@/components/ServiceAreaMap'), { ssr: false, loading: () => <div className="sa-map" /> });
-import { licenseNeeded, marketMid, roundPrice, SERVICES, TRADES, usd, type Trade } from '@/lib/catalog';
+import { licenseNeeded, marketMid, roundPrice, SERVICES, TRADES, usd, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
@@ -19,8 +19,8 @@ import { useLang, useT } from '@/components/I18n';
 import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
-  name: string; trade: Trade; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; licensed?: boolean; custom?: { name: string; price: number | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  name: string; trade: Trade; customTrade?: string | null; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
+  insured: boolean; licensed?: boolean; custom?: { name: string; price: number | null; category?: string | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -29,6 +29,19 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
   const edit = Boolean(initial); const tt = useT(); const lang = useLang();
   const [state, action, pending] = useActionState(edit ? updatePro : registerPro, undefined);
   const [trade, setTrade] = useState<Trade>(initial?.trade ?? (prefill?.trade as Trade | undefined) ?? 'plumbing');
+  // The pro's own trade (not one of the four): only this pro sees it; its jobs are made in "Your jobs and prices".
+  const [ownTrade, setOwnTrade] = useState<string | null>(initial?.customTrade ?? null);
+  const OWN_KEY = 'nf_draft_pro-new_trade';
+  useEffect(() => {
+    if (edit) return;
+    try {
+      const n = localStorage.getItem(OWN_KEY); if (!n) return; setOwnTrade(n);
+      if ((JSON.parse(localStorage.getItem('nf_draft_pro-new') ?? '{}') as Record<string, unknown>)['trade=other']) setTrade('other');
+    } catch { /* storage off */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const addOwnTrade = (n: string) => { setOwnTrade(n); setTrade('other'); try { localStorage.setItem(OWN_KEY, n); } catch { /* storage off */ } };
+  const dropOwnTrade = () => { setOwnTrade(null); if (trade === 'other') setTrade('plumbing'); try { localStorage.removeItem(OWN_KEY); } catch { /* storage off */ } };
   const [uniform, setUniform] = useState(initial?.uniform ?? '#15151A');
   const [name, setName] = useState(initial?.name ?? prefill?.name ?? '');
   const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null);
@@ -52,9 +65,10 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
   const mirrorFig = useRef<(() => Promise<void>) | null>(null);
   function openPreview() {
     const f = new FormData(formRef.current ?? undefined); const v = (k: string) => String(f.get(k) ?? '');
-    const jobs = SERVICES.filter((x) => x.trade === trade && f.get(`svc_${x.id}`)).slice(0, 3)
-      .map((x) => ({ id: x.id, name: svcName(x, lang), price: roundPrice(Number(v(`price_${x.id}`)) || marketMid(x)) }));
-    setPreview({ name: v('name'), trade, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent, jobs });
+    const own = f.getAll('custom_name').map(String).map((n, i) => ({ id: `own-${i}`, name: n.trim(), price: Number(f.getAll('custom_price')[i]) || 0 })).filter((x) => x.name.length >= 3 && x.price > 0);
+    const jobs = SERVICES.filter((x) => x.trade === trade && f.get(`svc_${x.id}`))
+      .map((x) => ({ id: x.id, name: svcName(x, lang), price: roundPrice(Number(v(`price_${x.id}`)) || marketMid(x)) })).concat(own).slice(0, 3);
+    setPreview({ name: v('name'), trade, customTrade: ownTrade ?? undefined, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent, jobs });
   }
   // What still stops "Create my profile": shown when the pointer is over the disabled button.
   const [missing, setMissing] = useState<string[]>([]); const [tap, setTap] = useState(false);
@@ -82,13 +96,18 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <div className="row2">
           <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required defaultValue={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="Mike Reyes" autoComplete="name" /></span></label>
           <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
-            <div className="trade-pick">{(Object.keys(TRADES) as Trade[]).map((t) => (
+            <div className="trade-pick">{TRADE_KEYS.map((t) => (
               <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />
-                <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
+                <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}
+              {ownTrade && <label className="own-trade"><input type="radio" name="trade" value="other" checked={trade === 'other'} disabled={edit && trade !== 'other'} onChange={() => setTrade('other')} />
+                <Icon name="tool" size={18} /> {ownTrade}
+                {!edit && <button type="button" className="own-x" onClick={(e) => { e.preventDefault(); dropOwnTrade(); }} title={tt('Remove')} aria-label={tt('Remove')}>✕</button>}</label>}
+            </div>
+            {ownTrade && <input type="hidden" name="custom_trade" value={ownTrade} />}
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
-            {!edit && <TradeRequest />}
+            {!edit && <TradeRequest onAdd={addOwnTrade} current={ownTrade} />}
           </div>
-          {!invite && !edit && <label className="f">CSLB license # ({TRADES[trade].license || 'B'}) <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
+          {!invite && !edit && <label className="f">CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
             <span className="mu xs">{tt('No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
           <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
           <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
@@ -126,7 +145,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
 
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Services and your prices")}</h3>
-        <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>
+        {trade !== 'other' && <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>}
         {!licensed && <div className="note xs lic-note">🔒 {tt('Jobs marked red need a CSLB license: your price is $1,000 or more (with materials), or the job needs a permit. Add your license number above, lower the price, or choose only the other jobs.')}</div>}
         {groups.map(([g, list]) => (
           <details key={g} className="grp" open={I ? list.some((x) => x.id in I.services) : g === groups[0][0]}>
@@ -141,7 +160,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
             ))}
           </details>
         ))}
-        <CustomServices initial={I?.custom ?? []} licensed={licensed} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
+        <CustomServices key={trade === 'other' ? 'own' : 'std'} grouped={trade === 'other'} initial={I?.custom ?? []} licensed={licensed} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
       </div>
 
       <div className="card formcard">

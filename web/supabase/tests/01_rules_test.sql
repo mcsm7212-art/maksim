@@ -616,4 +616,16 @@ do $$ begin insert into public.trade_requests (user_id, name) values ('00000000-
   exception when insufficient_privilege then null; end $$;
 select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
 select pg_temp.ok((select name from public.trade_requests) = 'Roofing', 'a pro asks for a new trade (name trimmed)');
+
+-- 0029 own trade: 'other' needs a name; categories on own services; limit 60; $1,000 or more needs a license
+reset role;
+do $$ begin update public.pros set trade = 'other' where id = '00000000-0000-0000-0000-0000000000b2'; raise exception 'FAIL: other trade without a name';
+  exception when check_violation then null; end $$;
+update public.pros set trade = 'other', custom_trade = 'Roofing' where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.pro_custom_services (pro_id, name, price, category) values (auth.uid(), 'Shingle repair', 450, ' Repairs ');
+select pg_temp.ok((select category from public.pro_custom_services where name = 'Shingle repair') = 'Repairs', 'own trade: jobs grouped in own categories');
+do $$ begin insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Exactly a grand', 1000); raise exception 'FAIL: $1,000 without a license';
+  exception when others then if sqlerrm not like 'license needed%' then raise; end if; end $$;
+select pg_temp.ok(true, '$1,000 or more needs a CSLB license');
 \echo ALL RULE TESTS PASSED

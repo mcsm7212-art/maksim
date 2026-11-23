@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS, tradeLabel } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
 import { getLoc } from '@/lib/loc';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -58,7 +58,7 @@ export default async function Home() {
           {lineup.map((p, i) => (
             <Link key={p.id} href={`/${p.slug}`} className={`lu-fig lu-${i}`} style={{ ['--acc' as string]: p.accent }}>
               <img src={p.figureUrl!} alt={p.name} loading={i ? 'lazy' : 'eager'} />
-              <span className="lu-tag" title={t(TRADES[p.trade].name)}><b>{first(p.name)}</b></span>
+              <span className="lu-tag" title={t(tradeLabel(p))}><b>{first(p.name)}</b></span>
             </Link>
           ))}
           <i className="lu-floor" aria-hidden />
@@ -83,7 +83,7 @@ export default async function Home() {
         </div>
       </div></section>
       <section className="pad" style={{ marginTop: 16 }}><div className="in grid3 grid4">
-        {(Object.keys(TRADES) as Trade[]).map((k) => (
+        {TRADE_KEYS.map((k) => (
           <Link key={k} href={`/search?trade=${k}`} className="card trade">
             <img className="ic3d" src={`/icons/3d/${k}.webp`} alt="" width={84} height={84} loading="lazy" />
             <h3>{t(TRADES[k].name)}</h3>
@@ -111,7 +111,7 @@ export default async function Home() {
             <Link key={p.id} href={`/${p.slug}`} className="card figcard" style={{ ['--acc' as string]: p.accent }}>
               <span className="fc-stage"><img src={p.figureUrl!} alt="" loading="lazy" /></span>
               <b>{p.name}</b>
-              <span className="mu xs">{t(TRADES[p.trade].name)}{p.area ? ` · ${p.area}` : ''}</span>
+              <span className="mu xs">{t(tradeLabel(p))}{p.area ? ` · ${p.area}` : ''}</span>
               <span className="xs">{p.isDemo ? <span className="badge p">{t('Demo profile')}</span> : p.rating != null && p.reviewCount > 0 ? <>★ {p.rating.toFixed(1)} <span className="mu">· {t(p.reviewCount > 1 ? '{n} reviews' : '{n} review', { n: p.reviewCount })}</span></> : <span className="mu">{t('Just joined')}</span>}</span>
             </Link>
           ))}

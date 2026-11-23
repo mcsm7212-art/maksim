@@ -10,7 +10,7 @@ const setVal = (el: HTMLInputElement | HTMLTextAreaElement, v: string) => {
   el.dispatchEvent(new Event('input', { bubbles: true }));
 };
 /** Deletes a draft and its parts (photo, own services, map, work photos). */
-const clearDraft = (key: string) => { try { for (const k of ['', '_photo', '_custom', '_map', '_work']) localStorage.removeItem(key + k); } catch { /* storage off */ } };
+const clearDraft = (key: string) => { try { for (const k of ['', '_photo', '_custom', '_map', '_work', '_trade']) localStorage.removeItem(key + k); } catch { /* storage off */ } };
 const fields = (f: HTMLFormElement) => [...f.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name], textarea[name]')]
   .filter((el) => !['hidden', 'file', 'password', 'submit'].includes((el as HTMLInputElement).type));
 const isText = (el: HTMLInputElement | HTMLTextAreaElement) => el instanceof HTMLTextAreaElement || ['text', 'search', ''].includes(el.type);

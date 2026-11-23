@@ -3,7 +3,8 @@ import raw from './services.json';
 import esRaw from './services-es.json';
 import { rank } from './search';
 
-export type Trade = 'plumbing' | 'electrical' | 'handyman' | 'construction';
+// 'other' = a pro's own trade (its name is in pros.custom_trade); it has no catalog and is never offered as a filter.
+export type Trade = 'plumbing' | 'electrical' | 'handyman' | 'construction' | 'other';
 export type Tier = 'economy' | 'standard' | 'premium';
 
 export interface Service {
@@ -46,7 +47,12 @@ export const TRADES: Record<Trade, { name: string; license: string; icon: string
   electrical: { name: 'Electrical', license: 'C-10', icon: 'bolt', blurb: 'Outlets, panels, lighting, EV chargers.' },
   handyman: { name: 'Handyman', license: '', icon: 'tool', blurb: 'Mounting, assembly, drywall, doors. Jobs under $1,000.' },
   construction: { name: 'Construction', license: 'B', icon: 'build', blurb: 'Remodels, additions, ADUs, decks, foundations.' },
+  other: { name: 'Other trade', license: '', icon: 'tool', blurb: 'A trade that is not in the list.' },
 };
+/** The four trades everyone can pick and filter by (not 'other'). */
+export const TRADE_KEYS: Trade[] = ['plumbing', 'electrical', 'handyman', 'construction'];
+/** The trade name to show for a pro: their own trade name, or the standard one. */
+export const tradeLabel = (p: { trade: Trade; customTrade?: string | null }) => (p.trade === 'other' && p.customTrade ? p.customTrade : TRADES[p.trade]?.name ?? '');
 
 export const roundPrice = (n: number) => (n < 200 ? Math.round(n / 5) * 5 : n < 2000 ? Math.round(n / 10) * 10 : Math.round(n / 50) * 50);
 export const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');

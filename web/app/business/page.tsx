@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
-import { serviceById } from '@/lib/catalog';
+import { serviceById, TRADE_KEYS } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { slotLabel } from '@/lib/time';
@@ -89,7 +89,7 @@ export default async function Business({ searchParams }: { searchParams: Promise
             <input type="hidden" name="company" value={co.id} />
             <div className="row2">
               <label className="f">{tr('Name clients see')}<input className="inp" name="name" required minLength={3} maxLength={60} placeholder="Mike Reyes" /></label>
-              <label className="f">{tr('Trade')}<select className="inp" name="trade" defaultValue="plumbing">{(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}</select></label>
+              <label className="f">{tr('Trade')}<select className="inp" name="trade" defaultValue="plumbing">{TRADE_KEYS.map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}</select></label>
             </div>
             <div className="row2">
               <label className="f">{tr('Area you serve')}<input className="inp" name="area" maxLength={60} placeholder="Redwood City" /></label>

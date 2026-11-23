@@ -4,7 +4,7 @@ import ActionForm from '@/components/ActionForm';
 import { blockNeighbor, messageNeighbor, saveNeighbor, unblockNeighbor } from './actions';
 import { getMe } from '@/lib/auth';
 import { CITIES } from '@/lib/areas';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { getT } from '@/lib/i18n';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -45,7 +45,7 @@ export default async function Neighbors({ searchParams }: { searchParams: Promis
           <label key={v} className="sm" style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}><input type="radio" name="scope" value={v} defaultChecked={s.scope === v} /> <span><b>{tr(a)}</b> <span className="mu">· {tr(b)}</span></span></label>))}</div>
         <b className="sm">{tr('Interests (optional)')}</b>
         <span className="mu xs">{tr('Pick what you care about to meet only neighbors with the same interests. Leave empty to meet everyone in your circle.')}</span>
-        <div className="chips">{(Object.keys(TRADES) as Trade[]).map((t) => (
+        <div className="chips">{TRADE_KEYS.map((t) => (
           <label key={t} className="chip" style={{ cursor: 'pointer' }}><input type="checkbox" name="interest" value={t} defaultChecked={(s.interests ?? []).includes(t)} style={{ marginRight: 6 }} />{tr(TRADES[t].name)}</label>))}</div>
         <input className="inp" name="about" defaultValue={s.about ?? ''} maxLength={200} placeholder={tr('A few words, e.g. “Remodeling our 1950s kitchen, happy to share contractor tips.”')} aria-label={tr('About me')} />
         <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>

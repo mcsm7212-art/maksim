@@ -6,8 +6,8 @@ import Figure from './Figure';
 import HeroJobs from './HeroJobs';
 import { useT } from './I18n';
 
-export type PreviewData = { name: string; trade: Trade; area: string; years: number; languages: string; bio: string; experience: string; skills: string; photo: string | null; figure: string | null; accent: string; jobs?: { id: string; name: string; price: number }[] };
-const BIG: Record<Trade, string> = { plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION' };
+export type PreviewData = { name: string; trade: Trade; area: string; years: number; languages: string; bio: string; experience: string; skills: string; photo: string | null; figure: string | null; accent: string; customTrade?: string; jobs?: { id: string; name: string; price: number }[] };
+const BIG: Record<Trade, string> = { plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION', other: '' };
 
 /** "This is how clients will see your page": the top of the pro page built from what is typed in the form, before saving. */
 export default function ProPreview({ d, onClose, onMirror, busy }: { d: PreviewData; onClose: () => void; onMirror?: () => void; busy?: boolean }) {
@@ -30,14 +30,14 @@ export default function ProPreview({ d, onClose, onMirror, busy }: { d: PreviewD
               <div style={{ minWidth: 0 }}>
                 <div className="eyerow"><i />{t('Your pro. Their reputation.')}</div>
                 <h1 className="pname">{d.name || t('Your name')}</h1>
-                <span className="pco">{t('INDEPENDENT')}<br />{t(BIG[d.trade])}<b>.</b></span>
+                <span className="pco">{t('INDEPENDENT')}<br />{d.trade === 'other' ? (d.customTrade ?? '').toUpperCase() : t(BIG[d.trade])}<b>.</b></span>
                 <p className="ptag">{t('Behind every rating is a job.')}<br />{t('Behind every job is a person.')}</p>
                 {d.area && <div className="locline">📍 {d.area} · San Francisco Bay Area</div>}
                 <div className="hexlvl" title={t('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{t('Founding Pro')}</b></div></div>
                 <HeroJobs title={t('Popular jobs')} from={t('from')} jobs={d.jobs ?? []} />
               </div>
               <div className="figcol">
-                <div className="lbl">{t(TRADES[d.trade].name).toUpperCase()} / {t(colorWord(d.accent))}</div>
+                <div className="lbl">{(d.trade === 'other' ? d.customTrade ?? '' : t(TRADES[d.trade].name)).toUpperCase()} / {t(colorWord(d.accent))}</div>
                 <Figure name={d.name || 'You'} accent={d.accent} photo={d.photo} figure={d.figure} big />
               </div>
             </div>

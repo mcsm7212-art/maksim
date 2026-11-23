@@ -57,6 +57,8 @@ export interface Pro {
   name: string;
   company: Company | null;
   trade: Trade;
+  /** The pro's own trade name when trade = 'other'. */
+  customTrade: string | null;
   tiers: Tier[];
   years: number;
   area: string;

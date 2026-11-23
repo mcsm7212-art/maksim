@@ -1033,3 +1033,13 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .ptips-ex a{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:6px 4px 4px;border:1px solid var(--line);border-radius:10px;background:radial-gradient(70% 60% at 50% 60%,color-mix(in srgb,var(--cu) 18%,transparent),transparent 75%),var(--card2,var(--card));color:var(--ink);text-decoration:none;font-size:11.5px;transition:border-color .15s ease,transform .15s ease}
 .ptips-ex a:hover{border-color:var(--cu-l,#C08A62);transform:translateY(-2px)}
 .ptips-ex img{height:92px;width:auto;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+
+/* own trade: 5th trade button (only this pro sees it) and categories of own jobs */
+.trade-pick .own-trade{position:relative;padding-right:34px}
+.own-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:0;background:transparent;color:var(--mu);cursor:pointer;font-size:12px}
+.own-x:hover{color:var(--ink);background:var(--line)}
+.cs-cat{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cs-cat-h{position:relative;display:flex}.cs-cat-h .inp{font-weight:700;padding-right:40px}
+.cs-cat-h .cs-del{position:absolute;right:8px;top:50%;transform:translateY(-50%)}
+.add-own:disabled{opacity:.5;cursor:not-allowed}
+.own-cat{font-size:15px;margin:14px 0 4px;color:var(--mu);letter-spacing:.02em}

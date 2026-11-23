@@ -35,7 +35,7 @@ function mapPro(p: Row, stats?: Row): Pro {
   })).sort((a: Review, b: Review) => b.date.localeCompare(a.date));
   const s = stats;
   return {
-    id: p.id, slug: p.slug, name: p.display_name, company, trade: p.trade as Trade, tiers: p.tiers, years: p.years_exp ?? 0,
+    id: p.id, slug: p.slug, name: p.display_name, company, trade: p.trade as Trade, customTrade: p.custom_trade ?? null, tiers: p.tiers, years: p.years_exp ?? 0,
     area: p.area ?? '', bio: p.bio ?? '', experience: p.experience ?? '', skillTags: p.skills ?? [],
     photos: (p.pro_photos ?? []).filter((x: Row) => x.kind === 'portfolio' || x.public).sort((a: Row, b: Row) => b.created_at.localeCompare(a.created_at)).map((x: Row) => ({ id: x.id, url: x.url, caption: x.caption })), languages: p.languages ?? [], license: company?.license ?? p.license_no,
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },

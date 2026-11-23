@@ -92,7 +92,7 @@ function build(s: Seed, i: number): Pro {
   const launchRating = Math.round((reviews.reduce((n, r) => n + avg(r), 0) / reviews.length) * 100) / 100;
   void jobs; void reviewCount; void rating;
   return {
-    id: `demo-${slug}`, slug, name, company, trade, tiers, years, area, bio, languages,
+    id: `demo-${slug}`, slug, name, company, trade, customTrade: null, tiers, years, area, bio, languages,
     experience: ex.exp, skillTags: ex.skills, photos: ex.photos.map((c, k) => ({ id: `${slug}-p${k}`, url: `demo:${trade}`, caption: c })),
     license: company ? company.license : license,
     verified: { license: true, id: true, insured: true }, checkedAt: { license: null, id: null, insured: null }, photoUrl: null, uniform, accent,

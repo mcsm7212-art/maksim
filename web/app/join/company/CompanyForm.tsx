@@ -1,6 +1,6 @@
 'use client';
 import { useActionState, useState } from 'react';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { registerCompany, updateCompany } from '../actions';
 
 export interface CompanyInitial { name: string; trade: string; license: string; city: string; since: number | null; warranty: number; about: string; accent: string; base: string; logo: string | null }
@@ -38,7 +38,7 @@ export default function CompanyForm({ initial: I }: { initial?: CompanyInitial }
         <h3 style={{ margin: 0 }}>{tt("Company")}</h3>
         <div className="row2">
           <label className="f">{tt("Company name")}<input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} /></label>
-          <label className="f">{tt("Main trade")}<select className="inp" name="trade" defaultValue={I?.trade ?? "plumbing"} disabled={edit}>{(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tt(TRADES[t].name)}</option>)}</select></label>
+          <label className="f">{tt("Main trade")}<select className="inp" name="trade" defaultValue={I?.trade ?? "plumbing"} disabled={edit}>{TRADE_KEYS.map((t) => <option key={t} value={t}>{tt(TRADES[t].name)}</option>)}</select></label>
           <label className="f">{tt("CSLB license #")}<input className="inp" name="license" inputMode="numeric" required={!edit} disabled={edit} defaultValue={I?.license} placeholder="1045872" /></label>
           <label className="f">{tt("City")}<input className="inp" name="city" defaultValue={I?.city} placeholder="San Mateo" /></label>
           <label className="f">{tt("In business since")}<input className="inp" name="since" defaultValue={I?.since ?? undefined} type="number" min={1950} max={2030} placeholder="2011" /></label>

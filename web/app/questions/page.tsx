@@ -4,7 +4,7 @@ import PhotoPicker from '@/components/PhotoPicker';
 import { askQuestion } from '@/app/community/actions';
 import { getMe } from '@/lib/auth';
 import { CITIES } from '@/lib/areas';
-import { TRADES, type Trade } from '@/lib/catalog';
+import { TRADES, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { listQuestions } from '@/lib/community';
 import { getLang, getT } from '@/lib/i18n';
 import { isLive } from '@/lib/supabase/config';
@@ -37,7 +37,7 @@ export default async function Questions({ searchParams }: { searchParams: Promis
           <div className="chips">
             <select className="inp" name="trade" defaultValue={trade ?? ''} style={{ width: 'auto' }} aria-label={tr('Trade')}>
               <option value="">{tr('Any trade')}</option>
-              {(Object.keys(TRADES) as Trade[]).map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}
+              {TRADE_KEYS.map((t) => <option key={t} value={t}>{tr(TRADES[t].name)}</option>)}
             </select>
             <select className="inp" name="city" defaultValue="" style={{ width: 'auto' }} aria-label={tr('City')}>
               <option value="">{tr('City (optional)')}</option>
@@ -58,7 +58,7 @@ export default async function Questions({ searchParams }: { searchParams: Promis
       </div>
       <div className="chips" style={{ marginBottom: 14 }}>
         <Link className="chip" aria-pressed={!trade} href={href({ trade: null })}>{tr('All trades')}</Link>
-        {(Object.keys(TRADES) as Trade[]).map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={href({ trade: t })}>{tr(TRADES[t].name)}</Link>)}
+        {TRADE_KEYS.map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={href({ trade: t })}>{tr(TRADES[t].name)}</Link>)}
       </div>
 
       <div className="list">

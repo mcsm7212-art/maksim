@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { marketMid, roundPrice, serviceById, TRADES, usd } from '@/lib/catalog';
+import { marketMid, roundPrice, serviceById, TRADES, usd, tradeLabel } from '@/lib/catalog';
 import { svcName } from '@/lib/i18n-core';
 import type { Pro } from '@/lib/types';
 import Figure from './Figure';
@@ -25,7 +25,7 @@ export default async function ProCard({ pro, serviceId, saved, reasons }: { pro:
         <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <h3>{pro.name}</h3>{pro.online && <span className="badge ok"><span className="dot" style={{ width: 6, height: 6 }} />{tr('Online')}</span>}{pro.urgent && <span className="badge urg">⚡ {tr('Urgent calls')}</span>}{pro.isDemo ? <span className="badge p">{tr('Demo profile')}</span> : !pro.accepting && <span className="badge n">{tr('Not taking jobs now')}</span>}
         </span>
-        <span className="mu sm" style={{ display: 'block' }}>{tr(TRADES[pro.trade].name)} · {pro.company ? pro.company.name : tr('Independent')}{pro.area ? ` · ${pro.area}` : ''}{pro.years ? ` · ${tr('{n} yrs', { n: pro.years })}` : ''}</span>
+        <span className="mu sm" style={{ display: 'block' }}>{tr(tradeLabel(pro))} · {pro.company ? pro.company.name : tr('Independent')}{pro.area ? ` · ${pro.area}` : ''}{pro.years ? ` · ${tr('{n} yrs', { n: pro.years })}` : ''}</span>
         {pro.bio && <span className="sm" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginTop: 4 }}>{pro.bio}</span>}
         <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
           {pro.reviewCount > 0 && pro.rating != null ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {pro.reviewCount}</span> : <span className="badge n">{tr('New')}</span>}

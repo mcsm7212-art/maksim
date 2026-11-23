@@ -7,7 +7,7 @@ import { priceFor } from '@/components/ProCard';
 import SkillPassport, { type SkillRow } from '@/components/SkillPassport';
 import WorkPhotos from '@/components/WorkPhotos';
 import { startChat } from '@/app/messages/actions';
-import { serviceById, TRADES, usd } from '@/lib/catalog';
+import { serviceById, TRADES, usd, tradeLabel } from '@/lib/catalog';
 import { getPro, listPros, openSlots } from '@/lib/data';
 import { colorWord } from '@/lib/colors';
 import { levelOf, showStats, STATS_MIN_JOBS, STATS_MIN_REVIEWS } from '@/lib/levels';
@@ -38,7 +38,7 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<s
 export async function generateMetadata({ params }: Props) {
   const pro = await getPro((await params).slug);
   if (!pro) return { title: 'Pro not found', robots: { index: false } };
-  const trade = TRADES[pro.trade].name;
+  const trade = tradeLabel(pro);
   const rating = pro.reviewCount > 0 && pro.rating != null ? ` ★ ${pro.rating.toFixed(1)} (${pro.reviewCount} reviews).` : '';
   const description = `${pro.name}: ${trade.toLowerCase()} pro${pro.area ? ` in ${pro.area}` : ''}, Bay Area.${rating} ${pro.bio.replace(/^TEST PROFILE[^.]*\.\s*/, '')}`.slice(0, 300);
   const image = pro.figureUrl ?? pro.photoUrl;
@@ -66,7 +66,7 @@ export default async function ProPage({ params, searchParams }: Props) {
   const stats = showStats(pro);
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues, projects] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id), listProjects({ proId: pro.id, limit: 6 })]);
-  const own = isLive() ? (((await (await supabaseServer()).from('pro_custom_services').select('name, price').eq('pro_id', pro.id).order('id')).data ?? []) as { name: string; price: number | null }[]) : [];
+  const own = isLive() ? (((await (await supabaseServer()).from('pro_custom_services').select('name, price, category').eq('pro_id', pro.id).order('id')).data ?? []) as { name: string; price: number | null; category: string | null }[]) : [];
   const alsoMap = pro.isDemo ? new Map<string, number>() : await alsoChosen(pro.id, 6);
   const alsoPros = alsoMap.size ? (await listPros()).filter((p) => alsoMap.has(p.id)).sort((a, b) => (alsoMap.get(b.id) ?? 0) - (alsoMap.get(a.id) ?? 0)) : [];
   const voted = new Set<string>();
@@ -128,8 +128,8 @@ export default async function ProPage({ params, searchParams }: Props) {
             <div className="eyerow"><i />{tr('Your pro. Their reputation.')}</div>
             <h1 className="pname">{pro.name}</h1>
             {pro.company
-              ? <Link className="pco" href={`/company/${pro.company.slug}`}>{pro.company.name.toUpperCase()}<br />{tr(TRADES[pro.trade].name).toUpperCase()}<b>.</b></Link>
-              : <span className="pco">{tr('INDEPENDENT')}<br />{tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION' } as const)[pro.trade])}<b>.</b></span>}
+              ? <Link className="pco" href={`/company/${pro.company.slug}`}>{pro.company.name.toUpperCase()}<br />{tr(tradeLabel(pro)).toUpperCase()}<b>.</b></Link>
+              : <span className="pco">{tr('INDEPENDENT')}<br />{pro.trade === 'other' ? (pro.customTrade ?? '').toUpperCase() : tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION' } as const)[pro.trade])}<b>.</b></span>}
             <p className="ptag">{tr('Behind every rating is a job.')}<br />{tr('Behind every job is a person.')}</p>
             {pro.area && <div className="locline"><Icon name="pin" size={18} /> {pro.area} · San Francisco Bay Area</div>}
             {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}</div>}
@@ -139,10 +139,10 @@ export default async function ProPage({ params, searchParams }: Props) {
               : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{tr('Founding Pro')}</b></div></div>}
             <HeroJobs title={tr('Popular jobs')} from={tr('from')} jobs={[...pro.services].sort((a, b) => (b.jobs ?? 0) - (a.jobs ?? 0)).slice(0, 3).flatMap((x) => {
               const sv = serviceById(x.id); const p = priceFor(pro, x.id); return sv && p ? [{ id: x.id, name: svcName(sv, lang), price: p, href: `/book?pro=${pro.slug}&svc=${x.id}` }] : [];
-            })} />
+            }).concat(own.filter((c) => c.price != null).map((c, i) => ({ id: `own-${i}`, name: c.name, price: Number(c.price), href: estHref }))).slice(0, 3)} />
           </div>
           <div className="figcol">
-            <div className="lbl">{tr(TRADES[pro.trade].name).toUpperCase()} / {tr(colorWord(pro.accent))}</div>
+            <div className="lbl">{tr(tradeLabel(pro)).toUpperCase()} / {tr(colorWord(pro.accent))}</div>
             <Figure name={pro.name} accent={pro.accent} photo={pro.photoUrl} figure={pro.figureUrl} big />
           </div>
         </div>
@@ -273,7 +273,11 @@ export default async function ProPage({ params, searchParams }: Props) {
             const sv = serviceById(s.id); if (!sv) return null;
             return <Link key={s.id} className="prow" href={q({ svc: s.id })} scroll={false} aria-current={s.id === svcId}><span>{svcName(sv, lang)}</span><b>{usd(priceFor(pro, s.id) ?? 0)}</b></Link>;
           })}
-          {own.map((c) => <Link key={c.name} className="prow" href={estHref}><span>{c.name}</span><b>{c.price != null ? usd(Number(c.price)) : tr('In the quote')}</b></Link>)}
+          {/* the pro's own jobs, in their own categories (a pro with their own trade has only these) */}
+          {[...new Set(own.map((c) => c.category ?? ''))].map((cat) => <div key={cat || '-'}>
+            {cat && <h3 className="own-cat">{cat}</h3>}
+            {own.filter((c) => (c.category ?? '') === cat).map((c) => <Link key={c.name} className="prow" href={estHref}><span>{c.name}</span><b>{c.price != null ? usd(Number(c.price)) : tr('In the quote')}</b></Link>)}
+          </div>)}
         </div>
 
         <div className="blk">

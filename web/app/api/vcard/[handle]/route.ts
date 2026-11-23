@@ -1,4 +1,4 @@
-import { TRADES } from '@/lib/catalog';
+import { TRADES, tradeLabel } from '@/lib/catalog';
 import { getPro, resolveHandle } from '@/lib/data';
 import { siteUrl } from '@/lib/site';
 
@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ handle:
   if (!pro) return new Response('Not found', { status: 404 });
   const url = `${await siteUrl()}/${pro.slug}`;
   const [first, ...rest] = pro.name.split(' ');
-  const title = `${TRADES[pro.trade].name}${pro.license ? ` · CSLB #${pro.license}` : ''}`;
+  const title = `${tradeLabel(pro)}${pro.license ? ` · CSLB #${pro.license}` : ''}`;
   const lines = ['BEGIN:VCARD', 'VERSION:3.0', `N:${esc(rest.join(' '))};${esc(first)};;;`, `FN:${esc(pro.name)}`, `ORG:${esc(pro.company?.name ?? 'NovaFides Marketplace')}`,
     `TITLE:${esc(title)}`, `URL:${url}`, `NOTE:${esc(`Book online, see work photos and reviews: ${url}`)}`];
   if (pro.photoUrl && pro.photoUrl.startsWith('https://')) lines.push(`PHOTO;VALUE=URI:${pro.photoUrl}`);

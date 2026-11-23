@@ -10,7 +10,7 @@ import { pacificParts, slotLabel } from '@/lib/time';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import SearchBox from '@/components/SearchBox';
-import { licenseNeeded, searchRanked, serviceById, TRADES, usd, type Trade } from '@/lib/catalog';
+import { licenseNeeded, searchRanked, serviceById, TRADES, usd, type Trade, TRADE_KEYS } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
 import { getLoc } from '@/lib/loc';
 import { covers, miles, proPoint } from '@/lib/geo';
@@ -115,7 +115,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
 
       <div className="chips" style={{ marginTop: 16 }}>
         <Link className="chip" aria-pressed={!trade} href={link({ trade: null, svc: null })}>{tr('All')}</Link>
-        {(Object.keys(TRADES) as Trade[]).map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={link({ trade: t, svc: null })}>{tr(TRADES[t].name)}</Link>)}
+        {TRADE_KEYS.map((t) => <Link key={t} className="chip" aria-pressed={trade === t} href={link({ trade: t, svc: null })}>{tr(TRADES[t].name)}</Link>)}
         <Link className="chip" aria-pressed={Boolean(sp.online)} href={link({ online: sp.online ? null : '1' })}>● {tr('Online now')}</Link>
       </div>
       {svc && <p className="mu sm" style={{ marginTop: 12 }}>{tr('Bay Area typical price: {lo}–{hi}.', { lo: usd(svc.lo), hi: usd(svc.hi) })} {svc.permit && tr('Permit usually required.')} <Link href={`/services/${svc.id}`}>{tr('What changes the price')} →</Link></p>}
