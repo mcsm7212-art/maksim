@@ -1030,8 +1030,8 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 
 .ptips-ex{margin:10px 0 2px}.ptips-ex>small{font-size:12.5px;color:var(--mu)}
 .ptips-ex>div{display:flex;gap:10px;margin-top:6px}
-.ptips-ex a{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:6px 4px 4px;border:1px solid var(--line);border-radius:10px;background:radial-gradient(70% 60% at 50% 60%,color-mix(in srgb,var(--cu) 18%,transparent),transparent 75%),var(--card2,var(--card));color:var(--ink);text-decoration:none;font-size:11.5px;transition:border-color .15s ease,transform .15s ease}
-.ptips-ex a:hover{border-color:var(--cu-l,#C08A62);transform:translateY(-2px)}
+.peek-thumb{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:6px 4px 4px;border:1px solid var(--line);border-radius:10px;background:radial-gradient(70% 60% at 50% 60%,color-mix(in srgb,var(--cu) 18%,transparent),transparent 75%),var(--card2,var(--card));color:var(--ink);text-decoration:none;font-size:11.5px;transition:border-color .15s ease,transform .15s ease}
+.peek-thumb:hover{border-color:var(--cu-l,#C08A62);transform:translateY(-2px)}
 .ptips-ex img{height:92px;width:auto;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
 
 /* own trade: 5th trade button (only this pro sees it) and categories of own jobs */
@@ -1043,3 +1043,18 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .cs-cat-h .cs-del{position:absolute;right:8px;top:50%;transform:translateY(-50%)}
 .add-own:disabled{opacity:.5;cursor:not-allowed}
 .own-cat{font-size:15px;margin:14px 0 4px;color:var(--mu);letter-spacing:.02em}
+
+/* example pages: small live preview on hover, big one on click (no new tab) */
+.peek{position:relative;display:inline-flex}
+.peek-thumb{cursor:pointer;font:inherit}
+.peek-pop{position:fixed;z-index:70;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:14px;
+  background:var(--card);border:1.5px solid var(--cu-l,#C08A62);box-shadow:0 18px 48px rgba(0,0,0,.45);animation:peek-in .16s ease}
+.peek-pop small{color:var(--mu);font-size:11.5px;text-align:center}
+.peek-frame{display:block;width:363px;height:430px;overflow:hidden;border-radius:10px;background:var(--bg,#111)}
+.peek-frame iframe{width:1100px;height:1300px;border:0;transform:scale(.33);transform-origin:0 0;pointer-events:none}
+@keyframes peek-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.peek-modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);padding:16px}
+.peek-box{display:flex;flex-direction:column;width:min(1100px,96vw);height:min(900px,92vh);border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.peek-top{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}.peek-top .btn{margin-left:auto}
+.peek-box iframe{flex:1;width:100%;border:0}
+@media (max-width:620px){.peek-pop{display:none}}

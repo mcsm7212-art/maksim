@@ -1550,6 +1550,10 @@ export const ES: Record<string, string> = {
 "Add a category": "Agregar una categoría",
 "Name the category first": "Primero ponga nombre a la categoría",
 "Job name, e.g. Shingle repair": "Nombre del trabajo, p. ej. Reparación de tejas",
+"Good examples (point at one to see the page):": "Buenos ejemplos (pase el cursor para ver la página):",
+"Example page": "Página de ejemplo",
+"Click to open it bigger": "Haga clic para verla más grande",
+"Close": "Cerrar",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3102,4 +3106,8 @@ export const RU: Record<string, string> = {
 "Add a category": "Добавить категорию",
 "Name the category first": "Сначала назовите категорию",
 "Job name, e.g. Shingle repair": "Название работы, например «Ремонт черепицы»",
+"Good examples (point at one to see the page):": "Хорошие примеры (наведите, чтобы увидеть страницу):",
+"Example page": "Пример страницы",
+"Click to open it bigger": "Нажмите, чтобы открыть крупно",
+"Close": "Закрыть",
 };

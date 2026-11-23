@@ -1,12 +1,13 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useT } from './I18n';
+import PagePeek from './PagePeek';
 
-// Example pages (demo profiles) whose photos stand right: full height, feet side by side, arms crossed.
+// Example pages (demo profiles) with good photos: full height, shoes in the frame; one of them has her own trade.
 const EXAMPLES = [
-  { slug: 'carlos-mendoza', name: 'Carlos Mendoza', img: '/test-pros/f8.webp' },
-  { slug: 'priya-raman', name: 'Priya Raman', img: '/test-pros/f10.webp' },
-  { slug: 'marcus-hill', name: 'Marcus Hill', img: '/test-pros/f3.webp' },
+  { slug: 'kenji-nakamura', name: 'Kenji Nakamura', img: '/test-pros/f5.webp' },
+  { slug: 'roberto-alvarez', name: 'Roberto Alvarez', img: '/test-pros/f9.webp' },
+  { slug: 'lucia-morales', name: 'Lucía Morales', img: '/test-pros/f11.webp' },
 ];
 
 /** A small drawn person: `feet` = how the feet stand ('even', 'step' = one foot forward, 'cut' = feet out of the frame). */
@@ -51,11 +52,9 @@ export default function PhotoTips({ open }: { open?: boolean }) {
         ))}
       </div>
       <div className="ptips-ex">
-        <small>{t('Good examples (open the page):')}</small>
+        <small>{t('Good examples (point at one to see the page):')}</small>
         <div>{EXAMPLES.map((e) => (
-          <a key={e.slug} href={`/pro/${e.slug}`} target="_blank" rel="noopener" title={e.name}>
-            <img src={e.img} alt={e.name} loading="lazy" /><span>{e.name.split(' ')[0]}</span>
-          </a>))}</div>
+          <PagePeek key={e.slug} href={`/pro/${e.slug}`} img={e.img} label={e.name.split(' ')[0]} title={e.name} />))}</div>
       </div>
       <ul>
         <li>{t('Facing the camera or half-turned, both feet on the floor.')}</li>
