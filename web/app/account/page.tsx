@@ -60,7 +60,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <form action="/auth/signout" method="post"><button className="btn ghost sm">{tr('Sign out')}</button></form>
       </div>
       {sp.booked && <div className="note" style={{ marginBottom: 14 }}>{tr('Request sent. You will get a notification when it is confirmed.')}</div>}
-      {sp.joined && <div className="note" style={{ marginBottom: 14 }}>{tr('Profile created. We will check your license and ID, then your profile goes public.')}</div>}
+      {sp.joined && me.pro?.status !== 'verified' && <div className="note" style={{ marginBottom: 14 }}>{tr('Profile created. We will check your license and ID, then your profile goes public.')}</div>}
 
       {(notes ?? []).length > 0 && <div className="card formcard" style={{ marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
