@@ -13,6 +13,8 @@ const ago = (iso: string, tr: T) => {
   const m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   return m < 60 ? tr('{n} min ago', { n: m }) : m < 1440 ? tr('{n} h ago', { n: Math.round(m / 60) }) : tr('{n} d ago', { n: Math.round(m / 1440) });
 };
+/* eslint-disable @next/next/no-img-element */
+const Di = ({ n, size = 44 }: { n: string; size?: number }) => <img className="di" src={`/icons/desk/${n}.webp`} alt="" width={size} height={Math.round(size * 0.69)} loading="lazy" />;
 const CALLBACK = '📞 Call-back request';
 
 /**
@@ -60,12 +62,12 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
     <div className="desk">
       {/* 1) taking jobs + online + my page */}
       <div className={`card desk-top ${accepting ? 'on' : 'off'}`}>
-        <div className="desk-acc">
-          <b className="desk-state">{accepting ? `● ${tr('I take new jobs')}` : `⏸ ${tr('I do not take new jobs')}`}</b>
+        <div className="desk-acc"><Di n="accepting" size={64} />
+          <span className="desk-acc-t"><b className="desk-state">{accepting ? `● ${tr('I take new jobs')}` : `⏸ ${tr('I do not take new jobs')}`}</b>
           <span className="mu xs">{accepting
             ? tr('Clients can book you and write to you.')
             : row?.paused_until ? tr('Until {date}. New clients see a warning and their messages come without a notification; your clients write as usual.', { date: dateLabel(row.paused_until + 'T12:00:00', lang) })
-              : tr('New clients see a warning and their messages come without a notification; your clients write as usual.')}</span>
+              : tr('New clients see a warning and their messages come without a notification; your clients write as usual.')}</span></span>
         </div>
         {accepting
           ? <form action={setAccepting}><input type="hidden" name="take" value="0" /><button className="btn ghost">⏸ {tr('Stop taking jobs')}</button></form>
@@ -85,7 +87,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
       <div className="desk-grid">
         {/* 2) messages from clients */}
         <div className={`card desk-card${newChats > 0 ? ' pulse-green' : ''}`}>
-          <div className="desk-h"><b>💬 {tr('Messages from clients')}{newChats > 0 && <span className="badge ok" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
+          <div className="desk-h"><b><Di n="messages" />{tr('Messages from clients')}{newChats > 0 && <span className="badge ok" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
           {sorted.slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
             <Link key={c.id} className={`desk-msg${unread.has(c.id) ? ' new' : ''}`} href={`/messages/${c.id}`}>
               <span>{unread.has(c.id) && <i className="dot-new" aria-label={tr('New')} />}<b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
@@ -97,7 +99,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 3) call-back requests */}
         <div className={`card desk-card${newCalls ? ' pulse-green' : ''}`}>
-          <div className="desk-h"><b>📞 {tr('Call-back requests')}{newCalls && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('New')}</span>}</b></div>
+          <div className="desk-h"><b><Di n="callback" />{tr('Call-back requests')}{newCalls && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('New')}</span>}</b></div>
           {calls.map((m: any) => { const c = (convs ?? []).find((x: any) => x.id === m.conversation_id); const fresh = unread.has(m.conversation_id); const ph = field(m.body, 'Phone'); return (
             <div key={m.conversation_id + m.created_at} className={`desk-msg${fresh ? ' new' : ''}`}>
               <span><b>{nameOf(c)}</b> · <a href={`tel:${ph.replace(/[^\d+]/g, '')}`}>{ph}</a><br /><span className="mu xs">{field(m.body, 'When')}{field(m.body, 'Problem') ? ` · ${field(m.body, 'Problem').slice(0, 60)}` : ''}</span></span>
@@ -108,14 +110,14 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 4) how clients reach me */}
         <div className="card desk-card">
-          <div className="desk-h"><b>☎ {tr('How clients reach you')}</b><Link className="xs" href="/account/work">{tr('Change')} →</Link></div>
+          <div className="desk-h"><b><Di n="profile" />{tr('How clients reach you')}</b><Link className="xs" href="/account/work">{tr('Change')} →</Link></div>
           <span className="sm">{row?.public_phone ? <>📞 {tr('Phone on your page')}: <b>{row.public_phone}</b>{row?.call_hours ? <span className="mu"> · {row.call_hours}</span> : null}</> : <>📵 {tr('Your phone is not shown. Clients write to you or ask for a call back.')}</>}</span>
           <span className="sm">💬 {tr('Clients can always write to you in the chat.')}</span>
         </div>
 
         {/* 5) pro friends */}
         <div className="card desk-card">
-          <div className="desk-h"><b>🤝 {tr('My pro friends')}{friendNews > 0 && <Link href="/messages" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
+          <div className="desk-h"><b><Di n="friends" />{tr('My pro friends')}{friendNews > 0 && <Link href="/messages" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
           <div className="desk-friends">
             {(friends ?? []).filter((f: any) => f.colleague).map((f: any) => { const c = f.colleague; const on = c.online_until && new Date(c.online_until) > new Date(); return (
               <Link key={c.id} href={`/${c.slug}`} className="desk-friend" title={c.display_name}>

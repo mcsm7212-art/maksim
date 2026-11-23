@@ -1144,3 +1144,13 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .notes-box.lit{border-color:rgba(63,178,127,.6);box-shadow:0 0 14px rgba(63,178,127,.14)}
 @media (prefers-reduced-motion:reduce){.pulse-green,.dot-live{animation:none}.pulse-green{border-color:rgba(63,178,127,.8)}}
 .desk-h>b{display:flex;align-items:center;flex-wrap:wrap;gap:2px}
+
+/* desk icons (cut from the owner's icon sheet) */
+.di{flex:none;border-radius:22%;display:inline-block;vertical-align:middle;margin-right:10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.desk-h>b{gap:0}
+.desk-acc{flex-direction:row;align-items:center;gap:6px}.desk-acc-t{display:flex;flex-direction:column;gap:4px;min-width:0}
+.di-h{display:flex;align-items:center}
+.di-link{display:inline-flex;align-items:center;text-decoration:none;color:var(--ink);padding:4px 10px 4px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.di-link .di{margin-right:8px}.di-link:hover{border-color:var(--cu-l,#C08A62)}
+.urgent-set{align-items:center}
+.di-row{display:flex;align-items:center;min-width:0}.desk-h>b{flex-wrap:nowrap;min-width:0}.desk-h{align-items:center}

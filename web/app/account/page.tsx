@@ -65,7 +65,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
 
       {!me.pro && (notes ?? []).length > 0 && <details className={`card formcard notes-box${unread > 0 ? ' lit' : ''}`} style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
         <summary>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><b className="di-h"><img className="di" src="/icons/desk/bell.webp" alt="" width={44} height={30} />{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
           {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
         {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{noteText(n.body, tr)} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
       </details>}
@@ -74,7 +74,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         <ProDesk me={{ id: me.id, pro: { slug: me.pro.slug } }} row={proRow} tr={tr} lang={lang} find={sp.find} />
         {(notes ?? []).length > 0 && <details className={`card formcard notes-box${unread > 0 ? ' lit' : ''}`} style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
         <summary>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><b className="di-h"><img className="di" src="/icons/desk/bell.webp" alt="" width={44} height={30} />{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
           {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
         {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{noteText(n.body, tr)} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
       </details>}
@@ -96,20 +96,20 @@ export default async function Account({ searchParams }: { searchParams: Promise<
         })()}
         <div className="desk-links mu sm">
           {!proRow?.company_id && proRow?.trade !== 'handyman' && <span>{tr('CSLB license')}: <b>{tr(proRow?.license_status === 'verified' ? 'checked' : proRow?.license_status === 'pending' ? 'being checked' : 'none')}</b> · <Link href="/account/profile#license">{tr('Change')}</Link></span>}
-          <Link href="/account/reviews">{tr('My reviews')}</Link><Link href="/account/calendar">{tr('Calendar')}</Link><Link href="/account/card">{tr('Business card')}</Link>
+          <Link className="di-link" href="/account/reviews"><img className="di" src="/icons/desk/reviews.webp" alt="" width={40} height={28} />{tr('My reviews')}</Link><Link className="di-link" href="/account/calendar"><img className="di" src="/icons/desk/calendar.webp" alt="" width={40} height={28} />{tr('Calendar')}</Link><Link className="di-link" href="/account/work"><img className="di" src="/icons/desk/settings.webp" alt="" width={40} height={28} />{tr('Settings')}</Link>
         </div>
         <div className="card bk urgent-set" style={{ marginBottom: 12 }}>
-          <span><b>⚡ {tr('Urgent calls')}: {tr(proRow?.urgent_ok ? 'on' : 'off')}</b><br />
+          <span className="di-row"><img className="di" src="/icons/desk/urgent.webp" alt="" width={56} height={39} /><span><b>{tr('Urgent calls')}: {tr(proRow?.urgent_ok ? 'on' : 'off')}</b><br />
             <span className="mu sm">{proRow?.urgent_ok
               ? (proRow?.urgent_fee != null ? tr('Clients see you as ready for urgent calls while you are online. Urgent call-out: +${fee}.', { fee: Number(proRow.urgent_fee) }) : tr('Clients see you as ready for urgent calls while you are online.'))
-              : tr('Turn on if you can come fast: you will show up first in “Urgent help” while you are online.')}</span></span>
+              : tr('Turn on if you can come fast: you will show up first in “Urgent help” while you are online.')}</span></span></span>
           {proRow?.urgent_ok
             ? <form action={setUrgent}><input type="hidden" name="take" value="0" /><button className="btn ghost sm">{tr('Turn off')}</button></form>
             : <form action={setUrgent} className="chips"><input type="hidden" name="take" value="1" />
                 <input className="inp" name="fee" inputMode="numeric" placeholder={tr('Extra fee, $ (optional)')} aria-label={tr('Extra fee for urgent call-out, $')} style={{ width: 190, padding: '7px 10px' }} />
                 <button className="btn sm">⚡ {tr('I take urgent calls')}</button></form>}
         </div>
-        <h3>{tr('My jobs')}</h3>
+        <h3 className="di-h"><img className="di" src="/icons/desk/orders.webp" alt="" width={52} height={36} />{tr('My jobs')}</h3>
         <div className="list" style={{ marginBottom: 26 }}>
           {(jobs ?? []).map((b: any) => (
             <div key={b.id} className="card bk">
@@ -159,7 +159,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
           ))}
           {!(jobs ?? []).length && <div className="card empty">{tr('No jobs yet.')}</div>}
         </div>
-        <details className="card desk-photos"><summary><b>{tr('My work photos')}</b> <span className="mu sm">({(portfolio ?? []).length})</span></summary>
+        <details className="card desk-photos"><summary className="di-h"><img className="di" src="/icons/desk/photos.webp" alt="" width={44} height={30} /><b>{tr('My work photos')}</b> <span className="mu sm">({(portfolio ?? []).length})</span></summary>
         <div className="formcard" style={{ marginTop: 10 }}>
           {(portfolio ?? []).length > 0 && <div className="works" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(96px,1fr))' }}>
             {(portfolio ?? []).map((p: any) => (
