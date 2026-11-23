@@ -49,7 +49,7 @@ export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnl
       const L = (await import('leaflet')).default; Lref.current = L;
       if (!alive || !box.current || map.current) return;
       const start = pts ? center(pts) : BAY;
-      const m = L.map(box.current, { zoomSnap: 0.25, scrollWheelZoom: !readOnly, zoomControl: true, doubleClickZoom: false }).setView(start, pts ? 10 : 9);
+      const m = L.map(box.current, { zoomSnap: 0.25, scrollWheelZoom: !readOnly, zoomControl: true, doubleClickZoom: false, zoomAnimation: !readOnly, fadeAnimation: !readOnly, markerZoomAnimation: !readOnly }).setView(start, pts ? 10 : 9);
       L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(m);
       map.current = m; layer.current = L.layerGroup().addTo(m); draw();
       // No area yet: the first click drops a shape around that spot.
@@ -94,7 +94,7 @@ export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnl
         mk.on('click', (e) => { L.DomEvent.stop(e); add(mk.getLatLng()); });
       });
     }
-    if (!fitted.current || readOnly) { m.fitBounds(shape.getBounds(), { padding: [24, 24], maxZoom: 13 }); fitted.current = true; }
+    if (!fitted.current || readOnly) { m.fitBounds(shape.getBounds(), { padding: [24, 24], maxZoom: 13, animate: !readOnly }); fitted.current = true; }
   }
   const scale = (k: number) => setPts((cur) => { if (!cur) return cur; const c = center(cur); return cur.map(([a, b]) => [+(c[0] + (a - c[0]) * k).toFixed(5), +(c[1] + (b - c[1]) * k).toFixed(5)] as Pt); });
   const refit = () => { const L = Lref.current; if (L && map.current && pts) map.current.fitBounds(L.polygon(pts).getBounds(), { padding: [24, 24], maxZoom: 13 }); };
