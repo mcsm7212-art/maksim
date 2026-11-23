@@ -1608,6 +1608,8 @@ export const ES: Record<string, string> = {
 "The number will not be saved: you take only jobs under $1,000 without a permit.": "El número no se guardará: solo acepta trabajos de menos de $1,000 sin permiso.",
 "Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.": "Su licencia se está verificando. Los trabajos marcados como “en espera” se guardan ahora y se muestran a los clientes cuando el administrador apruebe su licencia.",
 "Waiting for the admin to approve your license": "Esperando que el administrador apruebe su licencia",
+"Please upload the .xlsx or .csv version of the list.": "Cargue la versión .xlsx o .csv de la lista.",
+"Upload the CSLB list (CSV or Excel)": "Cargar la lista CSLB (CSV o Excel)",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3218,4 +3220,6 @@ export const RU: Record<string, string> = {
 "The number will not be saved: you take only jobs under $1,000 without a permit.": "Номер не сохранится: вы берёте только работы до $1,000 без разрешения.",
 "Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.": "Ваша лицензия на проверке. Работы с пометкой «ждёт» сохранятся сейчас, а клиенты увидят их после одобрения лицензии администратором.",
 "Waiting for the admin to approve your license": "Ждёт одобрения лицензии администратором",
+"Please upload the .xlsx or .csv version of the list.": "Загрузите список в формате .xlsx или .csv.",
+"Upload the CSLB list (CSV or Excel)": "Загрузить список CSLB (CSV или Excel)",
 };

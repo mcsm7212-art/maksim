@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { useT } from './I18n';
+import { readXlsxRows } from '@/lib/xlsx-rows';
 
 type Row = { license_no: string; name: string; name2: string; city: string; status: string; status2: string; classes: string[]; expires: string | null; updated: string | null };
 
@@ -21,7 +22,14 @@ function parseChunk(text: string, final: boolean): { rows: string[][]; rest: str
   if (final) { if (f || row.length) { row.push(f); rows.push(row); } return { rows, rest: '' }; }
   return { rows, rest: text.slice(start) };
 }
-const day = (v: string) => { const m = v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` : null; };
+const day = (v: string) => {
+  const s = v.trim(); const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Excel keeps dates as day numbers counted from 1899-12-30
+  if (/^\d{4,5}(\.\d+)?$/.test(s)) return new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(s)) * 86400000).toISOString().slice(0, 10);
+  return null;
+};
 const classes = (v: string) => [...new Set(v.toUpperCase().split(/[|,;/\s]+/).map((x) => x.replace(/[^A-Z0-9]/g, '')).filter(Boolean))];
 
 /**
@@ -52,7 +60,7 @@ export default function CslbUpload() {
           if (idx.no < 0 || idx.st < 0 || idx.cls < 0) throw new Error(t('This is not the CSLB master list: the LicenseNo, PrimaryStatus or Classifications column is missing. Download the CSV “License Master” file.'));
           continue;
         }
-        const no = (r[idx.no] ?? '').replace(/\D/g, ''); if (!no) continue;
+        const no = (r[idx.no] ?? '').replace(/\.0+$/, '').replace(/\D/g, ''); if (!no) continue;
         const upd = idx.upd >= 0 ? day(r[idx.upd] ?? '') : null; if (upd && (!dataDate || upd > dataDate)) dataDate = upd;
         const g = (k: string, n = 120) => (idx[k] >= 0 ? (r[idx[k]] ?? '').trim().slice(0, n) : '');
         batch.push({ license_no: no.replace(/^0+(?=\d)/, ''), name: g('name'), name2: g('name2'), city: g('city', 60), status: g('st', 40), status2: g('st2', 120), classes: classes(g('cls', 200)), expires: day(g('exp', 12)), updated: upd });
@@ -60,12 +68,16 @@ export default function CslbUpload() {
       }
     };
     try {
-      if (/\.xlsx?$/i.test(file.name)) throw new Error(t('Please upload the CSV version of the list (on the CSLB page: “Master License File in CSV format”).'));
+      if (/\.xls$/i.test(file.name)) throw new Error(t('Please upload the .xlsx or .csv version of the list.'));
+      if (/\.xlsx$/i.test(file.name)) {
+        await readXlsxRows(new Uint8Array(await file.arrayBuffer()), take);
+      } else {
       const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader(); let rest = '';
       for (;;) {
         const { value, done } = await reader.read();
         const { rows, rest: r } = parseChunk(rest + (value ?? ''), done); rest = r;
         await take(rows); if (done) break;
+      }
       }
       jobs.push(flush()); await Promise.all(jobs);
       if (!sent) throw new Error(t('No licenses were found in the file.'));
@@ -81,8 +93,8 @@ export default function CslbUpload() {
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <span className="sm">{t('Download the CSLB master list (CSV) on the CSLB Data Portal and upload it here once a week or month. Every license number pros type is then compared with it automatically.')}</span>
       <label className="drop">
-        <input type="file" accept=".csv,text/csv" disabled={busy} onChange={(e) => { run(e.target.files?.[0]); e.target.value = ''; }} />
-        <span><b>{busy ? t('Uploading… keep this page open') : t('Upload the CSLB list (CSV)')}</b><br /><span className="mu xs">{t('About 45 MB, takes a few minutes')}</span></span>
+         <input type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={busy} onChange={(e) => { run(e.target.files?.[0]); e.target.value = ''; }} />
+        <span><b>{busy ? t('Uploading… keep this page open') : t('Upload the CSLB list (CSV or Excel)')}</b><br /><span className="mu xs">{t('About 45 MB, takes a few minutes')}</span></span>
       </label>
       <a className="xs" href="https://www.cslb.ca.gov/onlineservices/dataportal/ContractorList" target="_blank" rel="noreferrer">{t('Open the CSLB Data Portal')} ↗</a>
       {msg && <span className="okmsg xs">{msg}</span>}
