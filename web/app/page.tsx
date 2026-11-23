@@ -164,8 +164,8 @@ export default async function Home() {
         <div className="card procta">
           <div><div className="eyebrow" style={{ margin: 0 }}>{t('For pros & companies')}</div>
             <b>{t('Free during the launch. We never sell leads.')}</b>
-            <span className="mu sm">{t('Clients choose you by your face, your work and your reviews. Pros who join now become Founding Pros. Any paid plan is announced at least 30 days ahead.')}</span></div>
-          <Link href="/join" className="btn">{t('Become a Founding Pro')}</Link>
+            <span className="mu sm">{t('Clients choose you by your face, your work and your reviews. Pros who join now keep special terms. Any paid plan is announced at least 30 days ahead.')}</span></div>
+          <Link href="/join" className="btn">{t('Join as a pro')}</Link>
         </div>
       </div></section>
     </>
