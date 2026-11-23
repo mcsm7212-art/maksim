@@ -745,4 +745,24 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
 do $$ begin insert into public.pro_tip_votes (tip_id) values (9001); raise exception 'FAIL: voted for own tip';
   exception when insufficient_privilege then null; end $$;
 select pg_temp.ok((select count(*) from public.pro_tip_votes where tip_id = 9001) = 1, 'votes come only from other pros of the same trade');
+
+-- 0040 calls: the "only my clients" phone is read by a client with a confirmed job, not by other people
+select pg_temp.act(null); reset role;
+update public.pros set accepting = true, is_demo = false where id = '00000000-0000-0000-0000-0000000000b2';
+insert into public.bookings (client_id, pro_id, starts_at, status) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000b2', '2033-03-03 10:00-08', 'confirmed');
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.pro_client_phone (phone) values ('(650) 555-0100');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.pro_client_phone) = 1, 'my client sees my phone');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select pg_temp.ok((select count(*) from public.pro_client_phone) = 0, 'a stranger does not see the clients-only phone');
+
+-- 0041 online spot: the saved place is rounded (about 1 km), going offline clears it
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select public.set_online_spot(4, 37.563412, -122.325587, 10, true, 'San Mateo');
+select pg_temp.ok((select online_lat = 37.56 and online_lng = -122.33 and online_radius_mi = 10 and online_live and online_until > now() from public.pros where id = auth.uid()), 'online place is saved rounded');
+select public.move_online_spot(37.4852, -122.2364, 'Redwood City');
+select pg_temp.ok((select online_lat = 37.49 and online_area = 'Redwood City' from public.pros where id = auth.uid()), 'the area moves while driving');
+select public.set_online_spot(0);
+select pg_temp.ok((select online_lat is null and online_until is null and not online_live from public.pros where id = auth.uid()), 'going offline clears the place');
 \echo ALL RULE TESTS PASSED

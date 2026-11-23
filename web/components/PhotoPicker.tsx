@@ -6,10 +6,11 @@ import { uploadPhotos } from '@/lib/upload';
 import { useT } from './I18n';
 
 /** Picks photos, uploads them right away, and puts their URLs into hidden inputs named `name`. */
-export default function PhotoPicker({ name, max = 1, prefix, label, onChange, required, draftKey }: {
-  name: string; max?: number; prefix: string; label: string; onChange?: (previews: string[]) => void; required?: boolean; draftKey?: string;
+export default function PhotoPicker({ name, max = 1, prefix, label, onChange, required, draftKey, lazy }: {
+  name: string; max?: number; prefix: string; label: string; onChange?: (previews: string[]) => void; required?: boolean; draftKey?: string; lazy?: boolean;
 }) {
-  const [items, setItems] = useState<{ url: string; preview: string }[]>([]);
+  const [items, setItems] = useState<{ url: string; preview: string; file?: File }[]>([]);
+  const root = useRef<HTMLDivElement>(null); const itemsRef = useRef(items); itemsRef.current = items;
   const [busy, setBusy] = useState(false); const t = useT();
   const [err, setErr] = useState<string | null>(null);
   const set = (next: typeof items) => { setItems(next); onChange?.(next.map((i) => i.preview)); };
@@ -31,14 +32,26 @@ export default function PhotoPicker({ name, max = 1, prefix, label, onChange, re
     const files = [...list].slice(0, max - (max === 1 ? 0 : items.length));
     setErr(null); setBusy(true);
     try {
-      const urls = isLive() ? await uploadPhotos(files, prefix) : files.map(() => '');
-      const added = files.map((f, i) => ({ url: urls[i] ?? '', preview: URL.createObjectURL(f) }));
+      const urls = isLive() && !lazy ? await uploadPhotos(files, prefix) : files.map(() => '');
+      const added = files.map((f, i) => ({ url: urls[i] ?? '', preview: URL.createObjectURL(f), file: lazy ? f : undefined }));
       set(max === 1 ? added.slice(0, 1) : [...items, ...added].slice(0, max));
     } catch (e) { setErr((e as Error).message); }
     setBusy(false);
   }
+  // `lazy` (a guest who is not signed in yet): the photos wait in the browser; the form uploads them right after sign-in.
+  useEffect(() => {
+    if (!lazy) return;
+    const form = root.current?.closest('form') as (HTMLFormElement & { nfFlush?: () => Promise<void> }) | null; if (!form) return;
+    form.nfFlush = async () => {
+      const cur = itemsRef.current; const wait = cur.filter((i) => i.file && !i.url); if (!wait.length) return;
+      const urls = await uploadPhotos(wait.map((i) => i.file!), prefix);
+      const next = cur.map((i) => { const k = wait.indexOf(i); return k >= 0 ? { ...i, url: urls[k] ?? '' } : i; });
+      await new Promise<void>((ok) => { setItems(next); setTimeout(ok, 60); });
+    };
+    return () => { delete form.nfFlush; };
+  }, [lazy, prefix]);
   return (
-    <div className="list" style={{ gap: 8 }}>
+    <div className="list" style={{ gap: 8 }} ref={root}>
       <label className="drop">
         <input type="file" accept="image/*" multiple={max > 1} onChange={(e) => { pick(e.target.files); e.target.value = ''; }} required={required && !items.length} />
         <span><b>{busy ? t('Uploading…') : label}</b><br /><span className="mu xs">{max > 1 ? t('{n} of up to {max} photos', { n: items.length, max }) : items.length ? t('Tap to replace') : t('JPG or PNG from your phone')}</span></span>

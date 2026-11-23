@@ -39,13 +39,15 @@ export function nameAt(lat: number, lng: number): string | null {
 }
 
 /** Where a pro works from: the point on their map, else their online area or typed area. */
-export function proPoint(p: { serviceArea?: { lat: number; lng: number } | null; onlineArea?: string | null; area: string }): { lat: number; lng: number } | null {
+export function proPoint(p: { serviceArea?: { lat: number; lng: number } | null; onlineSpot?: { lat: number; lng: number } | null; onlineArea?: string | null; area: string }): { lat: number; lng: number } | null {
+  if (p.onlineSpot) return p.onlineSpot; // online right now: where the pro said they are (approximate)
   if (p.serviceArea) return p.serviceArea;
   const x = placeOf(p.onlineArea) ?? placeOf(p.area);
   return x ? { lat: x.lat, lng: x.lng } : null;
 }
 /** Does the pro's map circle cover this point? (null when the pro has not drawn a circle) */
-export function covers(p: { serviceArea?: { lat: number; lng: number; radius: number; polygon?: [number, number][] | null } | null }, pt: { lat: number; lng: number } | null): boolean | null {
+export function covers(p: { serviceArea?: { lat: number; lng: number; radius: number; polygon?: [number, number][] | null } | null; onlineSpot?: { lat: number; lng: number; radius: number } | null }, pt: { lat: number; lng: number } | null): boolean | null {
+  if (p.onlineSpot && pt && miles(p.onlineSpot, pt) <= p.onlineSpot.radius + 0.5) return true;
   if (!p.serviceArea || !pt) return null;
   const poly = p.serviceArea.polygon;
   if (poly && poly.length >= 3) return inPolygon(pt, poly);

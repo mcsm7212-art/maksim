@@ -1,4 +1,4 @@
--- NovaFides: the whole database in one file (migrations 0001-0038 + service catalog).
+-- NovaFides: the whole database in one file (migrations 0001-0041 + service catalog).
 -- Paste into Supabase → SQL Editor → New query → Run. Run it once, on an empty project.
 -- NovaFides marketplace: initial schema
 -- Roles: client, pro (independent or company technician), company (owner/manager accounts).
@@ -3099,6 +3099,71 @@ create policy pro_tip_votes_insert on public.pro_tip_votes for insert with check
 drop policy if exists pro_tip_votes_delete on public.pro_tip_votes;
 create policy pro_tip_votes_delete on public.pro_tip_votes for delete using (user_id = auth.uid());
 grant select, insert, delete on public.pro_tip_votes to authenticated;
+
+-- A quote can say about how long the job takes ("2-3 hours", "1 day"): the client sees it before picking a time.
+alter table public.quotes add column if not exists duration text check (duration is null or char_length(duration) <= 60);
+create or replace function public.set_quote_duration(q_id uuid, d text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if public.non_latin(d) or public.bad_text(d) then raise exception 'english only: duration'; end if;
+  update public.quotes set duration = nullif(btrim(left(d, 60)), '') where id = q_id and pro_id = auth.uid() and status = 'sent';
+end;
+$$;
+grant execute on function public.set_quote_duration(uuid, text) to authenticated;
+
+-- Calls: who sees the pro's phone (everyone or only the pro's own clients), call hours per day,
+-- no calls while the pro is not taking jobs, and an option to hide from new clients while paused.
+alter table public.pros add column if not exists call_from text not null default 'all' check (call_from in ('all', 'clients'));
+alter table public.pros add column if not exists call_days jsonb;            -- null = the same as the work schedule
+alter table public.pros add column if not exists call_pause boolean not null default true;   -- no calls while not taking jobs
+alter table public.pros add column if not exists hide_paused boolean not null default false; -- not shown to new clients while paused
+
+-- The number for "only my clients" is kept apart from the public profile row: only clients whose job the pro confirmed can read it.
+create table if not exists public.pro_client_phone (
+  pro_id uuid primary key references public.pros (id) on delete cascade default auth.uid(),
+  phone text not null check (char_length(phone) between 7 and 30)
+);
+alter table public.pro_client_phone enable row level security;
+drop policy if exists pro_client_phone_own on public.pro_client_phone;
+create policy pro_client_phone_own on public.pro_client_phone for all using (pro_id = auth.uid()) with check (pro_id = auth.uid());
+drop policy if exists pro_client_phone_clients on public.pro_client_phone;
+create policy pro_client_phone_clients on public.pro_client_phone for select using (
+  exists (select 1 from public.bookings b where b.pro_id = pro_client_phone.pro_id and b.client_id = auth.uid() and b.status in ('confirmed', 'on_the_way', 'in_progress', 'done')));
+grant select, insert, update, delete on public.pro_client_phone to authenticated;
+
+-- Going online with a place and a radius. The place is rounded to about 1 km before it is saved:
+-- clients see only an approximate area, never the pro's exact position.
+alter table public.pros add column if not exists online_lat numeric(6,2);
+alter table public.pros add column if not exists online_lng numeric(7,2);
+alter table public.pros add column if not exists online_radius_mi int check (online_radius_mi between 1 and 60);
+alter table public.pros add column if not exists online_live boolean not null default false; -- the pro lets the page refresh the area while driving
+
+create or replace function public.set_online_spot(hours int, lat numeric default null, lng numeric default null, radius int default null, live boolean default false, area text default null) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if lat is not null and (lat not between 17 and 72 or lng not between -180 and -60) then raise exception 'place out of range'; end if;
+  update public.pros set
+    online_until = case when hours > 0 then now() + make_interval(hours => least(hours, 12)) else null end,
+    online_area = case when hours > 0 then coalesce(nullif(left(set_online_spot.area, 60), ''), pros.online_area, pros.area) else pros.online_area end,
+    online_lat = case when hours > 0 then round(lat, 2) else null end,
+    online_lng = case when hours > 0 then round(lng, 2) else null end,
+    online_radius_mi = case when hours > 0 and lat is not null then least(greatest(coalesce(radius, 10), 1), 60) else null end,
+    online_live = hours > 0 and lat is not null and coalesce(live, false)
+  where id = auth.uid();
+end;
+$$;
+grant execute on function public.set_online_spot(int, numeric, numeric, int, boolean, text) to authenticated;
+
+-- While online with "update while I drive": move the approximate area (nothing else changes).
+create or replace function public.move_online_spot(lat numeric, lng numeric, area text default null) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if lat not between 17 and 72 or lng not between -180 and -60 then raise exception 'place out of range'; end if;
+  update public.pros set online_lat = round(lat, 2), online_lng = round(lng, 2), online_area = coalesce(nullif(left(move_online_spot.area, 60), ''), pros.online_area)
+  where id = auth.uid() and online_live and online_until > now();
+end;
+$$;
+grant execute on function public.move_online_spot(numeric, numeric, text) to authenticated;
 
 -- generated by scripts/gen-seed.mjs; do not edit by hand
 insert into public.services (id, trade, group_name, name, price_low, price_high, unit, needs_permit, emergency, handyman_ok) values

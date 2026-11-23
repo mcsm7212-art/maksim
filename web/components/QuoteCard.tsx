@@ -6,7 +6,7 @@ import Disclaimer from './Disclaimer';
 import { useT } from './I18n';
 
 export type QuoteView = { id: string; conv: string; title: string; lines: QuoteLine[]; total: number; includes: string | null; notes: string | null;
-  validUntil: string | null; version: number; status: string; bookingId: string | null; at: string };
+  validUntil: string | null; duration?: string | null; version: number; status: string; bookingId: string | null; at: string };
 const usd = (n: number) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** A quote inside the chat: clear lines, total, and Accept / Decline for the client. */
@@ -22,6 +22,7 @@ export default function QuoteCard({ q, role, inOrder }: { q: QuoteView; role: 'c
         {q.lines.map((l, i) => <tr key={i}><td className="mu xs">{t(LINE_KINDS[l.kind] ?? 'Other')}</td><td>{l.label}</td><td className="r">{l.kind === 'discount' ? '−' : ''}{usd(Number(l.amount))}</td></tr>)}
         <tr className="tot"><td /><td>{t('Total')}</td><td className="r">{usd(q.total)}</td></tr>
       </tbody></table>
+      {q.duration && <div className="sm">⏱ <span className="mu">{t('About how long')}:</span> <b>{q.duration}</b></div>}
       {q.includes && <div className="sm"><span className="mu">{t('Included')}:</span> {q.includes}</div>}
       {q.notes && <div className="sm"><span className="mu">{t('May need a separate agreement')}:</span> {q.notes}</div>}
       {q.validUntil && <div className="mu xs">{t('Valid until')} {q.validUntil}</div>}

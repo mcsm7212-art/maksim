@@ -85,6 +85,8 @@ export interface Pro {
   founding: boolean;
   /** City the pro is working in right now (when online) */
   onlineArea: string | null;
+  /** Approximate place and radius the pro chose when going online (rounded to about 1 km). */
+  onlineSpot?: { lat: number; lng: number; radius: number } | null;
   /** Example profile for the launch: labeled, never bookable, never counted as available */
   isDemo: boolean;
   /** Taking new jobs (a pause with an end date ends by itself) */
@@ -98,7 +100,7 @@ export interface Pro {
   responseMin: number | null;
   tripFee: number;
   /** Phone and call hours the pro chose to show (null = not shown) */
-  publicPhone?: string | null;
+  publicPhone?: string | null; callFrom?: 'all' | 'clients'; callDays?: Record<string, { start: string; end: string }> | null; callPause?: boolean; hidePaused?: boolean;
   /** Links to the pro's profiles on other review sites, and when an admin checked them. */
   extLinks?: Record<string, string>;
   extCheckedAt?: string | null;

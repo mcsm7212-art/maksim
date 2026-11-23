@@ -42,9 +42,10 @@ function mapPro(p: Row, stats?: Row): Pro {
     checkedAt: { license: p.license_checked_at ?? null, id: p.id_checked_at ?? null, insured: p.insurance_checked_at ?? null },
     photoUrl: p.photo_url, figureUrl: p.figure_url ?? null, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
     online: Boolean(!p.is_demo && p.online_until && new Date(p.online_until) > new Date()), onlineArea: p.online_area ?? null,
+    onlineSpot: !p.is_demo && p.online_until && new Date(p.online_until) > new Date() && p.online_lat != null && p.online_lng != null ? { lat: Number(p.online_lat), lng: Number(p.online_lng), radius: Number(p.online_radius_mi ?? 10) } : null,
     isDemo: Boolean(p.is_demo),
     accepting: !p.is_demo && ((p.accepting !== false) || Boolean(p.paused_until && p.paused_until <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }))), pausedUntil: p.paused_until ?? null,
-    urgent: Boolean(!p.is_demo && p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95), publicPhone: p.public_phone ?? null, extLinks: p.ext_links ?? {}, extCheckedAt: p.ext_checked_at ?? null, callHours: p.call_hours ?? null,
+    urgent: Boolean(!p.is_demo && p.urgent_ok && (p.accepting !== false) && p.online_until && new Date(p.online_until) > new Date()), urgentFee: p.urgent_fee != null ? Number(p.urgent_fee) : null, founding: p.founding_pro !== false, responseMin: p.response_minutes, tripFee: Number(p.trip_fee ?? 95), publicPhone: p.public_phone ?? null, callFrom: (p.call_from ?? 'all') as 'all' | 'clients', callDays: (p.call_days ?? null) as Record<string, { start: string; end: string }> | null, callPause: p.call_pause !== false, hidePaused: Boolean(p.hide_paused), extLinks: p.ext_links ?? {}, extCheckedAt: p.ext_checked_at ?? null, callHours: p.call_hours ?? null,
     serviceArea: p.base_lat != null && p.base_lng != null ? { lat: Number(p.base_lat), lng: Number(p.base_lng), radius: Number(p.service_radius_mi ?? 15), polygon: Array.isArray(p.service_polygon) ? p.service_polygon : null } : null,
     rating: s?.rating != null ? Number(s.rating) : null, reviewCount: Number(s?.reviews ?? 0), rankScore: s?.rank_score != null ? Number(s.rank_score) : null, jobs: Number(s?.jobs ?? 0),
     skills: s?.rating != null ? {
@@ -82,7 +83,8 @@ export const listPros = cache(async (opts: { trade?: Trade | null; serviceId?: s
     (!opts.trade || p.trade === opts.trade) &&
     (!opts.serviceId || p.services.some((s) => s.id === opts.serviceId)) &&
     (!opts.tier || p.tiers.includes(opts.tier)) &&
-    (!opts.companySlug || p.company?.slug === opts.companySlug));
+    (!opts.companySlug || p.company?.slug === opts.companySlug) &&
+    (Boolean(opts.companySlug) || p.accepting || !p.hidePaused)); // paused pros who asked for it are not shown to new clients
 });
 
 /** Short address → current handle of the pro (old handles still resolve), or null. */
@@ -152,4 +154,29 @@ export function openSlots(pro: Pro, days = 7): string[] {
     }
   }
   return out;
+}
+
+export type DayCell = { key: string; iso: string; state: 'free' | 'part' | 'full' | 'off'; slots: string[] };
+/** The next days for the booking calendar: free, partly booked, fully booked or a day off, with the open times of each day. */
+export function dayGrid(pro: Pro, days = 14): DayCell[] {
+  const open = new Set(openSlots(pro, days)); const now = Date.now(); const today = pacificParts(new Date()); const out: DayCell[] = [];
+  for (let d = 0; d < days; d++) {
+    const noon = atPacific(today.y, today.m, today.d + d, 12); const p = pacificParts(noon);
+    const all: string[] = [];
+    for (const rule of pro.availability.filter((a) => a.weekday === p.weekday)) {
+      const sh = Number(rule.start.slice(0, 2)); const eh = Number(rule.end.slice(0, 2));
+      for (let h = sh; h + 2 <= eh; h += 2) { const ms = atPacific(today.y, today.m, today.d + d, h).getTime(); if (ms >= now + 36e5) all.push(new Date(ms).toISOString()); }
+    }
+    const slots = all.filter((x) => open.has(x));
+    out.push({ key: `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`, iso: noon.toISOString(), slots,
+      state: !pro.accepting || !all.length ? 'off' : !slots.length ? 'full' : slots.length < all.length ? 'part' : 'free' });
+  }
+  return out;
+}
+
+const WDN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/** The day grid with labels in the reader's language, ready for the SlotPicker. */
+export function dayViews(pro: Pro, tr: (s: string) => string, days = 14) {
+  return dayGrid(pro, days).map((d, i) => { const p = pacificParts(new Date(d.iso)); return { key: d.key, top: i === 0 ? tr('Today') : i === 1 ? tr('Tomorrow') : tr(WDN[p.weekday]), date: `${p.m}/${p.d}`, state: d.state,
+    slots: d.slots.map((x) => { const q = pacificParts(new Date(x)); return { iso: x, label: `${q.h % 12 || 12}:${String(q.min).padStart(2, '0')} ${q.h < 12 ? 'AM' : 'PM'}` }; }) }; });
 }

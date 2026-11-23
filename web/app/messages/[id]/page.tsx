@@ -33,7 +33,7 @@ export default async function Chat({ params, searchParams }: { params: Promise<{
   ]);
   const iAmPro = Boolean(cc.pro_id && cc.pro_id === me.id && !cc.peer_id);
   const quotes = (qs ?? []).map((q: any) => ({ id: q.id, conv: id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes,
-    validUntil: q.valid_until, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }));
+    validUntil: q.valid_until, duration: q.duration, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }));
   let quoteForm = null;
   if (iAmPro) {
     const lang = await getLang();

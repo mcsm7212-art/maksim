@@ -38,6 +38,7 @@ export default function QuoteForm({ conv, services, jobs }: { conv: string; serv
       </div>
       <textarea className="inp" name="includes" maxLength={1000} placeholder={t('What is included (e.g. parts, cleanup, 1-year warranty on labor)')} style={{ minHeight: 56 }} />
       <textarea className="inp" name="notes" maxLength={1000} placeholder={t('What may need a separate agreement (e.g. if the valve body is damaged)')} style={{ minHeight: 56 }} />
+      <label className="f sm">{t('About how long the job takes')}<input className="inp" name="duration" maxLength={60} placeholder={t('e.g. 2-3 hours, 1 day')} /></label>
       <label className="sm mu">{t('Valid until (optional)')} <input className="inp" type="date" name="valid_until" style={{ width: 'auto', padding: '6px 8px' }} /></label>
       {total > 500 && <div className="canote">⚖ {CA_PRO_NOTE[lang] ?? CA_PRO_NOTE.en}</div>}
       <Disclaimer style={{ margin: 0 }} />

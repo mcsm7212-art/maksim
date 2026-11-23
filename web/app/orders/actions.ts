@@ -33,9 +33,11 @@ export async function sendQuote(_p: S, f: FormData): Promise<S> {
   const title = str(f, 'title', 120);
   if (title.length < 3) return { error: 'Name the job in a few words.' };
   const until = str(f, 'valid_until');
-  const { error } = await sb.rpc('send_quote', { conv, title, lines, includes: str(f, 'includes') || null, notes: str(f, 'notes') || null,
+  const { data: qid, error } = await sb.rpc('send_quote', { conv, title, lines, includes: str(f, 'includes') || null, notes: str(f, 'notes') || null,
     valid_until: /^\d{4}-\d{2}-\d{2}$/.test(until) ? until : null, service: str(f, 'service') || null, booking: str(f, 'booking') || null });
   if (error) return { error: error.message.includes('total below zero') ? 'The discount is bigger than the total.' : nice(error.message) };
+  const dur = str(f, 'duration', 60);
+  if (qid && dur) { const { error: e2 } = await sb.rpc('set_quote_duration', { q_id: qid, d: dur }); if (e2) return { error: 'Quote sent, but the time was not saved: write it in English, please.' }; }
   revalidatePath(`/messages/${conv}`); if (str(f, 'booking')) revalidatePath(`/orders/${str(f, 'booking')}`);
   return { ok: 'Quote sent.' };
 }

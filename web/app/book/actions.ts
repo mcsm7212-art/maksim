@@ -14,12 +14,15 @@ export type BookState = { error?: string; demo?: boolean } | undefined;
 
 export async function createBooking(_prev: BookState, form: FormData): Promise<BookState> {
   const get = (k: string) => String(form.get(k) ?? '').trim();
-  const proSlug = get('pro'), companySlug = get('company'), svcId = get('svc'), t = get('t'), dayPref = get('day');
-  const estimate = Boolean(get('estimate')) && Boolean(proSlug);
-  const address = get('address').slice(0, 200), notes = get('notes').slice(0, 2000);
+  const proSlug = get('pro'), companySlug = get('company'), t = get('t'), dayPref = get('day');
+  const other = get('svc') === '__other'; const svcId = other ? '' : get('svc');
+  const estimate = (Boolean(get('estimate')) || other) && Boolean(proSlug);
+  const phone = get('phone').slice(0, 30).replace(/[^\d+() .-]/g, '');
+  const address = get('address').slice(0, 200), notes = [get('notes').slice(0, 2000), phone.replace(/\D/g, '').length >= 10 ? `📞 ${phone}` : ''].filter(Boolean).join('\n');
   const city = CITIES.some((c) => c.name === get('city')) ? get('city') : '', zip = /^\d{5}$/.test(get('zip')) ? get('zip') : '';
   if (!proSlug && !companySlug) return { error: 'Choose a pro or a company.' };
   if (estimate && !city && !zip) return { error: 'Choose your city or enter a ZIP code.' };
+  if (other && get('notes').length < 10) return { error: 'Describe the job in a few words: what needs to be done and where.' };
   if (estimate && !svcId && notes.length < 5) return { error: 'Describe the job in a few words or choose a service.' };
   if (!estimate && !address) return { error: 'Please enter the job address.' };
   if (proSlug && !estimate && !t) return { error: 'Please pick a time.' };
@@ -40,7 +43,7 @@ export async function createBooking(_prev: BookState, form: FormData): Promise<B
     if (estimate) {
       // An estimate is a conversation first: the pro answers or sends a quote in the chat.
       const lang = await getLang(); const tr = makeT(lang);
-      const msg = [`📋 ${tr('Estimate request')}${svc ? `: ${svcName(svc, lang)}` : ''}`, `${tr('Area')}: ${[city, zip].filter(Boolean).join(' ')}`, notes].filter(Boolean).join('\n');
+      const msg = [`📋 ${tr('Estimate request')}${svc ? `: ${svcName(svc, lang)}` : other ? `: ${tr('a job that is not in the list')}` : ''}`, `${tr('Area')}: ${[city, zip].filter(Boolean).join(' ')}`, notes].filter(Boolean).join('\n');
       const conv = await requestToPro(sb, me.id, pro.id, msg, photos, ref);
       if (!conv) return { error: 'This pro does not take messages right now.' };
       redirect(`/messages/${conv}?sent=estimate`);

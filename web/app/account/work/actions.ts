@@ -50,7 +50,7 @@ export async function setColleagueChat(f: FormData) {
   const { me, sb } = await pro();
   const v = String(f.get('mode'));
   if (['all', 'contacts', 'off'].includes(v)) await sb.from('pros').update({ colleague_chat: v }).eq('id', me.id);
-  revalidatePath('/account/work');
+  revalidatePath('/account/work'); revalidatePath('/friends');
 }
 
 export async function toggleColleague(f: FormData) {
@@ -62,14 +62,31 @@ export async function toggleColleague(f: FormData) {
   revalidatePath('/account/work'); revalidatePath(String(f.get('path') ?? '/account/work'));
 }
 
-// Phone and call hours shown on the pro's page (optional; empty = hidden).
-export async function saveContact(f: FormData) {
-  const me = await getMe(); if (!me?.pro) redirect('/account');
+// Phone and calls: who sees the number, call hours, and what happens while the pro is not taking jobs.
+export async function saveContact(_p: S, f: FormData): Promise<S> {
+  if (!isLive()) return { error: DEMO };
+  const { me, sb } = await pro();
   const phone = String(f.get('phone') ?? '').trim().slice(0, 30);
-  const hours = String(f.get('hours') ?? '').trim().slice(0, 80);
   const ok = phone.replace(/\D/g, '').length >= 10;
-  await (await supabaseServer()).from('pros').update({ public_phone: ok ? phone : null, call_hours: ok && hours ? hours : null }).eq('id', me.id);
-  revalidatePath('/account/work'); revalidatePath(`/${me.pro.slug}`);
+  if (phone && !ok) return { error: 'Enter a phone number with area code.' };
+  const onlyClients = f.get('call_from') === 'clients';
+  let days: Record<string, { start: string; end: string }> | null = null;
+  if (f.get('call_sched') === 'own') {
+    days = {};
+    for (let d = 0; d < 7; d++) {
+      if (!f.get(`day_${d}`)) continue;
+      const start = String(f.get(`start_${d}`) ?? ''), end = String(f.get(`end_${d}`) ?? '');
+      if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || end <= start) return { error: 'The end must be after the start' };
+      days[d] = { start, end };
+    }
+  }
+  const { error } = await sb.from('pros').update({ public_phone: ok && !onlyClients ? phone : null, call_hours: null, call_from: onlyClients ? 'clients' : 'all', call_days: days,
+    call_pause: Boolean(f.get('call_pause')), hide_paused: Boolean(f.get('hide_paused')) }).eq('id', me.id);
+  if (error) return { error: 'Could not save. Try again.' };
+  if (ok && onlyClients) await sb.from('pro_client_phone').upsert({ pro_id: me.id, phone }, { onConflict: 'pro_id' });
+  else await sb.from('pro_client_phone').delete().eq('pro_id', me.id);
+  refreshPro(me.pro!.slug); revalidatePath('/account/work'); revalidatePath('/account');
+  return { ok: 'Saved.' };
 }
 
 /** Links to the pro's profiles on other review sites (checked by an admin before they get the "checked" mark). */

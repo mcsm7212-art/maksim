@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Figure from './Figure';
 import { setAccepting, toggleColleague } from '@/app/account/work/actions';
 import { setOnline } from '@/app/account/actions';
+import GoOnline, { OnlineTracker } from './GoOnline';
 import { supabaseServer } from '@/lib/supabase/server';
 import { CITIES } from '@/lib/areas';
 import { TRADES, tradeLabel, type Trade } from '@/lib/catalog';
@@ -74,10 +75,9 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
           : <form action={setAccepting}><input type="hidden" name="take" value="1" /><button className="btn">▶ {tr('Take jobs')}</button></form>}
         <div className="desk-row">
           {online
-            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm online-btn"><i className="dot-live" aria-hidden />{row?.online_area ? tr('Online in {city}', { city: row.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
-            : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={row?.online_area ?? row?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
-                {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
-                <input type="hidden" name="hours" value={4} /><button className="btn ghost sm">{tr('Go online for 4 h')}</button></form>}
+            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm online-btn"><i className="dot-live" aria-hidden />{row?.online_area ? tr('Online in {city}', { city: row.online_area }) : tr('Online')}{row?.online_radius_mi ? ` · ${row.online_radius_mi} mi` : ''}{row?.online_live ? ' · 🚐' : ''} · {tr('go offline')}</button></form>
+            : <GoOnline city={row?.online_area ?? row?.area ?? ''} radius={Number(row?.service_radius_mi ?? 10)} />}
+          {online && row?.online_live && <OnlineTracker />}
           <Link className="btn ghost sm" href={`/pro/${me.pro.slug}`}>👁 {tr('My page as clients see it')}</Link>
           <Link className="btn ghost sm" href="/account/profile">✎ {tr('Edit profile')}</Link>
           <Link className="btn ghost sm" href="/account/work">⚙ {tr('Settings')}</Link>
@@ -114,7 +114,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
         <div className="card desk-card">
           <Link className="card-link" href="/account/work" aria-label={tr('How clients reach you')} />
           <div className="desk-h"><b><Di n="profile" />{tr('How clients reach you')}</b><Link className="xs" href="/account/work">{tr('Change')} →</Link></div>
-          <span className="sm">{row?.public_phone ? <>📞 {tr('Phone on your page')}: <b>{row.public_phone}</b>{row?.call_hours ? <span className="mu"> · {row.call_hours}</span> : null}</> : <>📵 {tr('Your phone is not shown. Clients write to you or ask for a call back.')}</>}</span>
+          <span className="sm">{row?.public_phone ? <>📞 {tr('Phone on your page')}: <b>{row.public_phone}</b></> : row?.call_from === 'clients' ? <>🔒 {tr('Your phone is shown only to your clients.')}</> : <>📵 {tr('Your phone is not shown. Clients write to you or ask for a call back.')}</>}</span>
           <span className="sm">💬 {tr('Clients can always write to you in the chat.')}</span>
         </div>
 

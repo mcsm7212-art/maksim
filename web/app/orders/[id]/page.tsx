@@ -7,7 +7,9 @@ import QuoteCard from '@/components/QuoteCard';
 import { confirmDone, orderStatus, pickTime, reportProblem } from '../actions';
 import { getMe } from '@/lib/auth';
 import { serviceById } from '@/lib/catalog';
-import { getPro, openSlots } from '@/lib/data';
+import AddressInput from '@/components/AddressInput';
+import SlotPicker from '@/components/SlotPicker';
+import { dayViews, getPro } from '@/lib/data';
 import { getLang, getT } from '@/lib/i18n';
 import { svcName } from '@/lib/i18n-core';
 import { orderPhrase, PROBLEM_KINDS, stepIndex, STEPS } from '@/lib/orders';
@@ -34,7 +36,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
     sb.from('pro_photos').select('id, url, kind').eq('booking_id', id),
   ]);
   const ph = orderPhrase(o, role); const step = stepIndex(o);
-  const slots = role === 'client' && o.status === 'needs_time' && o.pro?.slug ? openSlots((await getPro(o.pro.slug))!).slice(0, 18) : [];
+  const slots = role === 'client' && o.status === 'needs_time' && o.pro?.slug ? dayViews((await getPro(o.pro.slug))!, tr) : [];
   const accepted = (qs ?? []).filter((q: any) => q.status === 'accepted').pop() as any;
   const svc = accepted?.title || svcName(serviceById(o.service_id ?? ''), lang) || tr('Estimate visit');
   const next: Record<string, [string, string]> = { requested: ['confirmed', 'Confirm visit'], confirmed: ['on_the_way', 'On my way'], on_the_way: ['in_progress', 'Start work'], in_progress: ['done', 'Job done'] };
@@ -54,9 +56,8 @@ export default async function Order({ params, searchParams }: { params: Promise<
         {role === 'client' && o.status === 'needs_time' && <ActionForm action={pickTime} className="list" style={{ gap: 8 }}>
           <input type="hidden" name="id" value={id} />
           <b className="sm">{tr('Pick a time')}</b>
-          <div className="slotpick">{slots.map((t) => <label key={t}><input type="radio" name="t" value={t} required />{slotLabel(t, tr).join(' · ')}</label>)}</div>
-          {!slots.length && <span className="mu sm">{tr('No open times this week. Write to the pro to agree on a time.')}</span>}
-          <input className="inp" name="address" required maxLength={200} placeholder={tr('Job address')} aria-label={tr('Job address')} />
+          <SlotPicker days={slots} />
+          <AddressInput required placeholder={tr('Job address')} />
           <span className="mu xs">{tr('The pro sees the address only after confirming the visit.')}</span>
           <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Send time to the pro')}</button>
         </ActionForm>}
@@ -74,7 +75,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
       </div>
 
       {(qs ?? []).length > 0 && <><h3 style={{ marginTop: 22 }}>{tr('Quote')}</h3>
-        <div className="list">{(qs ?? []).slice().reverse().map((q: any) => <QuoteCard key={q.id} role={role} inOrder q={{ id: q.id, conv: q.conversation_id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes, validUntil: q.valid_until, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }} />)}</div>
+        <div className="list">{(qs ?? []).slice().reverse().map((q: any) => <QuoteCard key={q.id} role={role} inOrder q={{ id: q.id, conv: q.conversation_id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes, validUntil: q.valid_until, duration: q.duration, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }} />)}</div>
         {role === 'pro' && conv?.id && !['done', 'cancelled'].includes(o.status) && <p className="mu xs">{tr('Scope changed? Send a new version of the quote in the chat: the client accepts it and the agreed price updates.')}</p>}</>}
 
       {(o.notes || (o.photos ?? []).length > 0) && <><h3 style={{ marginTop: 22 }}>{tr('Request')}</h3>

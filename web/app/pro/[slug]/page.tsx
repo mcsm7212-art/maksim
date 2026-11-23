@@ -34,6 +34,7 @@ import { isLive } from '@/lib/supabase/config';
 import { colleaguesOf, mySaves, postsOf, saveCount } from '@/lib/social';
 import { recommendPro, unrecommendPro } from '@/app/social/actions';
 import { toggleColleague } from '@/app/account/work/actions';
+import { callHoursText, callsOpenNow } from '@/lib/calls';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -72,6 +73,12 @@ export default async function ProPage({ params, searchParams }: Props) {
   const knownClient = me && isLive() && !pro.isDemo ? Boolean((await (await supabaseServer()).from('conversations').select('id').eq('client_id', me.id).eq('pro_id', pro.id).limit(1)).data?.length) : false;
   const pausedAsk = !pro.accepting && !pro.isDemo && !knownClient && me?.id !== pro.id
     ? tr('{name} is not taking new jobs right now and may not answer soon. Do you still want to write?', { name: pro.name.split(' ')[0] }) : null;
+  // Phone: public, or (for "only my clients") read through the rule that lets clients with a confirmed job see it.
+  const clientPhone = me && isLive() && pro.callFrom === 'clients' ? ((await (await supabaseServer()).from('pro_client_phone').select('phone').eq('pro_id', pro.id).maybeSingle()).data?.phone as string | undefined) : undefined;
+  const phone = pro.publicPhone ?? clientPhone ?? null;
+  const callDays = pro.callDays ?? Object.fromEntries(pro.availability.map((a) => [a.weekday, { start: a.start, end: a.end }]));
+  const callText = callHoursText(callDays, tr); const callOpen = callsOpenNow(callDays);
+  const callsPaused = !pro.isDemo && !pro.accepting && pro.callPause !== false;
   const own = isLive() ? (((await (await supabaseServer()).from('pro_custom_services').select('name, price, category').eq('pro_id', pro.id).order('id')).data ?? []) as { name: string; price: number | null; category: string | null }[]) : [];
   const alsoMap = pro.isDemo ? new Map<string, number>() : await alsoChosen(pro.id, 6);
   const alsoPros = alsoMap.size ? (await listPros()).filter((p) => alsoMap.has(p.id)).sort((a, b) => (alsoMap.get(b.id) ?? 0) - (alsoMap.get(a.id) ?? 0)) : [];
@@ -138,7 +145,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               : <span className="pco">{tr('INDEPENDENT')}<br />{pro.trade === 'other' ? (pro.customTrade ?? '').toUpperCase() : tr(({ plumbing: 'PLUMBING', electrical: 'ELECTRICAL', handyman: 'HANDYMAN', construction: 'CONSTRUCTION' } as const)[pro.trade])}<b>.</b></span>}
             <p className="ptag">{tr('Behind every rating is a job.')}<br />{tr('Behind every job is a person.')}</p>
             {pro.area && <div className="locline"><Icon name="pin" size={18} /> {pro.area} · San Francisco Bay Area</div>}
-            {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}</div>}
+            {pro.online && <div className="onl"><span className="dot" />{pro.onlineArea ? tr('Online in {city}', { city: pro.onlineArea }) : tr('Online now')}{pro.onlineSpot ? ` · ${tr('takes jobs within {n} mi', { n: pro.onlineSpot.radius })}` : ''}</div>}
             {pro.urgent && <div className="badge urg" style={{ marginTop: 8 }}>⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</div>}
             {stats
               ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: 'var(--cu-l)' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
@@ -204,10 +211,12 @@ export default async function ProPage({ params, searchParams }: Props) {
               {pro.isDemo ? <Link className="btn ghost" href={`/callback?pro=${pro.slug}&msg=1`}><Icon name="chat" /> {tr('Message {name}', { name: first })}</Link>
                 : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><ConfirmButton ask={pausedAsk} className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</ConfirmButton></form>}
               <Link className="btn ghost" href={`/callback?pro=${pro.slug}`}>📞 {tr('Request a call back')}</Link>
-              {pro.publicPhone && <div className="callrow">
-                {pro.isDemo ? <span className="btn ghost off">📞 {pro.publicPhone}</span> : <a className="btn ghost" href={`tel:${pro.publicPhone.replace(/[^\d+]/g, '')}`}>📞 {tr('Call')} {pro.publicPhone}</a>}
-                {pro.callHours && <span className="mu xs">{tr('Calls')}: {pro.callHours}</span>}
+              {phone && !callsPaused && <div className="callrow">
+                {pro.isDemo ? <span className="btn ghost off">📞 {phone}</span> : <a className="btn ghost" href={`tel:${phone.replace(/[^\d+]/g, '')}`}>📞 {tr('Call')} {phone}</a>}
+                {callText && <span className="mu xs">{callOpen ? <><i className="dot-live" aria-hidden /> {tr('Takes calls now')} · </> : <>{tr('Not taking calls right now')} · </>}{tr('Calls')}: {callText}</span>}
+                {pro.callFrom === 'clients' && <span className="mu xs">🔒 {tr('You see this number because you are a client of this pro.')}</span>}
               </div>}
+              {callsPaused && (phone || pro.callFrom === 'clients') && <div className="callrow"><span className="mu sm">📵 {tr('{name} is not taking calls right now. Write a message: the answer comes when {name} is back.', { name: first })}</span></div>}
             </div>
             <p className="mu xs" style={{ margin: '8px 0 0' }}>{tr('Estimate: describe the problem and add photos, the pro answers in the chat. Call back: leave your number and when it is convenient.')}</p>
           </div>

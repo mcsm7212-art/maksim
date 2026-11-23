@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard';
 import PostForm from '@/components/PostForm';
 import { startChat } from '@/app/messages/actions';
 import { addHelper, addTip, deleteTip, removeHelper, saveHelperNote, voteTip } from './actions';
-import { toggleColleague } from '@/app/account/work/actions';
+import { setColleagueChat, toggleColleague } from '@/app/account/work/actions';
 import { getMe } from '@/lib/auth';
 import { tradeLabel, type Trade } from '@/lib/catalog';
 import { getLang, getT } from '@/lib/i18n';
@@ -25,7 +25,7 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
   if (!me.pro) redirect('/join/pro');
   const sp = await searchParams; const sb = await supabaseServer();
   const [{ data: row }, all] = await Promise.all([
-    sb.from('pros').select('display_name, trade, custom_trade, photo_url, accent, area, online_until').eq('id', me.id).single(),
+    sb.from('pros').select('display_name, trade, custom_trade, photo_url, accent, area, online_until, colleague_chat').eq('id', me.id).single(),
     myFriends(),
   ]);
   const friends = all.filter((f) => f.kind === 'friend'), incoming = all.filter((f) => f.kind === 'incoming'), outgoing = all.filter((f) => f.kind === 'outgoing');
@@ -85,7 +85,7 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
       <header className="card fr-me">
         <span className="fr-me-ava"><Figure name={row?.display_name ?? me.name} accent={acc} photo={row?.photo_url} />{online && <i className="fr-on" title={tr('Online')} />}</span>
         <div className="fr-me-t">
-          <div className="eyebrow">{tr('My pro friends')}</div>
+          <div className="eyebrow">🛠 {tr('Pro Lounge')}</div>
           <h2 style={{ margin: '2px 0' }}>{row?.display_name ?? me.name}</h2>
           <span className="mu sm">{label({ trade: row?.trade ?? 'plumbing', customTrade: row?.custom_trade })}{row?.area ? ` · ${row.area}` : ''}</span>
           <div className="fr-stats"><span><b>{friends.length}</b> {tr('friends')}</span><span><b>{mine.length}</b> {tr('posts')}</span><span><b>{privatePhotos.length}</b> {tr('photos for friends')}</span></div>
@@ -99,6 +99,7 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
         <Link aria-current={tab === 'helpers' ? 'page' : undefined} href="/friends?tab=helpers">🧰 {tr('Pros I need')} <span className="mu">{helpers.length}</span></Link>
         <Link aria-current={tab === 'stores' ? 'page' : undefined} href="/friends?tab=stores">🏪 {tr('Stores')}</Link>
         <Link aria-current={tab === 'tools' ? 'page' : undefined} href="/friends?tab=tools">🔧 {tr('Tools')}</Link>
+        <Link href="/lounge" title={tr('Questions, job passes and talk with all verified pros.')}>💬 {tr('All pros')}</Link>
       </nav>
 
       {tab === 'feed' && <div className="fr-grid">
@@ -111,7 +112,6 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
             {!friends.length && <span className="mu sm">{tr('No friends yet.')}</span>}
             <Link className="xs" href="/friends?tab=friends">{tr(friends.length > 8 ? 'All friends' : 'Find and add friends')} →</Link>
           </div>
-          <Link className="card fr-box fr-lounge" href="/lounge"><b>🛠 {tr('Pro Lounge')}</b><span className="mu sm">{tr('Questions, job passes and talk with all verified pros.')}</span></Link>
         </aside>
         {/* right: feed */}
         <main className="fr-main">
@@ -157,6 +157,13 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
             {outgoing.length > 0 && <><span className="mu xs">{tr('Waiting for an answer')}:</span>
               {outgoing.map((f) => <Person key={f.id} f={f}><Toggle id={f.id} on={false} text={tr('Cancel')} ghost /></Person>)}</>}
           </div>
+          <form action={setColleagueChat} className="card fr-box">
+            <b>✉ {tr('Messages from other pros')}</b>
+            {([['all', 'Any verified pro can message me'], ['contacts', 'Only colleagues from my list'], ['off', 'Nobody: colleague chat is off']] as const).map(([v, l]) => (
+              <label key={v} className="sm" style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="radio" name="mode" value={v} defaultChecked={(row?.colleague_chat ?? 'all') === v} /> {tr(l)}</label>))}
+            <span className="mu xs">{tr('Clients can always message you. Turning this off also stops replies in old chats with colleagues.')}</span>
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>
+          </form>
       </div>}
 
       {tab === 'helpers' && <div className="fr-main">

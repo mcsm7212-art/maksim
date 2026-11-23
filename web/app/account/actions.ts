@@ -7,6 +7,8 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { isLive } from '@/lib/supabase/config';
 import { ownPhotoUrl } from '@/lib/photos';
 import { isHex } from '@/lib/colors';
+import { CITIES } from '@/lib/areas';
+import { miles, nameAt } from '@/lib/geo';
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? '');
 async function need() { const me = await getMe(); if (!me) redirect('/login?next=/account'); return { me, sb: await supabaseServer() }; }
@@ -23,8 +25,28 @@ export async function setStatus(f: FormData) {
 }
 export async function setOnline(f: FormData) {
   const { sb } = await need();
-  await sb.rpc('set_online', { hours: Number(s(f, 'hours')) || 0, area: s(f, 'area').slice(0, 60) || null });
-  revalidatePath('/account');
+  const hours = Number(s(f, 'hours')) || 0;
+  if (hours > 0) await sb.rpc('set_online', { hours, area: s(f, 'area').slice(0, 60) || null });
+  else await sb.rpc('set_online_spot', { hours: 0 }); // going offline also clears the place
+  revalidatePath('/account'); revalidatePath('/online');
+}
+/** Nearest city of the "Online now" map (within 15 miles), else the town name. */
+function cityNear(lat: number, lng: number): string | null {
+  const best = CITIES.map((c) => ({ c, d: miles({ lat, lng }, { lat: c.lat, lng: c.lon }) })).sort((a, b) => a.d - b.d)[0];
+  return best && best.d <= 15 ? best.c.name : nameAt(lat, lng);
+}
+/** Go online with a place and a radius. The place is rounded (about 1 km) in the browser and again in the database. */
+export async function goOnline(o: { hours: number; lat: number; lng: number; radius: number; live: boolean; city: string | null }) {
+  const { sb } = await need();
+  const lat = Number(o.lat), lng = Number(o.lng); if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  const area = o.city && CITIES.some((c) => c.name === o.city) ? o.city : cityNear(lat, lng);
+  await sb.rpc('set_online_spot', { hours: Math.min(12, Math.max(1, Math.round(Number(o.hours) || 4))), lat, lng, radius: Math.round(Number(o.radius) || 10), live: Boolean(o.live), area });
+  revalidatePath('/account'); revalidatePath('/online'); revalidatePath('/');
+}
+export async function moveOnline(lat: number, lng: number) {
+  const { sb } = await need();
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  await sb.rpc('move_online_spot', { lat, lng, area: cityNear(lat, lng) });
 }
 export async function setUrgent(f: FormData) {
   const { sb } = await need();

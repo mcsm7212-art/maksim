@@ -7,9 +7,12 @@ import PhotoPicker from '@/components/PhotoPicker';
 import { priceFor } from '@/components/ProCard';
 import { CITIES } from '@/lib/areas';
 import { marketMid, roundPrice, SERVICES, serviceById, usd } from '@/lib/catalog';
-import { getCompany, getPro, openSlots } from '@/lib/data';
+import AddressInput from '@/components/AddressInput';
+import SlotPicker from '@/components/SlotPicker';
+import { getMe } from '@/lib/auth';
+import { dayViews, getCompany, getPro } from '@/lib/data';
 import { slotLabel } from '@/lib/time';
-import BookForm from './BookForm';
+import BookForm, { OTHER } from './BookForm';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
 import { postById } from '@/lib/social';
@@ -34,11 +37,38 @@ export default async function Book({ searchParams }: { searchParams: SP }) {
   const refPhoto = refKind === 'photo' && refId && isLive() ? (await (await supabaseServer()).from('pro_photos').select('id, url, kind, service_id').eq('id', refId).maybeSingle()).data : null;
   const svcId = sp.svc ?? refPhoto?.service_id ?? undefined;
   const svc = svcId ? serviceById(svcId) : undefined;
-  const slots = pro ? openSlots(pro) : [];
+  const days = pro ? dayViews(pro, tr) : [];
+  const slots = days.flatMap((d) => d.slots.map((x) => x.iso));
+  const guest = isLive() && !(await getMe());
   const accent = pro?.accent ?? company!.accent;
   const name = pro?.name ?? company!.name;
   const price = (id: string) => { const s = serviceById(id); return s ? (pro ? priceFor(pro, id) : roundPrice(marketMid(s))) : null; };
   const demo = pro?.isDemo;
+
+  const cityStep = (n: number) => (
+    <div className="card step">
+      <h3><i>{n}</i>{tr('Where')}</h3>
+      <div className="chips">
+        <select className="inp" name="city" defaultValue="" style={{ width: 'auto' }} aria-label={tr('City')}><option value="">{tr('City')}…</option>{CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
+        <input className="inp" name="zip" inputMode="numeric" maxLength={5} placeholder="ZIP" aria-label="ZIP" style={{ width: 110 }} />
+        <span className="mu xs" style={{ flexBasis: '100%' }}>{tr('City or ZIP is enough for an estimate. The full address is needed only when you pick a visit time.')}</span>
+      </div>
+    </div>);
+  const whenStep = mode === 'estimate' ? null : (
+    <div className="card step">
+      <h3><i>2</i>{tr('When')} <Ic3d name="calendar" size={30} className="h3-ic" /></h3>
+      {pro ? <SlotPicker days={days} picked={sp.t} /> : (
+        <div className="tbtn">
+          {[['today', 'Today'], ['tomorrow', 'Tomorrow'], ['week', 'This week']].map(([v, l], i) => <label key={v}><input type="radio" name="day" value={v} defaultChecked={i === 0} />{tr(l)}</label>)}
+        </div>)}
+      {pro && <Link className="xs" href={`/book?${new URLSearchParams({ pro: pro.slug, estimate: '1', ...(svc ? { svc: svc.id } : {}), ...(sp.ref ? { ref: sp.ref } : {}) })}`}>{tr('Need to discuss first? Ask for an estimate instead')} →</Link>}
+    </div>);
+  const whereStep = mode === 'estimate' ? cityStep(2) : (
+    <div className="card step">
+      <h3><i>3</i>{tr('Address')}</h3>
+      <AddressInput required placeholder={tr('Street, city')} />
+      <span className="mu xs">{tr('Start typing and pick your address from the list. It is shared only with the pro or office you book.')}</span>
+    </div>);
 
   return (
     <section className="sec pad" style={{ ['--acc' as string]: accent }}><div className="in" style={{ maxWidth: 720 }}>
@@ -60,43 +90,21 @@ export default async function Book({ searchParams }: { searchParams: SP }) {
         summary={{ mode, to: name, svc: svc?.id, t: sp.t, trip: pro ? tr('{fee}, credited if you hire', { fee: usd(pro.tripFee) }) : tr('Set by the company'),
           urgent: pro?.urgent && pro.urgentFee ? `+${usd(pro.urgentFee)}` : undefined,
           services: Object.fromEntries(svcOptions.map((s) => [s.id, { name: svcName(s, lang), price: price(s.id) }])),
-          slots: Object.fromEntries(slots.slice(0, 18).map((x) => [x, slotLabel(x, tr).join(' · ')])) }}>
+          slots: Object.fromEntries(slots.map((x) => [x, slotLabel(x, tr).join(' · ')])) }}
+        guest={guest} live={isLive()} ctaOther={tr('Send to {name}', { name: name.split(' ')[0] })}
+        when={whenStep} where={whereStep} whereOther={cityStep(2)}>
         <div className="card step">
           <h3><i>1</i>{tr('What needs doing')}</h3>
           <select className="inp" name="svc" defaultValue={svc?.id ?? ''}>
             <option value="">{estimate ? tr('Not sure / not in the list') : tr('Choose a service')}</option>
             {svcOptions.map((s) => <option key={s.id} value={s.id}>{svcName(s, lang)}{price(s.id) != null ? ` · ≈ ${usd(price(s.id)!)}` : ''}</option>)}
+            {mode === 'book' && <option value={OTHER}>✍ {tr('My job is not in the list: I will describe it')}</option>}
           </select>
           <textarea className="inp" name="notes" maxLength={2000} placeholder={tr('What happened, where in the house, since when. E.g. “Water drips under the kitchen sink when the dishwasher runs.”')} style={{ minHeight: 80 }} />
-          <PhotoPicker name="photo_url" prefix="request" max={6} label={tr('Add photos of the problem')} />
+          <PhotoPicker name="photo_url" prefix="request" max={6} label={tr('Add photos of the problem')} lazy={guest} />
           <span className="mu xs">{tr('Photos help the pro understand the job before coming. No faces or house numbers, please.')}</span>
         </div>
 
-        {mode !== 'estimate' && <div className="card step">
-          <h3><i>2</i>{tr('When')} <Ic3d name="calendar" size={30} className="h3-ic" /></h3>
-          {pro ? (
-            <div className="tbtn">
-              {slots.slice(0, 18).map((t) => { const [d, h] = slotLabel(t, tr); return <label key={t}><input type="radio" name="t" value={t} defaultChecked={t === sp.t} required />{d} · {h}</label>; })}
-              {!slots.length && <span className="mu">{tr('No open times. Send an estimate request instead.')}</span>}
-            </div>
-          ) : (
-            <div className="tbtn">
-              {[['today', 'Today'], ['tomorrow', 'Tomorrow'], ['week', 'This week']].map(([v, l], i) => <label key={v}><input type="radio" name="day" value={v} defaultChecked={i === 0} />{tr(l)}</label>)}
-            </div>
-          )}
-          {pro && <Link className="xs" href={`/book?${new URLSearchParams({ pro: pro.slug, estimate: '1', ...(svc ? { svc: svc.id } : {}), ...(sp.ref ? { ref: sp.ref } : {}) })}`}>{tr('Need to discuss first? Ask for an estimate instead')} →</Link>}
-        </div>}
-
-        <div className="card step">
-          <h3><i>{mode === 'estimate' ? 2 : 3}</i>{mode === 'estimate' ? tr('Where') : tr('Address')}</h3>
-          {mode === 'estimate' ? <div className="chips">
-            <select className="inp" name="city" defaultValue="" style={{ width: 'auto' }} aria-label={tr('City')}><option value="">{tr('City')}…</option>{CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
-            <input className="inp" name="zip" inputMode="numeric" maxLength={5} placeholder="ZIP" aria-label="ZIP" style={{ width: 110 }} />
-            <span className="mu xs" style={{ flexBasis: '100%' }}>{tr('City or ZIP is enough for an estimate. The full address is needed only when you pick a visit time.')}</span>
-          </div>
-            : <><input className="inp" name="address" required placeholder={tr('Street, city')} autoComplete="street-address" aria-label={tr('Job address')} />
-              <span className="mu xs">{tr('Your address is shared only with the pro or office you book.')}</span></>}
-        </div>
       </BookForm>}
     </div></section>
   );
