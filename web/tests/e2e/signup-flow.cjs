@@ -305,13 +305,30 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   {const sl=sql("select slug from pros where display_name='Mia Minimal'");await mn.goto(B+'/pro/'+sl);const tx=await mn.textContent('body');if(!/ROOFING/.test(tx)||!/Repairs/.test(tx)||!/Shingle repair/.test(tx))throw new Error('own trade or category not on the page');}
   if(sql("select count(*) from pros p where display_name='Mia Minimal' and photo_url is null and service_polygon is not null and exists(select 1 from pro_photos w where w.pro_id=p.id)")!=='1')throw new Error('minimal pro not saved with map and work photo');
   step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later; added an own trade (Roofing) with a category and a job, shown on the page; a rude trade name and a rude job name are refused; a Spanish bio blocks the button (English only)');}
- {sql("delete from pro_contacts");await s.goto(B+'/friends?find=Tom');await s.click('.fr-row:has-text("Tom Tech") button:has-text("Add")');await s.waitForSelector('.fr-row:has-text("Tom Tech") button:has-text("Cancel")');
-  await t.goto(B+'/friends');await t.click('.fr-box:has-text("Friend requests") .fr-row:has-text("Max Solo") button');await t.waitForSelector('.fr-box:not(.pulse-green) .fr-row:has-text("Max Solo") button[title="Message"]');
-  await t.fill('textarea[name=body]','Private note for my pro friends');await t.click('form:has(textarea[name=body]) button:has-text("Post")');await t.waitForSelector('.post:has-text("Private note for my pro friends") .badge:has-text("Friends only")');
+ {sql("delete from pro_contacts");await s.goto(B+'/friends?tab=friends&find=Tom');await s.click('.fr-row:has-text("Tom Tech") button:has-text("Add")');await s.waitForSelector('.fr-row:has-text("Tom Tech") button:has-text("Cancel")');
+  await t.goto(B+'/friends?tab=friends');await t.click('.fr-box:has-text("Friend requests") .fr-row:has-text("Max Solo") button');await t.waitForSelector('.fr-box:not(.pulse-green) .fr-row:has-text("Max Solo") button[title="Message"]');
+  await t.goto(B+'/friends');await t.fill('textarea[name=body]','Private note for my pro friends');await t.click('form:has(textarea[name=body]) button:has-text("Post")');await t.waitForSelector('.post:has-text("Private note for my pro friends") .badge:has-text("Friends only")');
   await s.goto(B+'/friends');await s.waitForSelector('.post:has-text("Private note for my pro friends")');
   const ts=sql("select slug from pros where display_name='Tom Tech'");await c.goto(B+'/'+ts);if(/Private note for my pro friends/.test(await c.textContent('body')))throw new Error('a client sees a friends-only post');
   await c.goto(B+'/feed');if(/Private note for my pro friends/.test(await c.textContent('body')))throw new Error('friends-only post in the public feed');
   step('pro friends: Max adds Tom, Tom adds back → friends; Tom\u2019s friends-only post is in Max\u2019s feed and hidden from clients');}
+ {sql("delete from pro_helpers");sql("delete from pro_tips");
+  const tr0=sql("select trade||'|'||status from pros where display_name='Tom Tech'").split('|'),mt=sql("select trade from pros where display_name='Max Solo'");
+  await s.goto(B+'/friends?tab=helpers&find=Tom');await s.click('.fr-row:has-text("Tom Tech") button:has-text("Add to my list")');await s.waitForSelector('.fr-helper:has-text("Tom Tech")');
+  await s.fill('.fr-helper:has-text("Tom Tech") input[name=note]','Good with panels');await s.click('.fr-helper:has-text("Tom Tech") .fr-note button');await s.waitForTimeout(800);
+  if(sql("select note from pro_helpers")!=='Good with panels')throw new Error('helper note not saved');
+  await t.goto(B+'/friends?tab=helpers');if(/Max Solo/.test(await t.textContent('.fr-main')))throw new Error('helper list is not private');
+  sql("update pros set status='verified' where display_name in ('Max Solo','Tom Tech')");sql("update pros set trade='"+mt+"' where display_name='Tom Tech'");
+  await s.goto(B+'/friends?tab=stores');await s.click('.fr-add summary');await s.fill('.fr-tipform input[name=name]','Ferguson Plumbing Supply');await s.fill('.fr-tipform input[name=place]','San Carlos');await s.fill('.fr-tipform textarea[name=note]','Opens at 6am, the pro counter is fast');await s.click('.fr-tipform button');
+  await s.waitForSelector('.fr-tip:has-text("Ferguson Plumbing Supply")');
+  await s.click('.fr-add summary');await s.fill('.fr-tipform input[name=name]','Хороший магазин');await s.click('.fr-tipform button');await s.waitForSelector('.err:has-text("English")');
+  await t.goto(B+'/friends?tab=stores');await t.click('.fr-tip:has-text("Ferguson Plumbing Supply") button[title="I recommend it too"]');await t.waitForSelector('.fr-tip:has-text("Ferguson Plumbing Supply") button[aria-pressed=true]');
+  if(sql("select count(*) from pro_tip_votes")!=='1')throw new Error('vote not saved');
+  await t.goto(B+'/friends?tab=tools');if(/Ferguson/.test(await t.textContent('.fr-main')))throw new Error('a store is in the tools list');
+  sql("update pros set trade='"+(mt==='electrical'?'plumbing':'electrical')+"' where display_name='Tom Tech'");
+  await t.goto(B+'/friends?tab=stores');if(/Ferguson/.test(await t.textContent('.fr-main')))throw new Error('another trade sees the tip');
+  sql("update pros set trade='"+tr0[0]+"', status='"+tr0[1]+"' where display_name='Tom Tech'");
+  step('pros I need: Max keeps Tom in a private list with a note; a store tip is seen and voted by a pro of the same trade, hidden from another trade');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
