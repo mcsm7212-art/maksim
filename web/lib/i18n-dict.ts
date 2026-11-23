@@ -1533,6 +1533,7 @@ export const ES: Record<string, string> = {
 "Please sign in first.": "Primero inicie sesión.",
 "Trades pros asked for": "Oficios que piden los profesionales",
 "No requests yet.": "Aún no hay solicitudes.",
+"Good examples (open the page):": "Buenos ejemplos (abra la página):",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3068,4 +3069,5 @@ export const RU: Record<string, string> = {
 "Please sign in first.": "Сначала войдите на сайт.",
 "Trades pros asked for": "Профессии, которые просят мастера",
 "No requests yet.": "Заявок пока нет.",
+"Good examples (open the page):": "Хорошие примеры (нажмите, чтобы открыть страницу):",
 };

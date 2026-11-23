@@ -1,5 +1,13 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 import { useT } from './I18n';
+
+// Example pages (demo profiles) whose photos stand right: full height, feet side by side, arms crossed.
+const EXAMPLES = [
+  { slug: 'carlos-mendoza', name: 'Carlos Mendoza', img: '/test-pros/f8.webp' },
+  { slug: 'priya-raman', name: 'Priya Raman', img: '/test-pros/f10.webp' },
+  { slug: 'marcus-hill', name: 'Marcus Hill', img: '/test-pros/f3.webp' },
+];
 
 /** A small drawn person: `feet` = how the feet stand ('even', 'step' = one foot forward, 'cut' = feet out of the frame). */
 function Pose({ feet, ok }: { feet: 'even' | 'step' | 'cut'; ok: boolean }) {
@@ -41,6 +49,13 @@ export default function PhotoTips({ open }: { open?: boolean }) {
             <figcaption><b>{c.ok ? '✓' : '✕'}</b> {t(c.text)}</figcaption>
           </figure>
         ))}
+      </div>
+      <div className="ptips-ex">
+        <small>{t('Good examples (open the page):')}</small>
+        <div>{EXAMPLES.map((e) => (
+          <a key={e.slug} href={`/pro/${e.slug}`} target="_blank" rel="noopener" title={e.name}>
+            <img src={e.img} alt={e.name} loading="lazy" /><span>{e.name.split(' ')[0]}</span>
+          </a>))}</div>
       </div>
       <ul>
         <li>{t('Stand straight, facing the camera, both feet flat on the floor.')}</li>

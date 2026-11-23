@@ -442,8 +442,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
   .figcol .fig-sil.cut.big .fstand>img{-webkit-box-reflect:below 1px linear-gradient(transparent 86%,rgba(0,0,0,.14))}
   /* floor: horizon line + glossy surface fading away */
   .figcol .fig-sil.cut.big::before{inset:auto -30% 0 -30%;height:15%;border-radius:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);
-    background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--acc) 45%,transparent) 50%,transparent) top/100% 1px no-repeat,
-      radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),
+    background:radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),
       linear-gradient(180deg,rgba(255,255,255,.035),transparent 80%)}
   /* contact shadow + soft pool of light right under the shoes */
   .figcol .fig-sil.cut.big::after{left:26%;right:26%;bottom:11.4%;height:4.2%;border-radius:50%;
@@ -471,7 +470,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 [data-theme="light"] .fig-sil{background:radial-gradient(70% 60% at 50% 55%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 70%),linear-gradient(#F1EBE3,#E4DBD0)}
 [data-theme="light"] .fig-sil.big,[data-theme="light"] .figcol .fig-sil{background:radial-gradient(55% 45% at 50% 60%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 72%)}
 [data-theme="light"] .ph3 .pname,[data-theme="light"] .ph3 .pco,[data-theme="light"] .ph3 .ptag,[data-theme="light"] .ph3 .locline,[data-theme="light"] .pname,[data-theme="light"] .pco,[data-theme="light"] .ptag{text-shadow:0 1px 10px rgba(246,243,238,.9)}
-[data-theme="light"] .figcol .fig-sil.cut.big::before{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--acc) 55%,transparent) 50%,transparent) top/100% 1px no-repeat,radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 14%,transparent),transparent 70%),linear-gradient(180deg,rgba(0,0,0,.04),transparent 80%)}
+[data-theme="light"] .figcol .fig-sil.cut.big::before{background:radial-gradient(55% 120% at 50% 0%,color-mix(in srgb,var(--acc) 14%,transparent),transparent 70%),linear-gradient(180deg,rgba(0,0,0,.04),transparent 80%)}
 [data-theme="light"] .figcol .fig-sil.cut.big::after{background:radial-gradient(closest-side,rgba(40,25,10,.45),rgba(40,25,10,.18) 55%,transparent)}
 [data-theme="light"] .figmaker-stage{background:#EFE9E1}
 .themebtn{border:0;background:none;cursor:pointer}
@@ -1032,3 +1031,9 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .custom-svcs{display:flex;flex-direction:column;gap:10px}
 .trade-req{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .trade-req-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trade-req-row .inp{flex:1 1 220px}
+
+.ptips-ex{margin:10px 0 2px}.ptips-ex>small{font-size:12.5px;color:var(--mu)}
+.ptips-ex>div{display:flex;gap:10px;margin-top:6px}
+.ptips-ex a{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:6px 4px 4px;border:1px solid var(--line);border-radius:10px;background:radial-gradient(70% 60% at 50% 60%,color-mix(in srgb,var(--cu) 18%,transparent),transparent 75%),var(--card2,var(--card));color:var(--ink);text-decoration:none;font-size:11.5px;transition:border-color .15s ease,transform .15s ease}
+.ptips-ex a:hover{border-color:var(--cu-l,#C08A62);transform:translateY(-2px)}
+.ptips-ex img{height:92px;width:auto;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
