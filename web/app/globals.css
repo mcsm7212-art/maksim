@@ -1169,3 +1169,23 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 @media (prefers-reduced-motion:reduce){.desk-card:hover,.di-link:hover{transform:none}}
 .online-btn{border-color:rgba(63,178,127,.6);color:var(--ink)}
 .onl .dot{animation:dot-live 2.6s ease-in-out infinite}
+
+/* friends: the pro's own social corner */
+.fr{max-width:1080px;display:flex;flex-direction:column;gap:16px}
+.fr-me{display:flex;align-items:center;gap:18px;padding:18px 20px;flex-wrap:wrap;background:radial-gradient(60% 120% at 0% 0%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 70%),var(--card)}
+.fr-me-ava{position:relative;width:96px;height:96px;border-radius:50%;overflow:hidden;flex:none;border:2px solid color-mix(in srgb,var(--acc) 70%,transparent);box-shadow:0 0 22px color-mix(in srgb,var(--acc) 30%,transparent)}
+.fr-me-t{flex:1 1 240px;min-width:0}
+.fr-stats{display:flex;gap:18px;margin-top:8px;font-size:13.5px;color:var(--mu)}.fr-stats b{color:var(--ink);font-size:17px}
+.fr-me-btn{margin-left:auto}
+.fr-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.fr-grid{grid-template-columns:1fr}}
+.fr-side,.fr-main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.fr-box{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
+.fr-row{display:flex;align-items:center;gap:10px;min-width:0}
+.fr-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr-ava{position:relative;border-radius:50%;overflow:visible}.fr-ava>.fig-sil{border-radius:50%}
+.fr-on{position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:50%;background:#3FB27F;border:2px solid var(--card);animation:dot-live 2.6s ease-in-out infinite;z-index:2}
+.fr-me-ava .fr-on{right:8px;bottom:8px;width:14px;height:14px}
+.fr-lounge{text-decoration:none;color:var(--ink);transition:border-color .18s ease,transform .18s ease}.fr-lounge:hover{border-color:var(--cu-l,#C08A62);transform:scale(1.015)}
+.fr-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.fr-photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}

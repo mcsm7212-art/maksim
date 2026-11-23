@@ -711,4 +711,19 @@ do $$ begin update public.pros set ext_links = '{"yelp":"https://evil.example/bi
   exception when check_violation then null; end $$;
 update public.pros set ext_links = '{"yelp":"https://www.yelp.com/biz/max-plumbing-redwood-city","google":"https://maps.app.goo.gl/AbCd123"}', ext_checked_at = now() where id = auth.uid();
 select pg_temp.ok((select ext_checked_at is null and ext_links ? 'yelp' from public.pros where id = auth.uid()), 'review-site links are saved; only an admin can mark them checked');
+
+-- 0037 friends: a friends-only post is seen by mutual friends only
+select pg_temp.act(null); reset role;
+delete from public.pro_contacts where 'a1' is not null and (pro_id in ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a2') or colleague_id in ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a2'));
+update public.pros set colleague_chat = 'all' where id in ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a2');
+delete from public.posts where pro_id = '00000000-0000-0000-0000-0000000000a1';
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+insert into public.pro_contacts (pro_id, colleague_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000a2');
+insert into public.posts (id, pro_id, body, audience) values ('50000000-0000-0000-0000-0000000000f1', auth.uid(), 'Only for my friends', 'friends');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.ok((select count(*) from public.posts where id = '50000000-0000-0000-0000-0000000000f1') = 0 and (select kind from public.my_friends() where pro_id = '00000000-0000-0000-0000-0000000000a1') = 'incoming', 'not friends yet: the post is hidden, the request is incoming');
+insert into public.pro_contacts (pro_id, colleague_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000a1');
+select pg_temp.ok((select count(*) from public.posts where id = '50000000-0000-0000-0000-0000000000f1') = 1, 'mutual friends see the friends-only post');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.posts where id = '50000000-0000-0000-0000-0000000000f1') = 0, 'clients do not see friends-only posts');
 \echo ALL RULE TESTS PASSED

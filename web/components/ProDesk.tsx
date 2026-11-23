@@ -120,8 +120,8 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 5) pro friends */}
         <div className="card desk-card">
-          <Link className="card-link" href="/account/work#friends" aria-label={tr('My pro friends')} />
-          <div className="desk-h"><b><Di n="friends" />{tr('My pro friends')}{friendNews > 0 && <Link href="/messages" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
+          <Link className="card-link" href="/friends" aria-label={tr('My pro friends')} />
+          <div className="desk-h"><b><Di n="friends" />{tr('My pro friends')}{friendNews > 0 && <Link href="/friends" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
           <div className="desk-friends">
             {(friends ?? []).filter((f: any) => f.colleague).map((f: any) => { const c = f.colleague; const on = c.online_until && new Date(c.online_until) > new Date(); return (
               <Link key={c.id} href={`/${c.slug}`} className="desk-friend" title={c.display_name}>
@@ -130,7 +130,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
               </Link>); })}
             {!(friends ?? []).length && <span className="mu sm">{tr('No friends yet. Find a pro below and add them.')}</span>}
           </div>
-          <form className="chips" action="/account" method="get">
+          <form className="chips" action="/friends" method="get">
             <input className="inp" name="find" defaultValue={find ?? ''} placeholder={tr('Find a pro by name')} aria-label={tr('Find a pro by name')} style={{ flex: '1 1 160px' }} />
             <button className="btn ghost sm">{tr('Find')}</button>
           </form>

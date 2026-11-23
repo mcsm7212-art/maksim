@@ -47,9 +47,10 @@ export async function createPost(_p: SocialState, f: FormData): Promise<SocialSt
   if (!body && !photos.length) return { error: 'Add a photo or a few words about the job.' };
   const sb = await supabaseServer();
   const tag = ['work', 'tip', 'question', 'partner'].includes(String(f.get('tag'))) ? String(f.get('tag')) : 'work';
-  const { error } = await sb.from('posts').insert({ pro_id: me.id, body, photos, tag });
+  const audience = f.get('audience') === 'friends' ? 'friends' : 'public';
+  const { error } = await sb.from('posts').insert({ pro_id: me.id, body, photos, tag, audience });
   if (error) return { error: error.message.startsWith('post limit') ? 'You can post up to 3 times a day.' : error.message };
-  refresh('/feed', `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
+  refresh('/feed', '/friends', `/pro/${me.pro.slug}`, `/${me.pro.slug}`);
   return { ok: 'Posted.' };
 }
 

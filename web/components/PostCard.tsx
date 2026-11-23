@@ -19,16 +19,16 @@ export default async function PostCard({ p, tr, lang, mine, meId = null, path = 
       <header className="post-head">
         <Link href={`/${p.pro.slug}`} className="post-ava"><Figure name={p.pro.name} accent={p.pro.accent} photo={p.pro.photoUrl} /></Link>
         <span><Link href={`/${p.pro.slug}`}><b>{p.pro.name}</b></Link><br /><span className="mu xs">{tr(TRADES[p.pro.trade as Trade]?.name ?? '')} · {dateLabel(p.createdAt, lang)}</span></span>
-        <span className="chips" style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}>{p.pinned && <span className="badge cu">📌 {tr('Pinned')}</span>}<span className={`badge ${p.tag === 'partner' ? 'p' : 'n'}`}>{tr(POST_TAGS[p.tag])}</span></span>
+        <span className="chips" style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}>{p.audience === 'friends' && <span className="badge n" title={tr('Only your pro friends see this')}>🔒 {tr('Friends only')}</span>}{p.pinned && <span className="badge cu">📌 {tr('Pinned')}</span>}<span className={`badge ${p.tag === 'partner' ? 'p' : 'n'}`}>{tr(POST_TAGS[p.tag])}</span></span>
       </header>
       {p.body && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{p.body}</p>}
       {p.photos.length > 0 && <div className={`post-photos n${Math.min(p.photos.length, 4)}`}>{p.photos.slice(0, 4).map((u) => <a key={u} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" loading="lazy" /></a>)}</div>}
       <footer className="chips" style={{ alignItems: 'center' }}>
         <LikeButton postId={p.id} liked={p.liked} count={p.likes} />
         <Link className="btn ghost sm" href={`/feed/${p.id}`}>💬 {p.comments.length}</Link>
-        {!mine && <Link className="btn sm same" href={`/book?pro=${p.pro.slug}&estimate=1&ref=post:${p.id}`}>🙋 {tr('I have the same')}</Link>}
+        {!mine && p.audience !== 'friends' && path !== '/friends' && <Link className="btn sm same" href={`/book?pro=${p.pro.slug}&estimate=1&ref=post:${p.id}`}>🙋 {tr('I have the same')}</Link>}
         {mine && asked > 0 && <span className="badge cu">🙋 {tr('{n} requests from this work', { n: asked })}</span>}
-        {mine && <form action={togglePin}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="on" value={p.pinned ? '0' : '1'} /><button className="btn ghost sm">📌 {tr(p.pinned ? 'Unpin' : 'Pin to my page')}</button></form>}
+        {mine && p.audience !== 'friends' && <form action={togglePin}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="on" value={p.pinned ? '0' : '1'} /><button className="btn ghost sm">📌 {tr(p.pinned ? 'Unpin' : 'Pin to my page')}</button></form>}
         {mine && <form action={deletePost}><input type="hidden" name="id" value={p.id} /><button className="btn ghost sm">{tr('Delete')}</button></form>}
       </footer>
       <Comments postId={p.id} items={p.comments} meId={meId} isPostOwner={Boolean(mine)} tr={tr} lang={lang} path={path} limit={full ? undefined : 3} />
