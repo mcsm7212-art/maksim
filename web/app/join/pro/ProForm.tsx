@@ -10,6 +10,7 @@ import Icon from '@/components/Icon';
 import FormDraft, { ClearBtn } from '@/components/FormDraft';
 import CustomServices from '@/components/CustomServices';
 import TradeRequest from '@/components/TradeRequest';
+import WeekHours from '@/components/WeekHours';
 import GroupAll from '@/components/GroupAll';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
@@ -23,10 +24,9 @@ import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
   name: string; trade: Trade; customTrade?: string | null; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; licensed?: boolean; licensePending?: boolean; custom?: { name: string; price: number | null; category?: string | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  insured: boolean; licensed?: boolean; licensePending?: boolean; custom?: { name: string; price: number | null; category?: string | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string; hours?: Record<number, { start: string; end: string }>;
 }
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function ProForm({ invite, companyName, initial, prefill }: { invite?: string; companyName?: string; initial?: ProInitial; prefill?: { name?: string; trade?: string; area?: string; years?: number } }) {
   const edit = Boolean(initial); const tt = useT(); const lang = useLang();
@@ -201,11 +201,8 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
 
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Working hours")}</h3>
-        <div className="tbtn">{DAYS.map((d, i) => <label key={d}><input type="checkbox" name={`day_${i}`} defaultChecked={I ? I.days.includes(i) : i >= 1 && i <= 5} />{tt(d)}</label>)}</div>
-        <div className="row2">
-          <label className="f">{tt("From")}<input className="inp" type="time" name="start" defaultValue={I?.start ?? "08:00"} step={3600} /></label>
-          <label className="f">{tt("To")}<input className="inp" type="time" name="end" defaultValue={I?.end ?? "18:00"} step={3600} /></label>
-        </div>
+        <span className="mu xs">{tt('Turn days on or off and set the hours for each day. Clients book only inside these hours.')}</span>
+        <WeekHours initial={I?.hours ?? null} />
       </div>
 
       {!edit && <label className="agree"><input type="checkbox" name="agree" required />

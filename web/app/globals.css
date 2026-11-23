@@ -1081,3 +1081,14 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .wait-msg{display:block;color:#E0A030;font-size:12px;margin-top:2px}
 .lic-note.wait{border-left-color:#E0A030}
 .cslb-mark.name-bad{display:block;margin-top:6px}
+
+/* working hours: one row per day */
+.week-hours{display:flex;flex-direction:column;gap:8px}
+.wh-row{display:grid;grid-template-columns:84px minmax(0,140px) auto minmax(0,140px) 1fr;align-items:center;gap:8px}
+.wh-row.off{grid-template-columns:84px 1fr}
+.wh-row .inp{padding:8px 10px}
+.wh-row small.err{grid-column:1/-1}
+.wh-day{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:99px;cursor:pointer;font-size:13.5px;background:var(--card)}
+.wh-day input{accent-color:var(--cu);width:16px;height:16px}
+.wh-row:not(.off) .wh-day{border-color:var(--cu);background:color-mix(in srgb,var(--cu) 14%,var(--card))}
+@media (max-width:520px){.wh-row{grid-template-columns:76px 1fr auto 1fr}.wh-row>:nth-child(5){display:none}}

@@ -75,8 +75,6 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const invite = str(f, 'invite', 40);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
   // Only name, trade and the agreement are needed to sign up; the rest can be filled in later in the account.
-  const picked = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`)); const days = picked.length ? picked : [1, 2, 3, 4, 5];
-  let start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00'; if (end <= start) { start = '08:00'; end = '18:00'; }
   const services = [...f.keys()].filter((k) => k.startsWith('svc_')).map((k) => k.slice(4))
     .filter((id) => serviceById(id)?.trade === trade)
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
@@ -86,6 +84,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const ownTrade = trade === 'other' ? str(f, 'custom_trade', 40) : '';
   if (trade === 'other' && ownTrade.length < 2) return { error: 'Write the name of your trade.' };
   if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
+  if (hoursOf(f, null).some((h) => h.end_time <= h.start_time)) return { error: 'Set your working days and hours.' };
   const wp = wordsProblem(f); if (wp) return { error: wp };
   if (license && !/^\d{5,8}$/.test(license)) return { error: 'A CSLB license number has 5 to 8 digits.' };
   // The pro chose not to send the number for the check: it is not saved, the profile works as unlicensed.
@@ -124,10 +123,18 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (services.length) await sb.from('pro_services').insert(services.map((s) => { const wait = !invite && needsLicense(s); return { ...s, pro_id: me.id, active: !wait, needs_approval: wait }; }));
   await saveCustom(sb, me.id, custom);
   if (work.length) await sb.from('pro_photos').insert(work.map((url) => ({ pro_id: me.id, url })));
-  await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
+  await sb.from('availability_rules').insert(hoursOf(f, [1, 2, 3, 4, 5]).map((h) => ({ ...h, pro_id: me.id })));
   if (me.role === 'client') await sb.rpc('become', { new_role: 'pro' });
   if (invite) { const { error: e } = await sb.rpc('accept_invite', { invite_code: invite }); if (e) return { error: `Profile saved, but the invite failed: ${e.message}` }; }
   redirect('/account?joined=pro');
+}
+
+// Working hours from the form: each day may have its own hours (start_N / end_N), else the common start / end.
+function hoursOf(f: FormData, fallbackDays: number[] | null) {
+  const t = (k: string) => (/^\d{2}:\d{2}$/.test(String(f.get(k) ?? '')) ? String(f.get(k)) : '');
+  let rows = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`)).map((d) => ({ weekday: d, start_time: t(`start_${d}`) || t('start') || '08:00', end_time: t(`end_${d}`) || t('end') || '18:00' }));
+  if (!rows.length && fallbackDays) rows = fallbackDays.map((d) => ({ weekday: d, start_time: '08:00', end_time: '18:00' }));
+  return rows;
 }
 
 // Pro edits their own profile. Trade and license stay locked (changing them needs a new check).
@@ -141,13 +148,11 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   const trade = cur!.trade as Trade;
   const name = str(f, 'name', 60);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
-  const days = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`));
-  const start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00';
   const services = [...f.keys()].filter((k) => k.startsWith('svc_')).map((k) => k.slice(4))
     .filter((id) => serviceById(id)?.trade === trade)
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
-  if (end <= start) return { error: 'Set your working days and hours.' };
+  if (hoursOf(f, null).some((h) => h.end_time <= h.start_time)) return { error: 'Set your working days and hours.' };
   const wp2 = wordsProblem(f); if (wp2) return { error: wp2 };
   const custom = customOf(f);
   const licOk = cur!.license_status === 'verified' || Boolean(cur!.company_id);
@@ -175,7 +180,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   }
   await saveCustom(sb, me.id, custom);
   await sb.from('availability_rules').delete().eq('pro_id', me.id);
-  if (days.length) await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
+  const hrs = hoursOf(f, null); if (hrs.length) await sb.from('availability_rules').insert(hrs.map((h) => ({ ...h, pro_id: me.id })));
   return { saved: true };
 }
 

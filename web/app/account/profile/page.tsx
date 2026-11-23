@@ -25,7 +25,7 @@ export default async function EditProfile() {
     bio: p.bio ?? '', experience: p.experience ?? '', skills: (p.skills ?? []).join(', '), insured: p.insured, uniform: p.uniform_color,
     photo: p.photo_url, tiers: p.tiers, custom: (own ?? []).map((c) => ({ name: c.name, price: c.price != null ? Number(c.price) : null, category: c.category ?? null })),
     services: Object.fromEntries((svcs ?? []).filter((x) => x.active || x.needs_approval).map((x) => [x.service_id, x.price != null ? Number(x.price) : null])),
-    days: (hours ?? []).map((h) => h.weekday), start: hours?.[0]?.start_time?.slice(0, 5) ?? '08:00', end: hours?.[0]?.end_time?.slice(0, 5) ?? '18:00',
+    days: (hours ?? []).map((h) => h.weekday), hours: Object.fromEntries((hours ?? []).map((h) => [h.weekday, { start: h.start_time.slice(0, 5), end: h.end_time.slice(0, 5) }])), start: hours?.[0]?.start_time?.slice(0, 5) ?? '08:00', end: hours?.[0]?.end_time?.slice(0, 5) ?? '18:00',
   };
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>

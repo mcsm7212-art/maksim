@@ -1616,6 +1616,10 @@ export const ES: Record<string, string> = {
 "Write your trade and your own jobs in English (Latin letters).": "Escriba su oficio y sus trabajos en inglés (letras latinas).",
 "Write in English (Latin letters): clients in California read English. The site translates only its own menus, not your text.": "Escriba en inglés (letras latinas): los clientes en California leen inglés. El sitio traduce solo sus menús, no su texto.",
 "Write in English: clients in California read English, and the site translates only its own menus, not your text. Not in English yet:": "Escriba en inglés: los clientes en California leen inglés y el sitio traduce solo sus menús, no su texto. Aún no está en inglés:",
+"Turn days on or off and set the hours for each day. Clients book only inside these hours.": "Active o desactive días y ponga el horario de cada día. Los clientes reservan solo dentro de este horario.",
+"Day off": "Día libre",
+"The end must be after the start": "El final debe ser después del inicio",
+"Same hours for all working days": "Mismo horario para todos los días laborables",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3234,4 +3238,8 @@ export const RU: Record<string, string> = {
 "Write your trade and your own jobs in English (Latin letters).": "Пишите свою профессию и свои работы на английском (латинскими буквами).",
 "Write in English (Latin letters): clients in California read English. The site translates only its own menus, not your text.": "Пишите на английском (латинскими буквами): клиенты в Калифорнии читают по-английски. Сайт переводит только своё меню, а не ваш текст.",
 "Write in English: clients in California read English, and the site translates only its own menus, not your text. Not in English yet:": "Пишите на английском: клиенты в Калифорнии читают по-английски, а сайт переводит только своё меню, не ваш текст. Ещё не на английском:",
+"Turn days on or off and set the hours for each day. Clients book only inside these hours.": "Включайте и выключайте дни и задавайте часы для каждого дня. Клиенты записываются только в эти часы.",
+"Day off": "Выходной",
+"The end must be after the start": "Конец должен быть позже начала",
+"Same hours for all working days": "Одинаковые часы для всех рабочих дней",
 };
