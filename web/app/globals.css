@@ -1121,3 +1121,9 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .notes-box>summary{cursor:pointer;list-style:none}.notes-box>summary::-webkit-details-marker{display:none}
 .notes-box:not([open])>summary{margin:0}
 .todo-card{padding:14px 18px}
+
+/* reviews on other sites; unread chats */
+.ext-box{display:flex;flex-direction:column;gap:8px;padding:14px 18px;margin:14px 0;border-color:color-mix(in srgb,var(--acc,var(--cu)) 45%,var(--line))}
+.desk-card.has-new{border-color:var(--cu);box-shadow:0 0 0 1px color-mix(in srgb,var(--cu) 40%,transparent)}
+.desk-msg.new{border-color:var(--cu);background:color-mix(in srgb,var(--cu) 10%,transparent)}
+.dot-new{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--cu-l,#E0A878);margin-right:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--cu) 25%,transparent)}

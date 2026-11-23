@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import ActionForm from '@/components/ActionForm';
 import Figure from '@/components/Figure';
-import { saveContact, saveSchedule, setAccepting, setColleagueChat, toggleColleague } from './actions';
+import { saveContact, saveExtLinks, saveSchedule, setAccepting, setColleagueChat, toggleColleague } from './actions';
 import { getMe } from '@/lib/auth';
 import { TRADES, type Trade } from '@/lib/catalog';
+import { EXT_SITES } from '@/lib/ext-sites';
 import { getLang, getT } from '@/lib/i18n';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel } from '@/lib/time';
@@ -20,7 +21,7 @@ export default async function Work() {
   if (!me.pro) redirect('/join/pro');
   const tr = await getT(); const lang = await getLang(); const sb = await supabaseServer();
   const [{ data: pRow }, { data: rules }, { data: contacts }] = await Promise.all([
-    sb.from('pros').select('accepting, paused_until, colleague_chat, slug, public_phone, call_hours').eq('id', me.id).single(),
+    sb.from('pros').select('accepting, paused_until, colleague_chat, slug, public_phone, call_hours, ext_links, ext_checked_at').eq('id', me.id).single(),
     sb.from('availability_rules').select('weekday, start_time, end_time').eq('pro_id', me.id),
     sb.from('pro_contacts').select('colleague:pros!pro_contacts_colleague_id_fkey(id, slug, display_name, trade, photo_url, accent)').eq('pro_id', me.id).order('created_at'),
   ]);
@@ -43,6 +44,14 @@ export default async function Work() {
         </div>
         <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>
       </form>
+
+      <h3 id="reviews-elsewhere">{tr('Reviews on other sites')}</h3>
+      <ActionForm action={saveExtLinks} className="card formcard" style={{ marginBottom: 18 }} okText>
+        <p className="mu sm" style={{ margin: 0 }}>{tr('Already have reviews on Yelp, Google or Thumbtack? Add the links: clients see buttons to your profiles there and can read your history. We show only links, never copy ratings.')}</p>
+        {EXT_SITES.map((x) => <label key={x.key} className="f">{x.name}<input className="inp" name={x.key} type="url" defaultValue={p.ext_links?.[x.key] ?? ''} placeholder={x.hint} /></label>)}
+        <span className="mu xs">{p.ext_checked_at ? `✓ ${tr('NovaFides checked that these profiles belong to this pro.')}` : tr('After you save, a NovaFides admin checks that the profiles are yours.')}</span>
+        <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>
+      </ActionForm>
 
       <h3>{tr('New jobs')}</h3>
       <div className="card bk" style={{ marginBottom: 18 }}>

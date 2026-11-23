@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
+import { EXT_SITES } from '@/lib/ext-sites';
 
 type S = { error?: string; ok?: string } | undefined;
 const DEMO = 'Demo mode: nothing was saved. Connect the database to accept real sign-ups.';
@@ -69,4 +70,21 @@ export async function saveContact(f: FormData) {
   const ok = phone.replace(/\D/g, '').length >= 10;
   await (await supabaseServer()).from('pros').update({ public_phone: ok ? phone : null, call_hours: ok && hours ? hours : null }).eq('id', me.id);
   revalidatePath('/account/work'); revalidatePath(`/${me.pro.slug}`);
+}
+
+/** Links to the pro's profiles on other review sites (checked by an admin before they get the "checked" mark). */
+export async function saveExtLinks(_p: S, f: FormData): Promise<S> {
+  if (!isLive()) return { error: DEMO };
+  const { me, sb } = await pro();
+  const links: Record<string, string> = {};
+  for (const site of EXT_SITES) {
+    const v = String(f.get(site.key) ?? '').trim().split('?')[0].slice(0, 400);
+    if (!v) continue;
+    if (!site.re.test(v)) return { error: `This does not look like a ${site.name} profile link. Open your profile on ${site.name} and copy the address from the browser.` };
+    links[site.key] = v;
+  }
+  const { error } = await sb.from('pros').update({ ext_links: links }).eq('id', me.id);
+  if (error) return { error: 'Could not save. Check the links.' };
+  refreshPro(me.pro!.slug);
+  return { ok: 'Saved. NovaFides will check that these profiles are yours.' };
 }

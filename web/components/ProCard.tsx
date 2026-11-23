@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { extList } from '@/lib/ext-sites';
 import { marketMid, roundPrice, serviceById, TRADES, usd, tradeLabel } from '@/lib/catalog';
 import { svcName } from '@/lib/i18n-core';
 import type { Pro } from '@/lib/types';
@@ -30,6 +31,7 @@ export default async function ProCard({ pro, serviceId, saved, reasons }: { pro:
         <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
           {pro.reviewCount > 0 && pro.rating != null ? <span className="badge cu">★ {pro.rating.toFixed(1)} · {pro.reviewCount}</span> : <span className="badge n">{tr('New')}</span>}
           {pro.verified.license && pro.license && <span className="badge ok">{tr('License')} ✓</span>}
+          {pro.reviewCount === 0 && extList(pro.extLinks).length > 0 && <span className="badge n" title={tr('Reviews on other sites')}>{tr('Reviews on')} {extList(pro.extLinks).map((x) => x.name).join(', ')}</span>}
           {!pro.license && <span className="badge n" title={tr('Without a CSLB license: jobs under $1,000 with materials, no permit')}>{tr('Jobs under $1,000')}</span>}
           {saved && <span className="badge cu">♥ {tr('My pro')}</span>}
           {pro.photos.length > 0 && <span className="badge n">{tr('{n} work photos', { n: pro.photos.length })}</span>}

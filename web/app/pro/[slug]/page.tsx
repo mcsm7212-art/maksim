@@ -18,6 +18,7 @@ import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
 import ConfirmButton from '@/components/ConfirmButton';
+import { extList } from '@/lib/ext-sites';
 import HelpfulButton from '@/components/HelpfulButton';
 import PeerPicks from '@/components/PeerPicks';
 import ServiceAreaMap from '@/components/ServiceAreaMap';
@@ -162,6 +163,12 @@ export default async function ProPage({ params, searchParams }: Props) {
           <div><span className="num">{pro.responseMin ?? '—'}{pro.responseMin != null && <span style={{ fontSize: '.45em' }}> {tr('min')}</span>}</span><small>{tr('typical response')}</small></div>
         </div>
 
+        {extList(pro.extLinks).length > 0 && <div className="card ext-box">
+          <b>{tr('Reviews on other sites')}</b>
+          <span className="mu xs">{pro.reviewCount > 0 ? tr('See what clients say about {name} elsewhere too.', { name: first }) : tr('{name} is new on NovaFides. Open their profiles on other sites to read their history there.', { name: first })}</span>
+          <div className="chips">{extList(pro.extLinks).map((x) => <a key={x.key} className="btn ghost sm" href={x.url} target="_blank" rel="noopener noreferrer nofollow">{x.name} ↗</a>)}</div>
+          <span className="mu2 xs">{pro.extCheckedAt ? `✓ ${tr('NovaFides checked that these profiles belong to this pro.')}` : tr('Links added by the pro; NovaFides has not checked them yet.')} {tr('Ratings there are not ours: open the site to see them.')}</span>
+        </div>}
         <div className="tchips">
           {pro.verified.license && pro.license && <span className="tchip"><Icon name="shield" size={16} /> CSLB #{pro.license}</span>}
           {pro.verified.id && <span className="tchip">{tr('ID checked')}</span>}

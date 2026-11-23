@@ -704,4 +704,11 @@ insert into public.messages (conversation_id, sender_id, body) values ('40000000
 select pg_temp.act(null); reset role;
 select pg_temp.ok(not (select quiet from public.conversations where id = '40000000-0000-0000-0000-0000000000b2'), 'the pro answered: the chat is normal again');
 update public.pros set accepting = true where id = '00000000-0000-0000-0000-0000000000b2';
+
+-- 0036 profiles on other review sites: only real links to known sites; a pro cannot mark them checked
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ begin update public.pros set ext_links = '{"yelp":"https://evil.example/biz/x"}' where id = auth.uid(); raise exception 'FAIL: foreign link saved';
+  exception when check_violation then null; end $$;
+update public.pros set ext_links = '{"yelp":"https://www.yelp.com/biz/max-plumbing-redwood-city","google":"https://maps.app.goo.gl/AbCd123"}', ext_checked_at = now() where id = auth.uid();
+select pg_temp.ok((select ext_checked_at is null and ext_links ? 'yelp' from public.pros where id = auth.uid()), 'review-site links are saved; only an admin can mark them checked');
 \echo ALL RULE TESTS PASSED

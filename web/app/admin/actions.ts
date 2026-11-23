@@ -44,6 +44,19 @@ export async function licenseNotFound(f: FormData) {
   revalidatePath('/admin');
 }
 
+// "Profiles on other sites": the admin opened the links and decides.
+export async function extOk(f: FormData) {
+  const sb = await admin(); const id = s(f, 'id');
+  await sb.from('pros').update({ ext_checked_at: new Date().toISOString() }).eq('id', id);
+  revalidatePath('/admin');
+}
+export async function extRemove(f: FormData) {
+  const sb = await admin(); const id = s(f, 'id');
+  await sb.from('pros').update({ ext_links: {}, ext_checked_at: null }).eq('id', id);
+  await sb.rpc('admin_notify', { uid: id, msg: 'We could not confirm that the review-site links are your profiles, so they were removed. Add the right links in Settings.' });
+  revalidatePath('/admin');
+}
+
 async function reviewPro(f: FormData, ok: boolean) {
   const sb = await admin(); const id = s(f, 'id');
   const licOk = Boolean(f.get('license_ok'));

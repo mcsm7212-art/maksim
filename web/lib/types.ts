@@ -99,6 +99,9 @@ export interface Pro {
   tripFee: number;
   /** Phone and call hours the pro chose to show (null = not shown) */
   publicPhone?: string | null;
+  /** Links to the pro's profiles on other review sites, and when an admin checked them. */
+  extLinks?: Record<string, string>;
+  extCheckedAt?: string | null;
   /** Service area: center and radius in miles, if the pro set it on the map */
   serviceArea?: { lat: number; lng: number; radius: number; polygon?: [number, number][] | null } | null;
   callHours?: string | null;

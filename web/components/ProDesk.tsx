@@ -34,6 +34,11 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
       : Promise.resolve({ data: null as any[] | null }),
   ]);
   const ids = (convs ?? []).map((c: any) => c.id);
+  // Unread chats: notifications about a chat that were not opened yet.
+  const { data: un } = await sb.from('notifications').select('link').eq('user_id', me.id).is('read_at', null).like('link', '/messages/%').limit(200);
+  const unread = new Map<string, number>(); (un ?? []).forEach((n: any) => { const k = String(n.link).slice(10); unread.set(k, (unread.get(k) ?? 0) + 1); });
+  const sorted = [...(convs ?? [])].sort((a: any, b: any) => Number(unread.has(b.id)) - Number(unread.has(a.id)));
+  const newChats = sorted.filter((c: any) => unread.has(c.id)).length;
   const { data: msgs } = ids.length ? await sb.from('messages').select('conversation_id, body, sender_id, created_at').in('conversation_id', ids).order('created_at', { ascending: false }).limit(200) : { data: [] as any[] };
   const lastOf = (id: string) => (msgs ?? []).find((m: any) => m.conversation_id === id);
   const calls = (msgs ?? []).filter((m: any) => m.sender_id !== me.id && String(m.body).startsWith(CALLBACK)).slice(0, 4);
@@ -69,11 +74,11 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
       <div className="desk-grid">
         {/* 2) messages from clients */}
-        <div className="card desk-card">
-          <div className="desk-h"><b>💬 {tr('Messages from clients')}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
-          {(convs ?? []).slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
-            <Link key={c.id} className="desk-msg" href={`/messages/${c.id}`}>
-              <span><b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
+        <div className={`card desk-card${newChats > 0 ? ' has-new' : ''}`}>
+          <div className="desk-h"><b>💬 {tr('Messages from clients')}{newChats > 0 && <span className="badge cu" style={{ marginLeft: 8 }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
+          {sorted.slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
+            <Link key={c.id} className={`desk-msg${unread.has(c.id) ? ' new' : ''}`} href={`/messages/${c.id}`}>
+              <span>{unread.has(c.id) && <i className="dot-new" aria-label={tr('New')} />}<b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
                 <br /><span className="mu xs">{m ? (String(m.body).startsWith(CALLBACK) ? `📞 ${tr('Call-back request')}` : `${m.sender_id === me.id ? tr('You') + ': ' : ''}${String(m.body).slice(0, 70)}`) : tr('No messages yet')}</span></span>
               {m && <small className="mu">{ago(m.created_at, tr)}</small>}
             </Link>); })}

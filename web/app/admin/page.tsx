@@ -1,5 +1,6 @@
 import { resolveProblem } from '@/app/orders/actions';
 import CslbMark from '@/components/CslbMark';
+import { extList } from '@/lib/ext-sites';
 import CslbUpload from '@/components/CslbUpload';
 import { PROBLEM_KINDS } from '@/lib/orders';
 import { getLang, getT } from '@/lib/i18n';
@@ -11,7 +12,7 @@ import { TRADES, type Trade } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel } from '@/lib/time';
-import { approveCompany, approvePro, countFlagged, hideFlagged, hideReview, keepFlagged, keepReview, rejectCompany, rejectPro, licenseFound, licenseNotFound } from './actions';
+import { approveCompany, approvePro, countFlagged, hideFlagged, hideReview, keepFlagged, keepReview, rejectCompany, rejectPro, licenseFound, licenseNotFound, extOk, extRemove } from './actions';
 
 export const metadata = { title: 'Admin' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -36,6 +37,7 @@ export default async function Admin() {
   // licenses added or corrected by pros whose profile is already public
   const { data: licQueue } = await sb.from('pros').select('id, slug, display_name, trade, license_no, license_auto, created_at').eq('status', 'verified').eq('license_status', 'pending').not('license_no', 'is', null).order('created_at');
   const { data: lastImport } = await sb.from('cslb_imports').select('rows, data_date, created_at').order('id', { ascending: false }).limit(1).maybeSingle();
+  const { data: extQueue } = await sb.from('pros').select('id, slug, display_name, ext_links').is('ext_checked_at', null).neq('ext_links', '{}').eq('is_demo', false).order('created_at').limit(50);
   const { data: tradeReqs } = await sb.from('trade_requests').select('name, created_at').order('created_at', { ascending: false }).limit(500);
   const tradeCounts = [...(tradeReqs ?? []).reduce((m: Map<string, number>, r: any) => { const k = String(r.name).trim().toLowerCase(); m.set(k, (m.get(k) ?? 0) + 1); return m; }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
   const authors = [...new Set((flagged ?? []).map((r: any) => r.client_id as string))];
@@ -62,6 +64,18 @@ export default async function Admin() {
             <form action={licenseNotFound}><input type="hidden" name="id" value={p.id} /><button className="btn ghost sm">✕ {tr('Not found')}</button></form>
           </span>
         </div>))}</div> : <p className="mu sm" style={{ marginBottom: 24 }}>{tr('No licenses waiting.')}</p>}
+
+      <h3>{tr('Profiles on other sites to check')} ({(extQueue ?? []).length})</h3>
+      {(extQueue ?? []).length ? <div className="list" style={{ marginBottom: 24 }}>{(extQueue ?? []).map((p: any) => (
+        <div key={p.id} className="card bk lic-q">
+          <span><Link href={`/pro/${p.slug}`}><b>{p.display_name}</b></Link><br />
+            <span className="chips">{extList(p.ext_links).map((x) => <a key={x.key} href={x.url} target="_blank" rel="noreferrer">{x.name} ↗</a>)}</span>
+            <span className="mu xs"> · {tr('Check: the same name, trade and city as the pro.')}</span></span>
+          <span className="chips">
+            <form action={extOk}><input type="hidden" name="id" value={p.id} /><button className="btn sm">✓ {tr('These are theirs')}</button></form>
+            <form action={extRemove}><input type="hidden" name="id" value={p.id} /><button className="btn ghost sm">✕ {tr('Remove links')}</button></form>
+          </span>
+        </div>))}</div> : <p className="mu sm" style={{ marginBottom: 24 }}>{tr('Nothing to check.')}</p>}
 
       <h3>{tr('Pros waiting')} ({(pros ?? []).length})</h3>
       <div className="list">

@@ -162,6 +162,11 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(sql("select count(*) from notifications n join pros p on p.id=n.user_id where p.slug='max'")!==n0)throw new Error('the pro was notified while paused');
   await s.goto(B+'/account');await s.waitForSelector('.desk-top.off');await s.waitForSelector('.desk-msg:has-text("while paused")');}
  await s.click('.desk-top button:has-text("Take jobs")');await s.waitForSelector('.desk-top.on');
+ await s.goto(B+'/account/work');await s.fill('input[name=yelp]','https://evil.example/biz/max');await s.click('form:has(input[name=yelp]) button');await s.waitForSelector('form:has(input[name=yelp]) .err');
+ await s.fill('input[name=yelp]','https://www.yelp.com/biz/max-solo-plumbing-redwood-city');await s.click('form:has(input[name=yelp]) button');await s.waitForSelector('form:has(input[name=yelp]) .okmsg');
+ await c.goto(B+'/max');await c.waitForSelector('.ext-box a:has-text("Yelp")');if(!/has not checked/.test(await c.textContent('.ext-box')))throw new Error('unchecked links shown as checked');
+ await a.goto(B+'/admin');await a.click('.lic-q:has-text("Max Solo") button:has-text("These are theirs")');for(let i=0;i<20&&sql("select (ext_checked_at is not null)::text from pros where slug='max'")!=='true';i++)await a.waitForTimeout(300);
+ await c.goto(B+'/max');if(!/NovaFides checked that these profiles/.test(await c.textContent('.ext-box')))throw new Error('links not marked checked after the admin');
  await s.goto(B+'/account/work');await s.check('input[name=on_6]');await s.selectOption('select[name=start_6]','09:00');await s.selectOption('select[name=end_6]','13:00');await s.click('button:has-text("Save schedule")');await s.waitForSelector('text=Schedule saved.');
  if(sql("select start_time||'-'||end_time from availability_rules a join pros p on p.id=a.pro_id where p.display_name='Max Solo' and weekday=6")!=='09:00:00-13:00:00')throw new Error('schedule not saved');
  step('Max paused new jobs (no Book button for clients), resumed, set Saturday 9-13');

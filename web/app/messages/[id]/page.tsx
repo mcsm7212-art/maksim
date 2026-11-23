@@ -22,6 +22,8 @@ export default async function Chat({ params, searchParams }: { params: Promise<{
     .select('id, client_id, pro_id, company_id, peer_id, pro:pros(display_name, slug), company:companies(name, slug), client:profiles!conversations_client_id_fkey(full_name)')
     .eq('id', id).maybeSingle();
   if (!c) notFound();
+  // Opening the chat marks its notifications as read (the account page shows unread chats first).
+  await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('user_id', me.id).eq('link', `/messages/${id}`).is('read_at', null);
   const cc = c as any;
   const [{ data: msgs }, { data: bk }, { data: qs }] = await Promise.all([
     sb.from('messages').select('id, body, photo_url, sender_id, created_at, flagged').eq('conversation_id', id).order('created_at').limit(300),
