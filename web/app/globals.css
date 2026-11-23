@@ -979,3 +979,9 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 [data-theme="light"] .tbtn label:has(input:checked){background:color-mix(in srgb,var(--cu) 18%,#fff);color:#2A1A0E;border-color:var(--cu)}
 .todo-card{border-color:color-mix(in srgb,var(--cu) 55%,var(--line))}
 .todo-card ul{margin:8px 0 12px;padding-left:20px}.todo-card li{margin:3px 0}
+
+/* A closed group hides a ticked job that needs a license: the group slowly glows red and fades, as a quiet hint to open it. */
+@keyframes lic-breathe{0%,100%{border-color:var(--line);box-shadow:0 0 0 0 rgba(214,69,65,0);background-color:var(--card)}
+  50%{border-color:rgba(214,69,65,.85);box-shadow:0 0 0 1px rgba(214,69,65,.35),0 0 22px rgba(214,69,65,.22);background-color:color-mix(in srgb,#D64541 10%,var(--card))}}
+details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:lic-breathe 6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:none;border-color:rgba(214,69,65,.7)}}
