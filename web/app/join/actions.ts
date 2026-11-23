@@ -61,7 +61,7 @@ async function saveCustom(sb: Awaited<ReturnType<typeof supabaseServer>>, uid: s
 }
 
 export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState> {
-  const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
+  const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade; let license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
   // Only name, trade and the agreement are needed to sign up; the rest can be filled in later in the account.
@@ -77,6 +77,8 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (trade === 'other' && ownTrade.length < 2) return { error: 'Write the name of your trade.' };
   if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
   if (license && !/^\d{5,8}$/.test(license)) return { error: 'A CSLB license number has 5 to 8 digits.' };
+  // The pro chose not to send the number for the check: it is not saved, the profile works as unlicensed.
+  if (license && !f.get('license_review')) license = '';
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };
@@ -100,7 +102,8 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
     photo_url: photo || null, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
   });
   if (error) return { error: error.message };
-  if (services.length) await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
+  // Until the license is confirmed, jobs that need it wait for approval (hidden from clients). Company technicians work under the company's license.
+  if (services.length) await sb.from('pro_services').insert(services.map((s) => { const wait = !invite && needsLicense(s); return { ...s, pro_id: me.id, active: !wait, needs_approval: wait }; }));
   await saveCustom(sb, me.id, custom);
   if (work.length) await sb.from('pro_photos').insert(work.map((url) => ({ pro_id: me.id, url })));
   await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
@@ -116,7 +119,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (!me) redirect('/login?next=/account/profile');
   if (!me.pro) redirect('/join/pro');
   const sb = await supabaseServer();
-  const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent, license_no, company_id').eq('id', me.id).single();
+  const { data: cur } = await sb.from('pros').select('trade, photo_url, figure_url, accent, license_no, license_status, company_id').eq('id', me.id).single();
   const trade = cur!.trade as Trade;
   const name = str(f, 'name', 60);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
@@ -128,7 +131,8 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (end <= start) return { error: 'Set your working days and hours.' };
   const custom = customOf(f);
-  const lp = licenseProblem(services, custom, Boolean(cur!.license_no) || Boolean(cur!.company_id)); if (lp) return { error: lp };
+  const licOk = cur!.license_status === 'verified' || Boolean(cur!.company_id);
+  const lp = licenseProblem(services, custom, licOk || Boolean(cur!.license_no)); if (lp) return { error: lp };
   const newPhoto = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
   const fg = figureOf(f, me.id, cur!.figure_url);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
@@ -144,10 +148,10 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   }).eq('id', me.id);
   if (error) return { error: error.message };
   // Keep job counters: services that are no longer offered are switched off, not deleted.
-  const off = sb.from('pro_services').update({ active: false }).eq('pro_id', me.id);
+  const off = sb.from('pro_services').update({ active: false, needs_approval: false }).eq('pro_id', me.id);
   await (services.length ? off.not('service_id', 'in', `(${services.map((x) => x.service_id).join(',')})`) : off);
   if (services.length) {
-    const { error: e2 } = await sb.from('pro_services').upsert(services.map((x) => ({ ...x, pro_id: me.id, active: true })), { onConflict: 'pro_id,service_id' });
+    const { error: e2 } = await sb.from('pro_services').upsert(services.map((x) => { const wait = !licOk && needsLicense(x); return { ...x, pro_id: me.id, active: !wait, needs_approval: wait }; }), { onConflict: 'pro_id,service_id' });
     if (e2) return { error: e2.message };
   }
   await saveCustom(sb, me.id, custom);

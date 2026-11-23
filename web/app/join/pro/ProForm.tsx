@@ -21,7 +21,7 @@ import { groupName, svcName } from '@/lib/i18n-core';
 
 export interface ProInitial {
   name: string; trade: Trade; customTrade?: string | null; years: number; area: string; languages: string; bio: string; experience: string; skills: string;
-  insured: boolean; licensed?: boolean; custom?: { name: string; price: number | null; category?: string | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
+  insured: boolean; licensed?: boolean; licensePending?: boolean; custom?: { name: string; price: number | null; category?: string | null }[]; figure?: string | null; figureAccent?: string | null; baseLat?: number | null; baseLng?: number | null; radius?: number | null; polygon?: [number, number][] | null; uniform: string | null; photo: string | null; tiers: string[]; services: Record<string, number | null>; days: number[]; start: string; end: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -57,13 +57,22 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
   // California: a CSLB license is needed for jobs over $1,000 (labor + materials) or that need a permit.
   const [licText, setLicText] = useState('');
   // Compare the typed number with the CSLB list while the pro types (a hint; the admin still checks).
-  const [licAuto, setLicAuto] = useState<CslbAuto>(null);
+  const [licAuto, setLicAuto] = useState<CslbAuto>(null); const [checkedFor, setCheckedFor] = useState('');
+  const [review, setReview] = useState(true); // send the number to the admin when the automatic check did not confirm it
+  const licDigits = licText.replace(/\D/g, ''); const licValid = /^\d{5,8}$/.test(licDigits);
+  // "checking" until the answer for exactly this number (and trade) has come back: no flash of a result in between
+  const checking = licValid && !edit && !invite && checkedFor !== `${licDigits}/${trade}`;
   useEffect(() => {
-    const n = licText.replace(/\D/g, ''); if (n.length < 5 || edit || invite) { setLicAuto(null); return; }
-    const id = setTimeout(async () => { setLicAuto((await checkLicense(n, trade).catch(() => null)) as CslbAuto); }, 500);
-    return () => clearTimeout(id);
-  }, [licText, trade, edit, invite]);
-  const licensed = Boolean(invite) || (edit ? Boolean(I?.licensed) : licText.replace(/\D/g, '').length >= 6);
+    if (!licValid || edit || invite) { setLicAuto(null); return; }
+    let live = true;
+    const id = setTimeout(async () => { const r = (await checkLicense(licDigits, trade).catch(() => null)) as CslbAuto; if (live) { setLicAuto(r); setCheckedFor(`${licDigits}/${trade}`); } }, 500);
+    return () => { live = false; clearTimeout(id); };
+  }, [licDigits, licValid, trade, edit, invite]);
+  const autoOk = licAuto?.result === 'ok';
+  // licensed: confirmed (company technician, or a checked license when editing). pending: a number waits for the admin;
+  // then license jobs may be chosen, but they stay hidden from clients until the admin approves the license.
+  const licensed = Boolean(invite) || (edit && Boolean(I?.licensed));
+  const licWait = !licensed && (edit ? Boolean(I?.licensePending) : licValid && !checking && (autoOk || review));
   const [prices, setPrices] = useState<Record<string, string>>({});
   const needsLic = (s: (typeof SERVICES)[number]) => licenseNeeded(s, Number(prices[s.id] ?? I?.services[s.id] ?? 0));
   const [figure, setFigure] = useState<string | null>(I?.figure ?? null);
@@ -116,7 +125,16 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
             {!edit && <TradeRequest onAdd={addOwnTrade} current={ownTrade} />}
           </div>
           {!invite && !edit && <label className="f">CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
-            {licAuto && <CslbMark a={licAuto} />}<span className="mu xs">{tt(licensed ? 'We check this number with CSLB before your profile goes public: the name on the license must match your ID. A wrong number is removed, and then you take only jobs under $1,000.' : 'No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
+            {checking && <span className="cslb-mark grey"><i className="spin" aria-hidden /> {tt('Checking the number in the CSLB list…')}</span>}
+            {!checking && licValid && licAuto && licAuto.result !== 'no_list' && <CslbMark a={licAuto} />}
+            {!checking && licValid && autoOk && <><input type="hidden" name="license_review" value="1" /><span className="xs">{tt('The admin will only compare the name on the license with your ID.')}</span></>}
+            {!checking && licValid && !autoOk && <span className="lic-review">
+              <b className="sm">{tt('We could not confirm this number automatically.')}</b>
+              <label className="chk"><input type="checkbox" name="license_review" value="1" checked={review} onChange={(e) => setReview(e.target.checked)} /> {tt('Send it to the NovaFides admin for a manual check')}</label>
+              <span className="xs mu">{tt(review ? 'Until the admin approves it, jobs under $1,000 work right away; bigger jobs and jobs with a permit can be added now and are shown to clients after the approval.' : 'The number will not be saved: you take only jobs under $1,000 without a permit.')}</span>
+            </span>}
+            {licText && !licValid && <span className="err xs">{tt('A CSLB license number has 5 to 8 digits.')}</span>}
+            <span className="mu xs">{tt(licValid && (autoOk || review) ? 'We check this number with CSLB before your profile goes public: the name on the license must match your ID. A wrong number is removed, and then you take only jobs under $1,000.' : 'No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
           <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
           <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
         </div>
@@ -154,21 +172,23 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Services and your prices")}</h3>
         {trade !== 'other' && <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>}
-        {!licensed && <div className="note xs lic-note">🔒 {tt('Jobs marked red need a CSLB license: your price is $1,000 or more (with materials), or the job needs a permit. Add your license number above, lower the price, or choose only the other jobs.')}</div>}
+        {licWait && <div className="note xs lic-note wait">⏳ {tt('Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.')}</div>}
+        {!licensed && !licWait && <div className="note xs lic-note">🔒 {tt('Jobs marked red need a CSLB license: your price is $1,000 or more (with materials), or the job needs a permit. Add your license number above, lower the price, or choose only the other jobs.')}</div>}
         {groups.map(([g, list]) => (
           <details key={g} className="grp" open={I ? list.some((x) => x.id in I.services) : g === groups[0][0]}>
             <summary>{groupName(list[0], lang)} <span className="mu xs">({list.length})</span><GroupAll /></summary>
             {list.map((s) => (
-              <div key={s.id} className={`sv-row${!licensed && needsLic(s) ? ' lic' : ''}`}>
+              <div key={s.id} className={`sv-row${!licensed && needsLic(s) ? (licWait ? ' wait' : ' lic') : ''}`}>
                 <input type="checkbox" name={`svc_${s.id}`} defaultChecked={Boolean(I && s.id in I.services)} aria-label={svcName(s, lang)} style={{ accentColor: 'var(--cu)', width: 18, height: 18 }} />
                 <span>{svcName(s, lang)}<br /><small>{tt('Avg')} {usd(marketMid(s))} · {tt('recommended')} {usd(roundPrice(marketMid(s) * 0.95))}{s.permit ? ` · ${tt('permit')}` : ''}</small>
-                  {!licensed && needsLic(s) && <small className="lic-msg">🔒 {tt(s.permit ? 'Needs a CSLB license: this job needs a permit' : 'Needs a CSLB license: your price is $1,000 or more')}</small>}</span>
+                  {!licensed && licWait && needsLic(s) && <small className="wait-msg">⏳ {tt('Waiting for the admin to approve your license')}</small>}
+                  {!licensed && !licWait && needsLic(s) && <small className="lic-msg">🔒 {tt(s.permit ? 'Needs a CSLB license: this job needs a permit' : 'Needs a CSLB license: your price is $1,000 or more')}</small>}</span>
                 <input className="inp" type="number" name={`price_${s.id}`} min={1} defaultValue={I?.services[s.id] ?? undefined} placeholder={String(Math.round(marketMid(s)))} onInput={(e) => { const v = e.currentTarget.value; setPrices((c) => ({ ...c, [s.id]: v })); }} aria-label={`${svcName(s, lang)} ${tt('price')}`} />
               </div>
             ))}
           </details>
         ))}
-        <CustomServices key={trade === 'other' ? 'own' : 'std'} grouped={trade === 'other'} initial={I?.custom ?? []} licensed={licensed} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
+        <CustomServices key={trade === 'other' ? 'own' : 'std'} grouped={trade === 'other'} initial={I?.custom ?? []} licensed={licensed || licWait} waiting={licWait} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
       </div>
 
       <div className="card formcard">
@@ -181,7 +201,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       </div>
 
       {!edit && <label className="agree"><input type="checkbox" name="agree" required />
-        <span>{licensed ? tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the') : tt('I confirm I take only jobs under $1,000 (with materials) that need no permit until I add a CSLB license, I hold any insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
+        <span>{licensed || licWait ? tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the') : tt('I confirm I take only jobs under $1,000 (with materials) that need no permit until I add a CSLB license, I hold any insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
       <FormDraft form={formRef} id={edit ? 'pro-edit' : 'pro-new'} done={Boolean(state?.saved)} again={state?.error ? state : undefined} />
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
@@ -198,7 +218,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         if (mirrorFig.current) await mirrorFig.current();
         setFlipBusy(false); setTimeout(openPreview, 50);
       }} />}
-      <span className="mu xs">{tt(edit ? 'To change your trade or license number, contact NovaFides support: they need a new check.' : licensed ? 'We check your license with CSLB and your ID before your profile goes public. One person, one profile.' : 'We check your ID before your profile goes public. One person, one profile.')}</span>
+      <span className="mu xs">{tt(edit ? 'To change your trade or license number, contact NovaFides support: they need a new check.' : licensed || licWait ? 'We check your license with CSLB and your ID before your profile goes public. One person, one profile.' : 'We check your ID before your profile goes public. One person, one profile.')}</span>
     </form>
   );
 }

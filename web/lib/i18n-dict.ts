@@ -1600,6 +1600,14 @@ export const ES: Record<string, string> = {
 "Upload the CSLB list (CSV)": "Cargar la lista CSLB (CSV)",
 "About 45 MB, takes a few minutes": "Unos 45 MB, tarda unos minutos",
 "Open the CSLB Data Portal": "Abrir el portal de datos de CSLB",
+"Checking the number in the CSLB list…": "Verificando el número en la lista CSLB…",
+"The admin will only compare the name on the license with your ID.": "El administrador solo comparará el nombre de la licencia con su identificación.",
+"We could not confirm this number automatically.": "No pudimos confirmar este número automáticamente.",
+"Send it to the NovaFides admin for a manual check": "Enviarlo al administrador de NovaFides para una verificación manual",
+"Until the admin approves it, jobs under $1,000 work right away; bigger jobs and jobs with a permit can be added now and are shown to clients after the approval.": "Hasta que el administrador lo apruebe, los trabajos de menos de $1,000 funcionan de inmediato; los trabajos más grandes y con permiso se pueden agregar ahora y se muestran a los clientes después de la aprobación.",
+"The number will not be saved: you take only jobs under $1,000 without a permit.": "El número no se guardará: solo acepta trabajos de menos de $1,000 sin permiso.",
+"Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.": "Su licencia se está verificando. Los trabajos marcados como “en espera” se guardan ahora y se muestran a los clientes cuando el administrador apruebe su licencia.",
+"Waiting for the admin to approve your license": "Esperando que el administrador apruebe su licencia",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3202,4 +3210,12 @@ export const RU: Record<string, string> = {
 "Upload the CSLB list (CSV)": "Загрузить список CSLB (CSV)",
 "About 45 MB, takes a few minutes": "Около 45 МБ, займёт несколько минут",
 "Open the CSLB Data Portal": "Открыть портал данных CSLB",
+"Checking the number in the CSLB list…": "Проверяем номер в списке CSLB…",
+"The admin will only compare the name on the license with your ID.": "Администратору останется только сверить имя в лицензии с вашим документом.",
+"We could not confirm this number automatically.": "Не удалось подтвердить номер автоматически.",
+"Send it to the NovaFides admin for a manual check": "Отправить администратору NovaFides на ручную проверку",
+"Until the admin approves it, jobs under $1,000 work right away; bigger jobs and jobs with a permit can be added now and are shown to clients after the approval.": "Пока администратор не одобрит, работы до $1,000 доступны сразу; крупные работы и работы с разрешением можно добавить сейчас — клиенты увидят их после одобрения.",
+"The number will not be saved: you take only jobs under $1,000 without a permit.": "Номер не сохранится: вы берёте только работы до $1,000 без разрешения.",
+"Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.": "Ваша лицензия на проверке. Работы с пометкой «ждёт» сохранятся сейчас, а клиенты увидят их после одобрения лицензии администратором.",
+"Waiting for the admin to approve your license": "Ждёт одобрения лицензии администратором",
 };

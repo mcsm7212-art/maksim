@@ -660,4 +660,11 @@ select pg_temp.ok((select license_auto->>'result' from public.pros where id = au
 update public.pros set license_auto = '{"result":"ok"}' where id = auth.uid();
 select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'not_found', 'a pro cannot fake the CSLB result');
 select pg_temp.ok((select count(*) from public.cslb_licenses) = 0, 'pros cannot read the CSLB list directly');
+
+-- 0032 a $1,000+ own job with a license number that is still being checked waits for approval and is hidden from clients
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Full repipe', 6000);
+select pg_temp.ok((select needs_approval from public.pro_custom_services where name = 'Full repipe'), 'big job with a pending license waits for approval');
+select pg_temp.act(null);
+select pg_temp.ok((select count(*) from public.pro_custom_services where name = 'Full repipe') = 0, 'clients do not see jobs waiting for approval');
 \echo ALL RULE TESTS PASSED

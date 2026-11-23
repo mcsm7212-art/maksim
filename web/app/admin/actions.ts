@@ -20,6 +20,12 @@ async function dropLicense(sb: Awaited<ReturnType<typeof admin>>, id: string) {
   const off = (svcs ?? []).filter((x) => { const sv = serviceById(x.service_id); return sv && licenseNeeded(sv, x.price != null ? Number(x.price) : null); }).map((x) => x.service_id);
   if (off.length) await sb.from('pro_services').update({ active: false }).eq('pro_id', id).in('service_id', off);
   await sb.from('pro_custom_services').delete().eq('pro_id', id).gte('price', 1000);
+  await sb.from('pro_services').update({ needs_approval: false }).eq('pro_id', id).eq('needs_approval', true);
+}
+// License confirmed: the jobs that waited for it are switched on.
+async function openLicenseJobs(sb: Awaited<ReturnType<typeof admin>>, id: string) {
+  await sb.from('pro_services').update({ active: true, needs_approval: false }).eq('pro_id', id).eq('needs_approval', true);
+  await sb.from('pro_custom_services').update({ needs_approval: false }).eq('pro_id', id).eq('needs_approval', true);
 }
 const NOT_FOUND = 'We could not confirm your CSLB license number, so it was removed. For now you take jobs under $1,000 without a permit. Check the number and send it again in your account.';
 
@@ -27,6 +33,7 @@ const NOT_FOUND = 'We could not confirm your CSLB license number, so it was remo
 export async function licenseFound(f: FormData) {
   const sb = await admin(); const id = s(f, 'id');
   await sb.from('pros').update({ license_status: 'verified', license_checked_at: new Date().toISOString() }).eq('id', id);
+  await openLicenseJobs(sb, id);
   await sb.rpc('admin_notify', { uid: id, msg: 'Your CSLB license is confirmed. Jobs that need a license are open to you now.' });
   revalidatePath('/admin');
 }
@@ -46,6 +53,7 @@ async function reviewPro(f: FormData, ok: boolean) {
     ? { status: 'verified', license_status: licOk && cur?.license_no ? 'verified' : 'none', id_verified: Boolean(f.get('id_ok')), insured: Boolean(f.get('insured_ok')), license_checked_at: new Date().toISOString() }
     : { status: 'suspended' }).eq('id', id);
   if (badLicense) await dropLicense(sb, id);
+  if (ok && licOk && cur?.license_no) await openLicenseJobs(sb, id);
   await sb.rpc('admin_notify', { uid: id, msg: !ok ? `Your profile was not approved: ${s(f, 'reason') || 'please contact support'}.`
     : badLicense ? `Your profile is public. ${NOT_FOUND}`
     : 'Your profile is verified and now public on NovaFides.' });

@@ -10,8 +10,8 @@ const MAX = 60;
  * A pro's own jobs that are not in the catalog (name + price). Kept in the draft; $1,000 or more needs a license.
  * `grouped` (a pro with their own trade, which has no catalog): jobs are grouped in the pro's own categories.
  */
-export default function CustomServices({ initial, licensed, draftKey, grouped }: {
-  initial: { name: string; price: number | null; category?: string | null }[]; licensed: boolean; draftKey: string; grouped?: boolean;
+export default function CustomServices({ initial, licensed, draftKey, grouped, waiting }: {
+  initial: { name: string; price: number | null; category?: string | null }[]; licensed: boolean; draftKey: string; grouped?: boolean; waiting?: boolean;
 }) {
   const t = useT();
   const [rows, setRows] = useState<Row[]>(initial.map((r) => ({ name: r.name, price: r.price != null ? String(r.price) : '', cat: r.category ?? '' })));
@@ -35,6 +35,7 @@ export default function CustomServices({ initial, licensed, draftKey, grouped }:
         <input type="hidden" name="custom_cat" value={grouped ? r.cat : ''} />
         <button type="button" className="clear-btn cs-del" onClick={() => set(rows.filter((_, j) => j !== i))} title={t('Remove')} aria-label={t('Remove')}>✕</button>
         {big && <small className="lic-msg">⚠ {t('$1,000 or more needs a CSLB license. Add your license number above or lower the price.')}</small>}
+        {waiting && Number(r.price) >= 1000 && <small className="wait-msg">⏳ {t('Waiting for the admin to approve your license')}</small>}
       </div>);
   };
   const addJob = (cat: string) => { if (rows.length < MAX) set([...rows, { name: '', price: '', cat }]); };
