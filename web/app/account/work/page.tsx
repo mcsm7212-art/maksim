@@ -87,7 +87,7 @@ export default async function Work() {
         <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save')}</button>
       </form>
 
-      <h3>{tr('My colleagues')} <span className="mu sm">({(contacts ?? []).length})</span></h3>
+      <h3 id="friends" style={{ scrollMarginTop: 90 }}>{tr('My colleagues')} <span className="mu sm">({(contacts ?? []).length})</span></h3>
       <div className="list">
         {(contacts ?? []).filter((c: any) => c.colleague).map((c: any) => (
           <div key={c.colleague.id} className="card coll" style={{ ['--acc' as string]: c.colleague.accent ?? '#B57A50' }}>

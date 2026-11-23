@@ -87,6 +87,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
       <div className="desk-grid">
         {/* 2) messages from clients */}
         <div className={`card desk-card${newChats > 0 ? ' pulse-green' : ''}`}>
+          <Link className="card-link" href="/messages" aria-label={tr('Messages from clients')} />
           <div className="desk-h"><b><Di n="messages" />{tr('Messages from clients')}{newChats > 0 && <span className="badge ok" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
           {sorted.slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
             <Link key={c.id} className={`desk-msg${unread.has(c.id) ? ' new' : ''}`} href={`/messages/${c.id}`}>
@@ -99,6 +100,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 3) call-back requests */}
         <div className={`card desk-card${newCalls ? ' pulse-green' : ''}`}>
+          <Link className="card-link" href="/messages" aria-label={tr('Call-back requests')} />
           <div className="desk-h"><b><Di n="callback" />{tr('Call-back requests')}{newCalls && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('New')}</span>}</b></div>
           {calls.map((m: any) => { const c = (convs ?? []).find((x: any) => x.id === m.conversation_id); const fresh = unread.has(m.conversation_id); const ph = field(m.body, 'Phone'); return (
             <div key={m.conversation_id + m.created_at} className={`desk-msg${fresh ? ' new' : ''}`}>
@@ -110,6 +112,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 4) how clients reach me */}
         <div className="card desk-card">
+          <Link className="card-link" href="/account/work" aria-label={tr('How clients reach you')} />
           <div className="desk-h"><b><Di n="profile" />{tr('How clients reach you')}</b><Link className="xs" href="/account/work">{tr('Change')} →</Link></div>
           <span className="sm">{row?.public_phone ? <>📞 {tr('Phone on your page')}: <b>{row.public_phone}</b>{row?.call_hours ? <span className="mu"> · {row.call_hours}</span> : null}</> : <>📵 {tr('Your phone is not shown. Clients write to you or ask for a call back.')}</>}</span>
           <span className="sm">💬 {tr('Clients can always write to you in the chat.')}</span>
@@ -117,6 +120,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 5) pro friends */}
         <div className="card desk-card">
+          <Link className="card-link" href="/account/work#friends" aria-label={tr('My pro friends')} />
           <div className="desk-h"><b><Di n="friends" />{tr('My pro friends')}{friendNews > 0 && <Link href="/messages" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
           <div className="desk-friends">
             {(friends ?? []).filter((f: any) => f.colleague).map((f: any) => { const c = f.colleague; const on = c.online_until && new Date(c.online_until) > new Date(); return (
