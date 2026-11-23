@@ -108,7 +108,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
             {!edit && <TradeRequest onAdd={addOwnTrade} current={ownTrade} />}
           </div>
           {!invite && !edit && <label className="f">CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
-            <span className="mu xs">{tt('No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
+            <span className="mu xs">{tt(licensed ? 'We check this number with CSLB before your profile goes public: the name on the license must match your ID. A wrong number is removed, and then you take only jobs under $1,000.' : 'No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}
           <label className="f">{tt("Years of experience")}<span className="fieldwrap"><input className="inp" name="years" type="number" min={0} max={60} defaultValue={I?.years ?? prefill?.years ?? 5} /><ClearBtn /></span></label>
           <label className="f">{tt("Languages")}<span className="fieldwrap"><input className="inp" name="languages" defaultValue={I?.languages ?? "English"} placeholder="English, Spanish" /><ClearBtn /></span></label>
         </div>

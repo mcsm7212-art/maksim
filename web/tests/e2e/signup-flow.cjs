@@ -288,6 +288,16 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   {const sl=sql("select slug from pros where display_name='Mia Minimal'");await mn.goto(B+'/pro/'+sl);const tx=await mn.textContent('body');if(!/ROOFING/.test(tx)||!/Repairs/.test(tx)||!/Shingle repair/.test(tx))throw new Error('own trade or category not on the page');}
   if(sql("select count(*) from pros p where display_name='Mia Minimal' and photo_url is null and service_polygon is not null and exists(select 1 from pro_photos w where w.pro_id=p.id)")!=='1')throw new Error('minimal pro not saved with map and work photo');
   step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later; added an own trade (Roofing) with a category and a job, shown on the page');}
+ {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
+  await fk.click('summary:has-text("Water Heaters")');await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
+  await fk.waitForSelector('.submit-wrap:not(.blocked)');await fk.click('button:has-text("Create my profile")');await fk.waitForURL(/account/);
+  if(sql("select status from pros where display_name='Fred Fake'")!=='pending')throw new Error('typed license made the profile public');
+  const ad=await user(b,'admin@test.local');await ad.goto(B+'/admin');const fm=ad.locator('form:has-text("Fred Fake")');await fm.locator('input[name=id_ok]').check();await fm.locator('input[name=license_ok]').uncheck();await fm.locator('button:has-text("Approve")').first().click();
+  for(let i=0;i<20&&sql("select status from pros where display_name='Fred Fake'")!=='verified';i++)await ad.waitForTimeout(300);
+  if(sql("select coalesce(license_no,'none')||'/'||license_status from pros where display_name='Fred Fake'")!=='none/none')throw new Error('unconfirmed license kept');
+  if(sql("select count(*) from pro_services s join pros p on p.id=s.pro_id where p.display_name='Fred Fake' and s.active and s.service_id='tank-water-heater-replacement'")!=='0')throw new Error('license job still active');
+  if(sql("select count(*) from pro_services s join pros p on p.id=s.pro_id where p.display_name='Fred Fake' and s.active and s.service_id='faucet-replacement'")!=='1')throw new Error('small job removed');
+  step('a made-up license number does not count: the profile waits for the check; the admin does not confirm it → number removed, permit job switched off, small jobs stay');}
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

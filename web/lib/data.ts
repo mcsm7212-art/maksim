@@ -37,7 +37,7 @@ function mapPro(p: Row, stats?: Row): Pro {
   return {
     id: p.id, slug: p.slug, name: p.display_name, company, trade: p.trade as Trade, customTrade: p.custom_trade ?? null, tiers: p.tiers, years: p.years_exp ?? 0,
     area: p.area ?? '', bio: p.bio ?? '', experience: p.experience ?? '', skillTags: p.skills ?? [],
-    photos: (p.pro_photos ?? []).filter((x: Row) => x.kind === 'portfolio' || x.public).sort((a: Row, b: Row) => b.created_at.localeCompare(a.created_at)).map((x: Row) => ({ id: x.id, url: x.url, caption: x.caption })), languages: p.languages ?? [], license: company?.license ?? p.license_no,
+    photos: (p.pro_photos ?? []).filter((x: Row) => x.kind === 'portfolio' || x.public).sort((a: Row, b: Row) => b.created_at.localeCompare(a.created_at)).map((x: Row) => ({ id: x.id, url: x.url, caption: x.caption })), languages: p.languages ?? [], license: company?.license ?? (p.license_status === 'verified' ? p.license_no : null), // a typed number counts only after NovaFides checked it with CSLB
     verified: { license: p.license_status === 'verified', id: p.id_verified, insured: p.insured },
     checkedAt: { license: p.license_checked_at ?? null, id: p.id_checked_at ?? null, insured: p.insurance_checked_at ?? null },
     photoUrl: p.photo_url, figureUrl: p.figure_url ?? null, uniform: p.uniform_color, accent, base: company ? company.base : baseFor(accent),
