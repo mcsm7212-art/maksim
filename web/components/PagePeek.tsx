@@ -5,7 +5,7 @@ import { useT } from './I18n';
 
 // Inside the preview only the page itself is shown (no site menu, footer or bottom bar).
 // Only the top of the pro page (name, trade, popular jobs, figure): nothing below it and no scrolling.
-const CLEAN = 'header.bar,footer.ft,.bnav,.stick3,.demo-note{display:none!important}.in>:not(.ph3){display:none!important}html,body{overflow:hidden!important;padding-bottom:0!important}';
+const CLEAN = 'header.bar,footer.ft,.bnav,.stick3,.demo-note{display:none!important}.in>:not(.ph3){display:none!important}html,body{overflow:hidden!important;padding-bottom:0!important}*{pointer-events:none!important;cursor:default!important}';
 /** Height of the visible top of the page inside the frame (so the window has no empty space). */
 const topHeight = (f: HTMLIFrameElement) => { try { const el = f.contentDocument?.querySelector('.ph3'); return el ? Math.ceil(el.getBoundingClientRect().bottom + 20) : null; } catch { return null; } };
 const clean = (f: HTMLIFrameElement | null) => { try { const d = f?.contentDocument; if (d && !d.getElementById('peek-css')) { const s = d.createElement('style'); s.id = 'peek-css'; s.textContent = CLEAN; d.head.appendChild(s); } } catch { /* other site */ } };
