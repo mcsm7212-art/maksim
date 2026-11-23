@@ -1534,6 +1534,8 @@ export const ES: Record<string, string> = {
 "Trades pros asked for": "Oficios que piden los profesionales",
 "No requests yet.": "Aún no hay solicitudes.",
 "Good examples (open the page):": "Buenos ejemplos (abra la página):",
+"Half-turned is fine too": "De medio lado también está bien",
+"Facing the camera or half-turned, both feet on the floor.": "De frente a la cámara o de medio lado, con ambos pies en el piso.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3070,4 +3072,6 @@ export const RU: Record<string, string> = {
 "Trades pros asked for": "Профессии, которые просят мастера",
 "No requests yet.": "Заявок пока нет.",
 "Good examples (open the page):": "Хорошие примеры (нажмите, чтобы открыть страницу):",
+"Half-turned is fine too": "Вполоборота — тоже хорошо",
+"Facing the camera or half-turned, both feet on the floor.": "Лицом к камере или вполоборота, обе ноги на полу.",
 };

@@ -36,7 +36,7 @@ export default function PhotoTips({ open }: { open?: boolean }) {
   const t = useT();
   const cards: { feet: 'even' | 'step' | 'cut'; ok: boolean; text: string }[] = [
     { feet: 'even', ok: true, text: 'Feet side by side, on one line' },
-    { feet: 'step', ok: false, text: 'One foot forward: you look like you float' },
+    { feet: 'step', ok: true, text: 'Half-turned is fine too' },
     { feet: 'cut', ok: false, text: 'Shoes cut off' },
   ];
   return (
@@ -58,7 +58,7 @@ export default function PhotoTips({ open }: { open?: boolean }) {
           </a>))}</div>
       </div>
       <ul>
-        <li>{t('Stand straight, facing the camera, both feet flat on the floor.')}</li>
+        <li>{t('Facing the camera or half-turned, both feet on the floor.')}</li>
         <li>{t('Whole body in the photo, from head to shoes, with a little floor under the shoes.')}</li>
         <li>{t('Ask someone to hold the phone upright at waist height, 2–3 m (7–10 ft) away.')}</li>
         <li>{t('Daylight or a bright room, plain wall behind you, nobody else in the photo.')}</li>

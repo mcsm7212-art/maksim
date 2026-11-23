@@ -54,13 +54,12 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
     }
     setBusy(null);
   }
-  // One foot far forward makes the figure look like it floats: suggest another photo (only a hint, the photo is kept).
+  // Shoes not in the photo: suggest another one (only a hint, the photo is kept).
   async function checkStance(b: Blob) {
     try {
       const img = new Image(); img.src = URL.createObjectURL(b); await img.decode();
       const st = findFeet(img);
       if (!st) setErr(t('We could not find your shoes in the photo. For the best page, take the photo from head to shoes, with a little floor under them.'));
-      else if (st.feet.length === 2 && Math.abs(st.feet[0].y - st.feet[1].y) > 4.5) setErr(t('One foot is far in front of the other, so on your page you may look like you float. For the best look, stand with your feet side by side (see the tips below).'));
     } catch { /* no check */ }
   }
   async function mirror() {
