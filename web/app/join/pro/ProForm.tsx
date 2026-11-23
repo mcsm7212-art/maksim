@@ -127,7 +127,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
             {!edit && <TradeRequest onAdd={addOwnTrade} current={ownTrade} />}
           </div>
-          {!invite && !edit && <label className="f">CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
+          {!invite && !edit && <label className="f"><span>CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">· {tt('optional')}</span></span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
             {checking && <span className="cslb-mark grey"><i className="spin" aria-hidden /> {tt('Checking the number in the CSLB list…')}</span>}
             {!checking && licValid && licAuto && licAuto.result !== 'no_list' && <CslbMark a={licAuto} proName={name} />}
             {!checking && licValid && autoOk && <><input type="hidden" name="license_review" value="1" /><span className="xs">{tt('The admin will only compare the name on the license with your ID.')}</span></>}
