@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { avatarFrom, cutOut, flipImage } from '@/lib/cutout';
+import { avatarFrom, cropImage, cutOut, flipImage } from '@/lib/cutout';
+import CropBox from './CropBox';
 import { uploadBlob } from '@/lib/upload';
 import { isLive } from '@/lib/supabase/config';
 import Figure from './Figure';
@@ -25,6 +26,7 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
   const [fig, setFig] = useState<{ view: string | null; url: string | null }>({ view: initialFigure, url: initialFigure });
   const [ava, setAva] = useState<{ view: string | null; url: string }>({ view: initialPhoto, url: '' });
   const [busy, setBusy] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
+  const [crop, setCrop] = useState(false);
   const up = async (b: Blob, prefix: string) => (isLive() ? uploadBlob(b, prefix) : '');
 
   // Save a figure: upload it and cut the small photo from it.
@@ -57,6 +59,14 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
     } catch (e) { setErr((e as Error).message); }
     setBusy(null);
   }
+  async function applyCrop(r: { x: number; y: number; w: number; h: number }) {
+    setCrop(false); setErr(null); setBusy(t('Cropping…'));
+    try {
+      if (fig.view) await putFigure(await cropImage(fig.view, r));
+      else if (ava.view) { const b = await cropImage(ava.view, r); const v = URL.createObjectURL(b); const u = await up(b, 'avatar'); setAva({ view: v, url: u }); onChange?.({ figure: null, photo: u || v }); }
+    } catch (e) { setErr((e as Error).message); }
+    setBusy(null);
+  }
   useEffect(() => { bindMirror?.(mirror); });
   // Keep the uploaded photo in the draft too: it comes back after a reload or a language switch.
   useEffect(() => {
@@ -79,6 +89,7 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
   return (
     <div className="figfield">
       <div>
+        {crop && (fig.view || ava.view) ? <CropBox src={(fig.view || ava.view)!} onDone={applyCrop} onCancel={() => setCrop(false)} /> : <>
         <div className="figmaker-stage" style={{ ['--acc' as string]: accent }}>
           {has ? <Figure name={name || 'You'} accent={accent} figure={fig.view} photo={fig.view ? null : ava.view} big={Boolean(fig.view)} />
             : <div className="mu sm" style={{ padding: 20, textAlign: 'center' }}>{t('No photo yet')}</div>}
@@ -87,7 +98,9 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
           <button type="button" className="flipbtn" onClick={mirror} disabled={!!busy} title={t('Mirror')} aria-label={t('Mirror')}><Arrow dir="l" /></button>
           <span className="mu xs">{t('Mirror')}</span>
           <button type="button" className="flipbtn" onClick={mirror} disabled={!!busy} title={t('Mirror')} aria-label={t('Mirror')}><Arrow dir="r" /></button>
+          <button type="button" className="btn ghost sm cropbtn" onClick={() => setCrop(true)} disabled={!!busy}>✂ {t('Crop')}</button>
         </div>}
+        </>}
       </div>
       <div className="list" style={{ gap: 8 }}>
         <b>{t('Your photo')}</b>

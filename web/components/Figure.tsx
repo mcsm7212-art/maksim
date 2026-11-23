@@ -6,7 +6,10 @@ export default function Figure({ name, accent, photo, figure, big }: { name: str
   const fill = !figure && photo;
   return (
     <span className={`fig-sil${big ? ' big' : ''}${figure ? ' cut' : ''}`} style={{ ['--acc' as string]: accent }}>
-      <img src={src} alt={figure || photo ? name : `${name}: photo coming soon`} loading={big ? 'eager' : 'lazy'} style={fill ? { objectFit: 'cover', width: '100%', height: '100%', bottom: 0 } : undefined} />
+      {figure
+        // A cut-out figure stands on the floor: the shadow is tied to the picture, so it is always right under the shoes.
+        ? <span className="fstand"><i className="fshadow" aria-hidden /><img src={src} alt={name} loading={big ? 'eager' : 'lazy'} /></span>
+        : <img src={src} alt={photo ? name : `${name}: photo coming soon`} loading={big ? 'eager' : 'lazy'} style={fill ? { objectFit: 'cover', width: '100%', height: '100%', bottom: 0 } : undefined} />}
     </span>
   );
 }

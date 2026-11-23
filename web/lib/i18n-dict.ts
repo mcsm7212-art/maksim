@@ -1493,6 +1493,10 @@ export const ES: Record<string, string> = {
 "Some chosen jobs need a CSLB license (your price is $1,000 or more, or a permit is needed). They are marked red. Add your license number, lower the price or remove them.": "Algunos trabajos elegidos requieren licencia CSLB (su precio es de $1,000 o más, o se necesita permiso). Están marcados en rojo. Agregue su número de licencia, baje el precio o quítelos.",
 "To change your trade or license number, contact NovaFides support: they need a new check.": "Para cambiar su oficio o número de licencia, contacte al soporte de NovaFides: se necesita una nueva verificación.",
 "We check your license with CSLB and your ID before your profile goes public. One person, one profile.": "Verificamos su licencia con CSLB y su identificación antes de publicar su perfil. Una persona, un perfil.",
+"Crop": "Recortar",
+"Reset": "Restablecer",
+"Cropping…": "Recortando…",
+"Drag the corners or sides of the frame. Everything outside the frame is cut off.": "Arrastre las esquinas o los lados del marco. Todo lo que quede fuera del marco se recorta.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -2988,4 +2992,8 @@ export const RU: Record<string, string> = {
 "Some chosen jobs need a CSLB license (your price is $1,000 or more, or a permit is needed). They are marked red. Add your license number, lower the price or remove them.": "Для некоторых выбранных работ нужна лицензия CSLB (ваша цена $1,000 или больше, или нужно разрешение). Они отмечены красным. Укажите номер лицензии, снизьте цену или уберите их.",
 "To change your trade or license number, contact NovaFides support: they need a new check.": "Чтобы сменить профессию или номер лицензии, напишите в поддержку NovaFides: нужна новая проверка.",
 "We check your license with CSLB and your ID before your profile goes public. One person, one profile.": "Мы проверяем вашу лицензию в CSLB и ваш документ, прежде чем профиль станет публичным. Один человек — один профиль.",
+"Crop": "Обрезать",
+"Reset": "Сбросить",
+"Cropping…": "Обрезаем…",
+"Drag the corners or sides of the frame. Everything outside the frame is cut off.": "Тяните углы или стороны рамки. Всё, что за рамкой, будет обрезано.",
 };

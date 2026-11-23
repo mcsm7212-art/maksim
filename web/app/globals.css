@@ -422,7 +422,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 /* pro page: game-style hero */
 .phero2{padding-top:10px}
 .phero2 .pco{font-size:clamp(46px,6.2vw,80px);overflow-wrap:normal}
-.fig-sil.cut img{height:94%;bottom:3%}
+.fig-sil.cut .fstand{height:94%;bottom:3%}
 .fig-sil.cut.big::before{content:"";position:absolute;inset:auto 10% 0 10%;height:55%;background:radial-gradient(50% 60% at 50% 100%,color-mix(in srgb,var(--acc) 30%,transparent),transparent 75%);pointer-events:none}
 .figcol .fig-sil:not(.cut) img{-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(180deg,#000 70%,transparent),linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-composite:intersect;filter:none}
 .pricebox2{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:18px}
@@ -438,7 +438,8 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 /* ===== pro figure stands on a floor (desktop) ===== */
 @media (min-width:761px){
   .figcol .fig-sil.cut.big{overflow:visible;background:radial-gradient(48% 42% at 50% 52%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 72%)}
-  .figcol .fig-sil.cut.big img{bottom:13%;height:83%;-webkit-box-reflect:below 1px linear-gradient(transparent 84%,rgba(0,0,0,.2))}
+  .figcol .fig-sil.cut.big .fstand{bottom:11.6%;height:83%}
+  .figcol .fig-sil.cut.big .fstand>img{-webkit-box-reflect:below 1px linear-gradient(transparent 86%,rgba(0,0,0,.14))}
   /* floor: horizon line + glossy surface fading away */
   .figcol .fig-sil.cut.big::before{inset:auto -30% 0 -30%;height:15%;border-radius:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);
     background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--acc) 45%,transparent) 50%,transparent) top/100% 1px no-repeat,
@@ -927,3 +928,39 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .grp-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--mu);padding:4px 10px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:var(--card2)}
 .grp-all:hover{color:var(--ink);border-color:var(--cu-l,#C08A62)}
 .grp-all input{width:16px;height:16px;accent-color:var(--cu);margin:0}
+
+/* ===== figure stands on the floor: contact shadow under the shoes + a pool of the clothes colour ===== */
+.fig-sil .fstand{position:absolute;left:50%;bottom:2%;height:96%;transform:translateX(-50%);display:block;isolation:isolate}
+.fig-sil .fstand>img{position:relative!important;display:block;left:auto!important;bottom:auto!important;height:100%!important;width:auto;transform:none!important;z-index:1}
+@media (max-width:760px){.ph3 .figcol .fig-sil.cut .fstand{height:94%;bottom:3%}}
+.fig-sil.cut::after{display:none}
+.fshadow{position:absolute;z-index:0;left:50%;bottom:-1%;width:120%;height:5.6%;transform:translateX(-50%);border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,0,0,.7),rgba(0,0,0,.42) 45%,rgba(0,0,0,.14) 75%,transparent);filter:blur(2px)}
+/* light from the scene on the floor, in the clothes colour */
+.fshadow::before{content:"";position:absolute;left:-30%;right:-30%;top:-90%;bottom:-90%;border-radius:50%;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--acc) 34%,transparent),color-mix(in srgb,var(--acc) 12%,transparent) 55%,transparent);filter:blur(6px)}
+/* the darkest part right under the shoes */
+.fshadow::after{content:"";position:absolute;left:16%;right:16%;top:20%;bottom:22%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.92),rgba(0,0,0,.55) 55%,transparent);filter:blur(1.5px)}
+.fig-sil:not(.big) .fshadow{width:100%;height:4%;bottom:-1.5%}
+.fig-sil:not(.big) .fshadow::before{display:none}
+[data-theme="light"] .fshadow{background:radial-gradient(closest-side,rgba(40,25,10,.42),rgba(40,25,10,.2) 50%,transparent)}
+[data-theme="light"] .fshadow::after{background:radial-gradient(closest-side,rgba(40,25,10,.6),rgba(40,25,10,.25) 60%,transparent)}
+[data-theme="light"] .fshadow::before{background:radial-gradient(closest-side,color-mix(in srgb,var(--acc) 22%,transparent),transparent)}
+
+/* ===== crop frame ===== */
+.cropbtn{margin-left:6px}
+.crop{display:flex;flex-direction:column;gap:8px}
+.crop-wrap{display:grid;place-items:center;background:#0C0C0E;border:1px solid var(--line);border-radius:14px;padding:12px;
+  background-image:linear-gradient(45deg,#16161a 25%,transparent 25%,transparent 75%,#16161a 75%),linear-gradient(45deg,#16161a 25%,transparent 25%,transparent 75%,#16161a 75%);background-size:16px 16px;background-position:0 0,8px 8px}
+[data-theme="light"] .crop-wrap{background-color:#EFE9E1;background-image:linear-gradient(45deg,#e4dcd1 25%,transparent 25%,transparent 75%,#e4dcd1 75%),linear-gradient(45deg,#e4dcd1 25%,transparent 25%,transparent 75%,#e4dcd1 75%)}
+.crop-img{position:relative;display:inline-block;overflow:hidden;touch-action:none;user-select:none}
+.crop-img img{display:block;max-height:340px;max-width:100%;pointer-events:none}
+.crop-r{position:absolute;cursor:move;border:2px solid var(--cu-l,#C08A62);box-shadow:0 0 0 9999px rgba(0,0,0,.6);
+  background-image:linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,255,255,.25)),linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,255,255,.25));
+  background-size:1px 100%,1px 100%,100% 1px,100% 1px;background-position:33.3% 0,66.6% 0,0 33.3%,0 66.6%;background-repeat:no-repeat}
+.crop-h{position:absolute;width:22px;height:22px;background:var(--cu-l,#C08A62);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);touch-action:none}
+.crop-h.n{left:50%;top:0;cursor:ns-resize}.crop-h.s{left:50%;top:100%;cursor:ns-resize}
+.crop-h.e{left:100%;top:50%;cursor:ew-resize}.crop-h.w{left:0;top:50%;cursor:ew-resize}
+.crop-h.nw{left:0;top:0;cursor:nwse-resize}.crop-h.se{left:100%;top:100%;cursor:nwse-resize}
+.crop-h.ne{left:100%;top:0;cursor:nesw-resize}.crop-h.sw{left:0;top:100%;cursor:nesw-resize}
+.crop-h.n,.crop-h.s,.crop-h.e,.crop-h.w{width:16px;height:16px}

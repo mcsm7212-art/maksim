@@ -33,6 +33,8 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
     // Radios first (the trade decides which services are shown), then everything else.
     els.filter((el) => el.type === 'radio' && data[`${el.name}=${el.value}`] === true && !(el as HTMLInputElement).checked).forEach((el) => (el as HTMLInputElement).click());
     setTimeout(() => {
+      // Read the draft again: the person may have changed something in the meantime (e.g. unticked a job right after an error).
+      try { data = JSON.parse(localStorage.getItem(key) ?? '{}'); } catch { /* keep the first read */ }
       fields(f).forEach((el) => {
         if (el.type === 'radio') return;
         if (el.type === 'checkbox') { const v = data[el.name]; if (typeof v === 'boolean' && (el as HTMLInputElement).checked !== v) (el as HTMLInputElement).click(); }

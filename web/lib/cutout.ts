@@ -39,7 +39,7 @@ export async function cutOut(file: File, maxH = 1400): Promise<Cutout> {
   const bg = masks[0].getAsFloat32Array(), clothes = masks[4].getAsFloat32Array();
 
   const img = sx.getImageData(0, 0, w, h); const px = img.data;
-  let minX = w, minY = h, maxX = 0, maxY = 0, n = 0;
+  let n = 0;
   const bins = new Map<number, [number, number, number, number]>();
   for (let y = 0; y < h; y++) {
     const my = Math.min(mh - 1, Math.floor((y * mh) / h));
@@ -47,7 +47,7 @@ export async function cutOut(file: File, maxH = 1400): Promise<Cutout> {
       const mi = my * mw + Math.min(mw - 1, Math.floor((x * mw) / w));
       const a = smooth(0.3, 0.7, 1 - bg[mi]);
       const i = (y * w + x) * 4; px[i + 3] = Math.round(a * 255);
-      if (a > 0.5) { n++; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+      if (a > 0.5) n++;
       if (clothes[mi] > 0.6 && a > 0.6 && (x + y) % 3 === 0) {
         const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255;
         const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
@@ -62,12 +62,8 @@ export async function cutOut(file: File, maxH = 1400): Promise<Cutout> {
   const personShare = n / (w * h);
   if (personShare < 0.02) throw new Error('Could not find a person in this photo.');
   sx.putImageData(img, 0, 0);
-
-  const pad = Math.round(h * 0.015);
-  const cx = Math.max(0, minX - pad), cy = Math.max(0, minY - pad), cw = Math.min(w, maxX + pad) - cx, ch = Math.min(h, maxY + pad) - cy;
-  const out = document.createElement('canvas'); out.width = cw; out.height = ch;
-  out.getContext('2d')!.drawImage(src, cx, cy, cw, ch, 0, 0, cw, ch);
-  const blob = await new Promise<Blob>((ok, bad) => out.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), 'image/webp', 0.9));
+  keepMainBody(src);
+  const blob = await trimmed(src, Math.round(h * 0.015));
   return { blob, preview: URL.createObjectURL(blob), accent: glowFrom(bins), personShare };
 }
 
@@ -109,4 +105,64 @@ export async function avatarFrom(src: string, size = 560): Promise<Blob> {
   const o = document.createElement('canvas'); o.width = size; o.height = size;
   o.getContext('2d')!.drawImage(c, sx, sy, side, side, 0, 0, size, size);
   return new Promise<Blob>((ok, bad) => o.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), 'image/webp', 0.9));
+}
+
+/**
+ * Removes stray pieces the background remover left beside the person (a bit of a chair, a shadow, a reflection):
+ * any separate solid spot smaller than 12% of the biggest one becomes transparent.
+ */
+export function keepMainBody(c: HTMLCanvasElement) {
+  const w = c.width, h = c.height, x = c.getContext('2d', { willReadFrequently: true })!;
+  const img = x.getImageData(0, 0, w, h), px = img.data;
+  const cs = Math.max(2, Math.ceil(Math.max(w, h) / 320)), gw = Math.ceil(w / cs), gh = Math.ceil(h / cs);
+  const solid = new Uint8Array(gw * gh);
+  for (let y = 0; y < h; y++) for (let X = 0; X < w; X++) if (px[(y * w + X) * 4 + 3] > 128) solid[Math.floor(y / cs) * gw + Math.floor(X / cs)] = 1;
+  const lab = new Int32Array(gw * gh), sizes = [0]; const st: number[] = [];
+  for (let i = 0; i < solid.length; i++) {
+    if (!solid[i] || lab[i]) continue;
+    const id = sizes.length; let k = 0; lab[i] = id; st.push(i);
+    while (st.length) {
+      const j = st.pop()!; k++; const gx = j % gw, gy = (j - gx) / gw;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = gx + dx, ny = gy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
+        const q = ny * gw + nx; if (solid[q] && !lab[q]) { lab[q] = id; st.push(q); }
+      }
+    }
+    sizes.push(k);
+  }
+  if (sizes.length <= 2) return;
+  const big = Math.max(...sizes);
+  // Keep the big pieces and a 2-cell margin around them (soft edges stay soft).
+  const keep = new Uint8Array(gw * gh);
+  for (let i = 0; i < lab.length; i++) if (lab[i] && sizes[lab[i]] >= big * 0.12) {
+    const gx = i % gw, gy = (i - gx) / gw;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const nx = gx + dx, ny = gy + dy; if (nx >= 0 && ny >= 0 && nx < gw && ny < gh) keep[ny * gw + nx] = 1; }
+  }
+  for (let y = 0; y < h; y++) for (let X = 0; X < w; X++) if (!keep[Math.floor(y / cs) * gw + Math.floor(X / cs)]) px[(y * w + X) * 4 + 3] = 0;
+  x.putImageData(img, 0, 0);
+}
+
+/** Cuts off empty (transparent) margins, leaving `pad` pixels, and saves as WebP. A normal photo stays whole. */
+async function trimmed(c: HTMLCanvasElement, pad: number): Promise<Blob> {
+  const w = c.width, h = c.height, px = c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3] > 128) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  let out = c;
+  if (maxX >= 0) {
+    const cx = Math.max(0, minX - pad), cy = Math.max(0, minY - pad), cw = Math.min(w, maxX + 1 + pad) - cx, ch = Math.min(h, maxY + 1 + pad) - cy;
+    if (cw < w || ch < h) { out = document.createElement('canvas'); out.width = cw; out.height = ch; out.getContext('2d')!.drawImage(c, cx, cy, cw, ch, 0, 0, cw, ch); }
+  }
+  return new Promise<Blob>((ok, bad) => out.toBlob((b) => (b ? ok(b) : bad(new Error('Could not save the photo.'))), 'image/webp', 0.9));
+}
+
+/** Crop to a box given in parts of the picture (0..1), clean stray spots, trim empty margins. */
+export async function cropImage(src: string, r: { x: number; y: number; w: number; h: number }): Promise<Blob> {
+  const img = new Image(); img.crossOrigin = 'anonymous';
+  await new Promise<void>((ok, bad) => { img.onload = () => ok(); img.onerror = () => bad(new Error('Could not open the photo.')); img.src = src; });
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const sx = Math.round(r.x * W), sy = Math.round(r.y * H), sw = Math.max(8, Math.round(r.w * W)), sh = Math.max(8, Math.round(r.h * H));
+  const c = document.createElement('canvas'); c.width = sw; c.height = sh;
+  c.getContext('2d', { willReadFrequently: true })!.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  keepMainBody(c);
+  return trimmed(c, Math.round(sh * 0.012));
 }
