@@ -63,18 +63,17 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const name = str(f, 'name', 60), trade = str(f, 'trade') as Trade, license = str(f, 'license', 12).replace(/\D/g, '');
   const invite = str(f, 'invite', 40);
   const tiers = ['standard'] as Tier[]; // one price per job; levels are no longer used
-  const days = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`));
-  const start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00';
+  // Only name, trade and the agreement are needed to sign up; the rest can be filled in later in the account.
+  const picked = [0, 1, 2, 3, 4, 5, 6].filter((d) => f.get(`day_${d}`)); const days = picked.length ? picked : [1, 2, 3, 4, 5];
+  let start = str(f, 'start') || '08:00', end = str(f, 'end') || '18:00'; if (end <= start) { start = '08:00'; end = '18:00'; }
   const services = [...f.keys()].filter((k) => k.startsWith('svc_')).map((k) => k.slice(4))
     .filter((id) => serviceById(id)?.trade === trade)
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
 
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (!(trade in TRADES)) return { error: 'Choose your trade.' };
-  if (!f.get('agree')) return { error: 'Please confirm your licenses and agree to the Terms of Use.' };
+  if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
-  if (!services.length) return { error: 'Choose at least one service you offer.' };
-  if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };
   if (!isLive()) return { demo: true };
@@ -84,7 +83,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (me.pro) redirect('/account');
   const sb = await supabaseServer();
   const photo = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
-  if (!photo || !ownPhotoUrl(photo, me.id)) return { error: 'Add a real photo of yourself. Clients choose pros by face.' };
+  if (photo && !ownPhotoUrl(photo, me.id)) return { error: 'Add a real photo of yourself. Clients choose pros by face.' };
   const work = f.getAll('work_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 24);
   const uniform = isHex(f.get('uniform')) ? String(f.get('uniform')) : null;
   const { error } = await sb.from('pros').insert({
@@ -94,10 +93,10 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((s) => s.trim()).filter(Boolean),
     license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')),
-    photo_url: photo, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
+    photo_url: photo || null, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
   });
   if (error) return { error: error.message };
-  await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
+  if (services.length) await sb.from('pro_services').insert(services.map((s) => ({ ...s, pro_id: me.id })));
   await saveCustom(sb, me.id, custom);
   if (work.length) await sb.from('pro_photos').insert(work.map((url) => ({ pro_id: me.id, url })));
   await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
@@ -123,8 +122,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
     .filter((id) => serviceById(id)?.trade === trade)
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
-  if (!services.length) return { error: 'Choose at least one service you offer.' };
-  if (!days.length || end <= start) return { error: 'Set your working days and hours.' };
+  if (end <= start) return { error: 'Set your working days and hours.' };
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(cur!.license_no) || Boolean(cur!.company_id)); if (lp) return { error: lp };
   const newPhoto = str(f, 'photo_override', 500) || str(f, 'photo_url', 500);
@@ -142,12 +140,15 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
   }).eq('id', me.id);
   if (error) return { error: error.message };
   // Keep job counters: services that are no longer offered are switched off, not deleted.
-  await sb.from('pro_services').update({ active: false }).eq('pro_id', me.id).not('service_id', 'in', `(${services.map((x) => x.service_id).join(',')})`);
-  const { error: e2 } = await sb.from('pro_services').upsert(services.map((x) => ({ ...x, pro_id: me.id, active: true })), { onConflict: 'pro_id,service_id' });
-  if (e2) return { error: e2.message };
+  const off = sb.from('pro_services').update({ active: false }).eq('pro_id', me.id);
+  await (services.length ? off.not('service_id', 'in', `(${services.map((x) => x.service_id).join(',')})`) : off);
+  if (services.length) {
+    const { error: e2 } = await sb.from('pro_services').upsert(services.map((x) => ({ ...x, pro_id: me.id, active: true })), { onConflict: 'pro_id,service_id' });
+    if (e2) return { error: e2.message };
+  }
   await saveCustom(sb, me.id, custom);
   await sb.from('availability_rules').delete().eq('pro_id', me.id);
-  await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
+  if (days.length) await sb.from('availability_rules').insert(days.map((weekday) => ({ pro_id: me.id, weekday, start_time: start, end_time: end })));
   return { saved: true };
 }
 

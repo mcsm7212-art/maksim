@@ -33,7 +33,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, photo_url, bio, service_polygon, base_lat, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -69,6 +69,21 @@ export default async function Account({ searchParams }: { searchParams: Promise<
 
       {me.pro && <>
         <h3>{tr('My pro profile')}</h3>
+        {(() => {
+          // What a client still cannot see: filled in later, after sign-up.
+          const todo = [
+            !proRow?.photo_url && 'Your photo (full height, in work clothes)',
+            !(proRow?.pro_services?.[0]?.count > 0) && 'Services and your prices',
+            !(proRow?.service_polygon || proRow?.base_lat != null) && 'Service area on the map',
+            !(portfolio ?? []).length && 'Photos of your work',
+            !proRow?.bio && 'Short intro (shown in search)',
+          ].filter(Boolean) as string[];
+          return todo.length > 0 && <div className="card todo-card" style={{ marginBottom: 12 }}>
+            <b>{tr('Finish your profile')}</b> <span className="mu xs">{tr('Clients choose pros with a photo, prices and work photos. Add these when you have a minute:')}</span>
+            <ul>{todo.map((x) => <li key={x}>{tr(x)}</li>)}</ul>
+            <Link className="btn sm" href="/account/profile">{tr('Fill in now')}</Link>
+          </div>;
+        })()}
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>{tr('Status')}: {tr(me.pro.status === 'verified' ? 'Public' : 'Waiting for verification')}</b><br />
             <span className="mu sm">{tr('License check')}: {tr(proRow?.license_status ?? 'none')} · <Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/work">{tr('Work & chat settings')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>

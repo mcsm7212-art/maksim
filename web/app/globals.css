@@ -964,3 +964,18 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 .crop-h.nw{left:0;top:0;cursor:nwse-resize}.crop-h.se{left:100%;top:100%;cursor:nwse-resize}
 .crop-h.ne{left:100%;top:0;cursor:nesw-resize}.crop-h.sw{left:0;top:100%;cursor:nesw-resize}
 .crop-h.n,.crop-h.s,.crop-h.e,.crop-h.w{width:16px;height:16px}
+
+/* ===== "Create my profile": dimmed until ready; hover shows what is still needed ===== */
+.submit-wrap{position:relative;display:inline-flex}
+.submit-wrap.blocked .btn{pointer-events:none;opacity:.45;filter:saturate(.4);cursor:not-allowed;box-shadow:none}
+.submit-tip{position:absolute;left:0;bottom:calc(100% + 10px);z-index:30;width:max-content;max-width:min(360px,86vw);padding:12px 14px;border-radius:12px;
+  background:var(--card);color:var(--ink);border:1.5px solid var(--cu-l,#C08A62);box-shadow:0 12px 32px rgba(0,0,0,.35);font-size:13px;line-height:1.4;
+  opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .15s ease,transform .15s ease}
+.submit-tip::after{content:"";position:absolute;left:28px;top:100%;border:7px solid transparent;border-top-color:var(--cu-l,#C08A62)}
+.submit-tip ul{margin:6px 0 0;padding-left:18px}.submit-tip li{margin:3px 0}
+.submit-wrap.blocked:hover .submit-tip,.submit-wrap.blocked:focus-within .submit-tip,.submit-wrap.blocked.tap .submit-tip{opacity:1;transform:none}
+
+/* working days on the light theme: readable when picked */
+[data-theme="light"] .tbtn label:has(input:checked){background:color-mix(in srgb,var(--cu) 18%,#fff);color:#2A1A0E;border-color:var(--cu)}
+.todo-card{border-color:color-mix(in srgb,var(--cu) 55%,var(--line))}
+.todo-card ul{margin:8px 0 12px;padding-left:20px}.todo-card li{margin:3px 0}

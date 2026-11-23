@@ -1,5 +1,5 @@
 'use client';
-import { useActionState, useMemo, useRef, useState } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const ServiceAreaMap = dynamic(() => import('@/components/ServiceAreaMap'), { ssr: false, loading: () => <div className="sa-map" /> });
@@ -53,18 +53,31 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
     const f = new FormData(formRef.current ?? undefined); const v = (k: string) => String(f.get(k) ?? '');
     setPreview({ name: v('name'), trade, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent });
   }
+  // What still stops "Create my profile": shown when the pointer is over the disabled button.
+  const [missing, setMissing] = useState<string[]>([]); const [tap, setTap] = useState(false);
+  const recheck = () => {
+    const f = formRef.current; if (!f) return;
+    const m: string[] = [];
+    if ((f.querySelector<HTMLInputElement>('input[name=name]')?.value.trim().length ?? 0) < 3) m.push('Your name (at least 3 letters)');
+    if (f.querySelector('.sv-row.lic input[type=checkbox]:checked, .cs-row.lic')) m.push('Jobs marked red need a CSLB license: untick them, lower the price, or add your license number');
+    if (!edit && !f.querySelector<HTMLInputElement>('input[name=agree]')?.checked) m.push('Tick the box to agree to the Terms of Use');
+    setMissing((cur) => (cur.join('|') === m.join('|') ? cur : m));
+  };
+  useEffect(() => { const id = setTimeout(recheck, 0); return () => clearTimeout(id); });
+  useEffect(() => { const q = (n: string) => formRef.current?.querySelector<HTMLInputElement>(`input[name=${n}]`)?.value; const v = q('name'), l = q('license'); if (v) setName(v); if (l) setLicText(l); }, []);
   const areaRef = useRef<HTMLInputElement>(null); const areaAuto = useRef(!I?.area && !prefill?.area);
   const onTown = (town: string) => { const el = areaRef.current; if (el && (areaAuto.current || !el.value.trim())) { el.value = town; areaAuto.current = true; } };
 
   return (
-    <form ref={formRef} action={action} className="list">
+    <form ref={formRef} action={action} className="list" onInput={() => setTimeout(recheck, 0)} onChange={() => setTimeout(recheck, 0)}>
       {invite && <input type="hidden" name="invite" value={invite} />}
       {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
         <span className="mu xs">✎ {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
+        {!edit && <div className="note xs">⏱ {tt('To create the profile you only need your name and trade. Photo, services, prices, map and work photos can be added now or later in your account.')}</div>}
         <div className="row2">
-          <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mike Reyes" /><ClearBtn /></span></label>
+          <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required defaultValue={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="Mike Reyes" /><ClearBtn /></span></label>
           <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
             <div className="trade-pick">{(Object.keys(TRADES) as Trade[]).map((t) => (
               <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />
@@ -85,13 +98,13 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <h3 style={{ margin: 0 }}>{tt('Service area on the map')}</h3>
         <span className="mu sm">{tt('Draw where you work: clients inside this area see you first.')}</span>
         <label className="f">{tt("Area you serve")} <span className="mu xs">({tt('fills in from the map, you can edit it')})</span><span className="fieldwrap"><input className="inp" name="area" ref={areaRef} onInput={() => { areaAuto.current = false; }} placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /><ClearBtn /></span></label>
-        <ServiceAreaMap polygon={I?.polygon} lat={I?.baseLat} lng={I?.baseLng} radius={I?.radius ?? 15} onTown={onTown} />
+        <ServiceAreaMap polygon={I?.polygon} lat={I?.baseLat} lng={I?.baseLng} radius={I?.radius ?? 15} onTown={onTown} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_map`} />
         {trade === 'handyman' && <span className="mu xs">{tt("Handymen can take jobs under $1,000 total (labor and materials), no permits, nothing inside walls (California B&P Code §7048).")}</span>}
       </div>
 
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Photo and page color")}</h3>
-        <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} required={!edit} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_photo`}
+        <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_photo`}
           onAccent={(c) => setFigAccent(c)} onChange={({ figure: f, photo: p }) => { setFigure(f); setPhoto(p); if (!f) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} />
         <label className="f">{tt("Work-clothes color")}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="color" name="uniform" value={uniform} onChange={(e) => { setUniform(e.target.value); setFigAccent(null); }} style={{ width: 52, height: 40, border: 0, background: 'none' }} />
@@ -102,7 +115,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       {!edit && <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Photos of your work")}</h3>
         <span className="mu sm">{tt("Add photos of jobs you have done, in any order: installs, repairs, before and after. Clients look at these first. You can add more later.")}</span>
-        <PhotoPicker name="work_url" prefix="work" max={24} label={tt('Add work photos')} />
+        <PhotoPicker name="work_url" prefix="work" max={24} label={tt('Add work photos')} draftKey="nf_draft_pro-new_work" />
         <span className="mu xs">{tt("Only your own work. No faces of clients, house numbers or addresses in the photos.")}</span>
       </div>}
 
@@ -137,21 +150,24 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       </div>
 
       {!edit && <label className="agree"><input type="checkbox" name="agree" required />
-        <span>{tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
+        <span>{licensed ? tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the') : tt('I confirm I take only jobs under $1,000 (with materials) that need no permit until I add a CSLB license, I hold any insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
       <FormDraft form={formRef} id={edit ? 'pro-edit' : 'pro-new'} done={Boolean(state?.saved)} again={state?.error ? state : undefined} />
       {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: the form checks out, but nothing was saved. Connect the database to accept real sign-ups.")}</div>}
       <div className="chips">
         <button type="button" className="btn ghost" onClick={openPreview}>👁 {tt('Preview my page')}</button>
-        <button className="btn" disabled={pending}>{tt(pending ? 'Saving…' : edit ? 'Save changes' : 'Create my profile')}</button>
+        <span className={`submit-wrap${missing.length ? ' blocked' : ''}${tap ? ' tap' : ''}`} onClick={() => { if (missing.length) { setTap(true); setTimeout(() => setTap(false), 4000); } }}>
+          <button className="btn" disabled={pending || missing.length > 0} aria-describedby={missing.length ? 'pf-missing' : undefined}>{tt(pending ? 'Saving…' : edit ? 'Save changes' : 'Create my profile')}</button>
+          {missing.length > 0 && <span className="submit-tip" id="pf-missing" role="tooltip"><b>{tt('Still needed:')}</b><ul>{missing.map((m) => <li key={m}>{tt(m)}</li>)}</ul></span>}
+        </span>
       </div>
       {preview && <ProPreview d={preview} busy={flipBusy} onClose={() => setPreview(null)} onMirror={async () => {
         setFlipBusy(true);
         if (mirrorFig.current) await mirrorFig.current();
         setFlipBusy(false); setTimeout(openPreview, 50);
       }} />}
-      <span className="mu xs">{tt(edit ? 'To change your trade or license number, contact NovaFides support: they need a new check.' : 'We check your license with CSLB and your ID before your profile goes public. One person, one profile.')}</span>
+      <span className="mu xs">{tt(edit ? 'To change your trade or license number, contact NovaFides support: they need a new check.' : licensed ? 'We check your license with CSLB and your ID before your profile goes public. One person, one profile.' : 'We check your ID before your profile goes public. One person, one profile.')}</span>
     </form>
   );
 }

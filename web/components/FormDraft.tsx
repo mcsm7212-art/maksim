@@ -9,6 +9,8 @@ const setVal = (el: HTMLInputElement | HTMLTextAreaElement, v: string) => {
   Object.getOwnPropertyDescriptor(proto, 'value')?.set?.call(el, v);
   el.dispatchEvent(new Event('input', { bubbles: true }));
 };
+/** Deletes a draft and its parts (photo, own services, map, work photos). */
+const clearDraft = (key: string) => { try { for (const k of ['', '_photo', '_custom', '_map', '_work']) localStorage.removeItem(key + k); } catch { /* storage off */ } };
 const fields = (f: HTMLFormElement) => [...f.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name], textarea[name]')]
   .filter((el) => !['hidden', 'file', 'password', 'submit'].includes((el as HTMLInputElement).type));
 const isText = (el: HTMLInputElement | HTMLTextAreaElement) => el instanceof HTMLTextAreaElement || ['text', 'search', ''].includes(el.type);
@@ -28,7 +30,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   const restore = () => {
     const f = form.current; if (!f) return false;
     let data: Saved = {}; try { data = JSON.parse(localStorage.getItem(key) ?? '{}'); } catch { return false; }
-    if (!Object.keys(data).length) return Boolean(localStorage.getItem(`${key}_photo`));
+    if (!Object.keys(data).length) return ['_photo', '_map', '_work'].some((k) => !['', '[]', 'null', '{"pts":null}'].includes(localStorage.getItem(key + k) ?? ''));
     const els = fields(f);
     // Radios first (the trade decides which services are shown), then everything else.
     els.filter((el) => el.type === 'radio' && data[`${el.name}=${el.value}`] === true && !(el as HTMLInputElement).checked).forEach((el) => (el as HTMLInputElement).click());
@@ -47,8 +49,8 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   // Put the draft back once the form is on screen.
   useEffect(() => {
     const f = form.current; if (!f) return;
-    if (id === 'pro-edit') { try { localStorage.removeItem('nf_draft_pro-new'); } catch { /* storage off */ } } // the new-profile draft is no longer needed
-    if (done) { try { localStorage.removeItem(key); localStorage.removeItem(`${key}_photo`); localStorage.removeItem(`${key}_custom`); } catch { /* storage off */ } }
+    if (id === 'pro-edit') clearDraft('nf_draft_pro-new'); // the new-profile draft is no longer needed
+    if (done) clearDraft(key);
     else if (restore()) setRestored(true);
     ready.current = true;
     const save = () => {
@@ -70,7 +72,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   useEffect(() => { if (again) restore(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [again]);
 
   return <>
-    {restored && <div className="note xs draft-note">↺ {t('We kept what you typed before. Nothing is saved on the site until you press Save.')} <button type="button" className="linkbtn xs" onClick={() => { try { localStorage.removeItem(key); localStorage.removeItem(`${key}_photo`); localStorage.removeItem(`${key}_custom`); } catch { /* */ } location.reload(); }}>{t('Start over')}</button></div>}
+    {restored && <div className="note xs draft-note">↺ {t('We kept what you typed before. Nothing is saved on the site until you press Save.')} <button type="button" className="linkbtn xs" onClick={() => { clearDraft(key); location.reload(); }}>{t('Start over')}</button></div>}
     {foreign.length > 0 && <div className="note xs en-warn">⚠ {t('Please write in English. Most clients in the Bay Area read English. Not in English yet:')} <b>{foreign.join(', ')}</b></div>}
   </>;
 }

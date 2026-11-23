@@ -1,18 +1,30 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { isLive } from '@/lib/supabase/config';
 import { uploadPhotos } from '@/lib/upload';
 import { useT } from './I18n';
 
 /** Picks photos, uploads them right away, and puts their URLs into hidden inputs named `name`. */
-export default function PhotoPicker({ name, max = 1, prefix, label, onChange, required }: {
-  name: string; max?: number; prefix: string; label: string; onChange?: (previews: string[]) => void; required?: boolean;
+export default function PhotoPicker({ name, max = 1, prefix, label, onChange, required, draftKey }: {
+  name: string; max?: number; prefix: string; label: string; onChange?: (previews: string[]) => void; required?: boolean; draftKey?: string;
 }) {
   const [items, setItems] = useState<{ url: string; preview: string }[]>([]);
   const [busy, setBusy] = useState(false); const t = useT();
   const [err, setErr] = useState<string | null>(null);
   const set = (next: typeof items) => { setItems(next); onChange?.(next.map((i) => i.preview)); };
+  // Uploaded photos stay in the draft: they come back after a reload or a language switch (until the form is saved).
+  const loaded = useRef(false);
+  useEffect(() => {
+    if (!draftKey) return;
+    try { const urls = JSON.parse(localStorage.getItem(draftKey) ?? '[]') as string[]; if (Array.isArray(urls) && urls.length) set(urls.filter((u) => typeof u === 'string' && u.startsWith('http')).slice(0, max).map((u) => ({ url: u, preview: u }))); } catch { /* no draft */ }
+    loaded.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!draftKey || !loaded.current) return;
+    try { const urls = items.map((i) => i.url).filter(Boolean); if (urls.length) localStorage.setItem(draftKey, JSON.stringify(urls)); else localStorage.removeItem(draftKey); } catch { /* storage off */ }
+  }, [items, draftKey]);
 
   async function pick(list: FileList | null) {
     if (!list?.length) return;

@@ -22,13 +22,26 @@ const center = (p: Pt[]): Pt => [p.reduce((s, x) => s + x[0], 0) / p.length, p.r
  * Service area as a shape on the map. Drag the corner points; drag a small point in the middle of a side to add a corner;
  * double-click a corner to remove it; "+"/"−" grow or shrink the whole area. Read-only on the pro's page.
  */
-export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnly, onTown }: { polygon?: Pt[] | null; lat?: number | null; lng?: number | null; radius?: number | null; readOnly?: boolean; onTown?: (name: string) => void }) {
+export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnly, onTown, draftKey }: { polygon?: Pt[] | null; lat?: number | null; lng?: number | null; radius?: number | null; readOnly?: boolean; onTown?: (name: string) => void; draftKey?: string }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<LMap | null>(null); const layer = useRef<LayerGroup | null>(null); const Lref = useRef<typeof import('leaflet') | null>(null);
   const [pts, setPts] = useState<Pt[] | null>(polygon && polygon.length >= 3 ? polygon : lat != null && lng != null ? ring([lat, lng], radius ?? 15) : null);
   const [q, setQ] = useState(''); const [msg, setMsg] = useState<string | null>(null);
   const fitted = useRef(false);
+  const ptsRef = useRef(pts); ptsRef.current = pts; // draw() always uses the latest area, even when called from an older callback
+  // Keep the drawn area in this browser until the form is saved: it survives a reload or a language switch.
+  useEffect(() => {
+    if (!draftKey || readOnly) return;
+    try { const d = JSON.parse(localStorage.getItem(draftKey) ?? 'null') as { pts: Pt[] | null } | null; if (d && (d.pts === null || (Array.isArray(d.pts) && d.pts.length >= 3))) { fitted.current = false; setPts(d.pts); } } catch { /* no draft */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const changed = useRef(false);
+  useEffect(() => {
+    if (!draftKey || readOnly) return;
+    if (!changed.current) { changed.current = true; return; } // the first value is what came from the page, not a change
+    try { localStorage.setItem(draftKey, JSON.stringify({ pts })); } catch { /* storage off */ }
+  }, [pts, draftKey, readOnly]);
 
   useEffect(() => {
     let alive = true;
@@ -38,7 +51,7 @@ export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnl
       const start = pts ? center(pts) : BAY;
       const m = L.map(box.current, { zoomSnap: 0.25, scrollWheelZoom: !readOnly, zoomControl: true, doubleClickZoom: false }).setView(start, pts ? 10 : 9);
       L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(m);
-      map.current = m; layer.current = L.layerGroup().addTo(m);
+      map.current = m; layer.current = L.layerGroup().addTo(m); draw();
       // No area yet: the first click drops a shape around that spot.
       if (!readOnly) m.on('click', (e) => setPts((cur) => cur ?? ring([e.latlng.lat, e.latlng.lng], 10)));
       const fit = () => { m.invalidateSize(); draw(); };
@@ -60,6 +73,7 @@ export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnl
 
   function draw() {
     const L = Lref.current, m = map.current, g = layer.current; if (!L || !m || !g) return;
+    const pts = ptsRef.current;
     g.clearLayers(); if (!pts) return;
     const acc = getComputedStyle(document.documentElement).getPropertyValue('--cu-l').trim() || '#C08A62';
     const shape = L.polygon(pts, { color: acc, weight: 2.5, fillColor: acc, fillOpacity: 0.18 }).addTo(g);
