@@ -33,7 +33,6 @@ export default function ProPreview({ d, onClose, onMirror, busy }: { d: PreviewD
                 <span className="pco">{t('INDEPENDENT')}<br />{d.trade === 'other' ? (d.customTrade ?? '').toUpperCase() : t(BIG[d.trade])}<b>.</b></span>
                 <p className="ptag">{t('Behind every rating is a job.')}<br />{t('Behind every job is a person.')}</p>
                 {d.area && <div className="locline">📍 {d.area} · San Francisco Bay Area</div>}
-                <div className="hexlvl" title={t('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{t('Founding Pro')}</b></div></div>
                 <HeroJobs title={t('Popular jobs')} from={t('from')} jobs={d.jobs ?? []} />
               </div>
               <div className="figcol">

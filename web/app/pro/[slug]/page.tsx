@@ -136,7 +136,7 @@ export default async function ProPage({ params, searchParams }: Props) {
             {pro.urgent && <div className="badge urg" style={{ marginTop: 8 }}>⚡ {pro.urgentFee ? tr('Takes urgent calls · +${fee} call-out', { fee: pro.urgentFee }) : tr('Takes urgent calls')}</div>}
             {stats
               ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: 'var(--cu-l)' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
-              : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{tr('Founding Pro')}</b></div></div>}
+              : null}
             <HeroJobs title={tr('Popular jobs')} from={tr('from')} jobs={[...pro.services].sort((a, b) => (b.jobs ?? 0) - (a.jobs ?? 0)).slice(0, 3).flatMap((x) => {
               const sv = serviceById(x.id); const p = priceFor(pro, x.id); return sv && p ? [{ id: x.id, name: svcName(sv, lang), price: p, href: `/book?pro=${pro.slug}&svc=${x.id}` }] : [];
             }).concat(own.filter((c) => c.price != null).map((c, i) => ({ id: `own-${i}`, name: c.name, price: Number(c.price), href: estHref }))).slice(0, 3)} />
