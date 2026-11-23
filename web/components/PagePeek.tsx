@@ -36,7 +36,7 @@ export default function PagePeek({ href, img, label, title }: { href: string; im
       <button type="button" className="peek-thumb" onClick={() => { setHover(null); setBig(true); }} aria-label={`${t('Example page')}: ${title}`}>
         <img src={img} alt="" loading="lazy" /><span>{label}</span>
       </button>
-      {hover && !big && <span className="peek-pop" role="tooltip" style={{ left: hover.x, top: hover.y }}>
+      {hover && !big && <span className="peek-pop" role="button" tabIndex={-1} style={{ left: hover.x, top: hover.y }} onClick={() => { setHover(null); setBig(true); }}>
         <span className="peek-frame"><iframe src={href} title={title} loading="lazy" tabIndex={-1} onLoad={(e) => clean(e.currentTarget)} /></span>
         <small>{t('Click to open it bigger')}</small>
       </span>}
