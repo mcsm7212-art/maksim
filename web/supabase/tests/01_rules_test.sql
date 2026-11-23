@@ -726,4 +726,23 @@ insert into public.pro_contacts (pro_id, colleague_id) values (auth.uid(), '0000
 select pg_temp.ok((select count(*) from public.posts where id = '50000000-0000-0000-0000-0000000000f1') = 1, 'mutual friends see the friends-only post');
 select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
 select pg_temp.ok((select count(*) from public.posts where id = '50000000-0000-0000-0000-0000000000f1') = 0, 'clients do not see friends-only posts');
+
+-- 0038 helpers and trade tips: private helper list; tips are seen and voted only by pros of the same trade
+select pg_temp.act(null); reset role;
+update public.pros set trade = 'plumbing', custom_trade = null, status = 'verified' where id in ('00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a2');
+update public.pros set trade = 'electrical', custom_trade = null, status = 'verified' where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+insert into public.pro_helpers (helper_id, note) values ('00000000-0000-0000-0000-0000000000b2', 'Good electrician for panel work');
+insert into public.pro_tips (id, kind, name, place, note) overriding system value values (9001, 'store', 'Ferguson Plumbing Supply', 'San Carlos', 'Opens at 6am, pro counter is fast');
+select pg_temp.act('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.ok((select count(*) from public.pro_helpers) = 0 and (select count(*) from public.pro_tips where id = 9001) = 1, 'another plumber sees the tip, not my private helper list');
+insert into public.pro_tip_votes (tip_id) values (9001);
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select pg_temp.ok((select count(*) from public.pro_tips where id = 9001) = 0, 'an electrician does not see plumbers'' tips');
+do $$ begin insert into public.pro_tip_votes (tip_id) values (9001); raise exception 'FAIL: voted in another trade';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.act('00000000-0000-0000-0000-0000000000a1');
+do $$ begin insert into public.pro_tip_votes (tip_id) values (9001); raise exception 'FAIL: voted for own tip';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.ok((select count(*) from public.pro_tip_votes where tip_id = 9001) = 1, 'votes come only from other pros of the same trade');
 \echo ALL RULE TESTS PASSED

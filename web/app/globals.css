@@ -1189,3 +1189,19 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .fr-lounge{text-decoration:none;color:var(--ink);transition:border-color .18s ease,transform .18s ease}.fr-lounge:hover{border-color:var(--cu-l,#C08A62);transform:scale(1.015)}
 .fr-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
 .fr-photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
+/* friends page: main tabs, pros I need, trade tips */
+.fr-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(255,255,255,.1));padding-bottom:0}
+.fr-tabs a{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:12px 12px 0 0;text-decoration:none;color:var(--mu);font-weight:600;border:1px solid transparent;border-bottom:0;transition:color .15s ease,background .15s ease}
+.fr-tabs a:hover{color:var(--ink);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.fr-tabs a[aria-current=page]{color:var(--ink);background:var(--card);border-color:color-mix(in srgb,var(--acc) 55%,transparent);box-shadow:0 -2px 14px color-mix(in srgb,var(--acc) 18%,transparent)}
+.fr-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.fr-helper{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line,rgba(255,255,255,.08))}
+.fr-note{display:flex;gap:6px;padding-left:50px}.fr-note .inp{flex:1;min-width:0;font-size:13.5px}
+@media (max-width:560px){.fr-note{padding-left:0}}
+.fr-add>summary{list-style:none;cursor:pointer;width:fit-content}.fr-add>summary::-webkit-details-marker{display:none}
+.fr-tipform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.fr-tipform textarea,.fr-tipform input[name=url]{grid-column:1/-1}.fr-tipform .btn{justify-self:start}
+@media (max-width:560px){.fr-tipform{grid-template-columns:1fr}}
+.fr-tip{display:flex;align-items:center;gap:14px;padding:12px 16px}
+.fr-tip-t{flex:1;min-width:0}.fr-tip-t p{margin:4px 0;font-size:14px;overflow-wrap:anywhere}
+.fr-rank{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:color-mix(in srgb,var(--acc) 22%,transparent);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent)}
+.fr-votes{font-weight:600;padding:0 6px}
