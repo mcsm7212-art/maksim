@@ -8,6 +8,7 @@ import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { ownPhotoUrl } from '@/lib/photos';
+import { readExtLinks } from '@/lib/ext-sites';
 
 export type JoinState = { error?: string; errorVars?: Record<string, string>; demo?: boolean; saved?: boolean } | undefined;
 const str = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
@@ -99,6 +100,8 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };
+  const ext = readExtLinks(f, 'ext_');
+  if (ext.bad) return { error: `This does not look like a ${ext.bad} profile link. Open your profile on ${ext.bad} and copy the address from the browser.` };
   if (!isLive()) return { demo: true };
 
   const me = await getMe();
@@ -115,7 +118,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
     experience: str(f, 'experience', 2000) || null,
     skills: str(f, 'skills', 300).split(',').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     languages: str(f, 'languages', 120).split(',').map((s) => s.trim()).filter(Boolean),
-    license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')),
+    license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')), ext_links: ext.links,
     photo_url: photo || null, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
   });
   if (error) return { error: cleanWordsError(error.message) ?? error.message };

@@ -18,6 +18,7 @@ import ProPreview, { type PreviewData } from '@/components/ProPreview';
 import { checkLicense, registerPro, updatePro } from '../actions';
 import CslbMark, { type CslbAuto } from '@/components/CslbMark';
 import { namesMatch } from '@/lib/names';
+import { EXT_SITES } from '@/lib/ext-sites';
 import { badText, ENGLISH_ONLY, nonLatin, notEnglish } from '@/lib/clean-words';
 import { useLang, useT } from '@/components/I18n';
 import { groupName, svcName } from '@/lib/i18n-core';
@@ -174,6 +175,15 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <span className="mu sm">{tt("Add photos of jobs you have done, in any order: installs, repairs, before and after. Clients look at these first. You can add more later.")}</span>
         <PhotoPicker name="work_url" prefix="work" max={24} label={tt('Add work photos')} draftKey="nf_draft_pro-new_work" />
         <span className="mu xs">{tt("Only your own work. No faces of clients, house numbers or addresses in the photos.")}</span>
+      </div>}
+
+      {!edit && <div className="card formcard">
+        <h3 style={{ margin: 0 }}>{tt('Your reviews on other sites')} <span className="mu sm">· {tt('optional')}</span></h3>
+        <span className="mu sm">{tt('Already have reviews on Yelp, Google or Thumbtack? Paste the links: clients see buttons to your profiles there, so you do not start from zero. We show only links, never copy ratings. You can add them later too.')}</span>
+        <div className="row2">
+          {EXT_SITES.map((x) => <label key={x.key} className="f">{x.name}<input className="inp" name={`ext_${x.key}`} type="url" maxLength={400} placeholder={x.hint} /></label>)}
+        </div>
+        <span className="mu xs">{tt('After you save, a NovaFides admin checks that the profiles are yours.')}</span>
       </div>}
 
 

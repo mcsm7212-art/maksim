@@ -1795,6 +1795,8 @@ export const ES: Record<string, string> = {
 "This browser cannot share a location. Choose a city instead.": "Este navegador no puede compartir la ubicación. Elige una ciudad.",
 "Location is turned off for this site. Choose a city, or allow location in the browser and try again.": "La ubicación está desactivada para este sitio. Elige una ciudad o permite la ubicación en el navegador e inténtalo de nuevo.",
 "takes jobs within {n} mi": "acepta trabajos a {n} mi",
+"Your reviews on other sites": "Tus reseñas en otros sitios",
+"Already have reviews on Yelp, Google or Thumbtack? Paste the links: clients see buttons to your profiles there, so you do not start from zero. We show only links, never copy ratings. You can add them later too.": "¿Ya tienes reseñas en Yelp, Google o Thumbtack? Pega los enlaces: los clientes ven botones a tus perfiles allí y no empiezas de cero. Solo mostramos enlaces, nunca copiamos calificaciones. También puedes añadirlos después.",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3592,4 +3594,6 @@ export const RU: Record<string, string> = {
 "This browser cannot share a location. Choose a city instead.": "Этот браузер не умеет передавать местоположение. Выберите город.",
 "Location is turned off for this site. Choose a city, or allow location in the browser and try again.": "Геолокация для сайта выключена. Выберите город или разрешите геолокацию в браузере и попробуйте снова.",
 "takes jobs within {n} mi": "берёт заказы в радиусе {n} миль",
+"Your reviews on other sites": "Ваши отзывы на других сайтах",
+"Already have reviews on Yelp, Google or Thumbtack? Paste the links: clients see buttons to your profiles there, so you do not start from zero. We show only links, never copy ratings. You can add them later too.": "Уже есть отзывы на Yelp, Google или Thumbtack? Вставьте ссылки: клиенты увидят кнопки на ваши профили там, и вы не начинаете с нуля. Мы показываем только ссылки и не копируем оценки. Можно добавить и позже.",
 };
