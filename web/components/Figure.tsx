@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
+import FigStand from './FigStand';
+
 // Pro photo. A full-height cutout (transparent background) stands in the scene with a rim glow in the pro's colour.
 // A normal photo fills the frame. With neither, shows the NovaFides silhouette lit in the pro's accent colour.
 export default function Figure({ name, accent, photo, figure, big }: { name: string; accent: string; photo?: string | null; figure?: string | null; big?: boolean }) {
@@ -8,7 +10,7 @@ export default function Figure({ name, accent, photo, figure, big }: { name: str
     <span className={`fig-sil${big ? ' big' : ''}${figure ? ' cut' : ''}`} style={{ ['--acc' as string]: accent }}>
       {figure
         // A cut-out figure stands on the floor: the shadow is tied to the picture, so it is always right under the shoes.
-        ? <span className="fstand"><i className="fshadow" aria-hidden /><img src={src} alt={name} loading={big ? 'eager' : 'lazy'} /></span>
+        ? <FigStand src={src} alt={name} eager={big} />
         : <img src={src} alt={photo ? name : `${name}: photo coming soon`} loading={big ? 'eager' : 'lazy'} style={fill ? { objectFit: 'cover', width: '100%', height: '100%', bottom: 0 } : undefined} />}
     </span>
   );

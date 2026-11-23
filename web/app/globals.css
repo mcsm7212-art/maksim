@@ -985,3 +985,13 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
   50%{border-color:rgba(214,69,65,.85);box-shadow:0 0 0 1px rgba(214,69,65,.35),0 0 22px rgba(214,69,65,.22);background-color:color-mix(in srgb,#D64541 10%,var(--card))}}
 details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:lic-breathe 6s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:none;border-color:rgba(214,69,65,.7)}}
+
+/* soles found in the picture: the back foot stands on the floor line, each foot has its own contact shadow */
+.ffoot{position:absolute;z-index:0;height:3.6%;transform:translateY(-38%);border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,0,0,.9),rgba(0,0,0,.5) 55%,transparent);filter:blur(1.5px)}
+.fshadow.amb{transform:translateY(-50%)}
+.fshadow.amb::after{display:none}
+@media (min-width:761px){
+  .figcol .fig-sil.cut.big .fstand.found{bottom:15%;transform:translate(-50%,var(--drop,0%))}
+}
+[data-theme="light"] .ffoot{background:radial-gradient(closest-side,rgba(40,25,10,.6),rgba(40,25,10,.28) 55%,transparent)}
