@@ -275,9 +275,12 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await mn.locator('.sa-map').scrollIntoViewIfNeeded();const box=await mn.locator('.sa-map').boundingBox();await mn.mouse.click(box.x+box.width/2,box.y+box.height/2);await mn.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10);
   await mn.setInputFiles('.drop input[multiple]',IMG('face'));await mn.waitForSelector('input[name=work_url]',{state:'attached',timeout:60000});
   await mn.reload();await mn.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10,null,{timeout:15000});await mn.waitForSelector('input[name=work_url]',{state:'attached',timeout:15000});
-  await mn.click('.trade-req .add-own');await mn.fill('.trade-req input','Roofing');await mn.click('.trade-req button:has-text("Add")');
+  await mn.click('.trade-req .add-own');await mn.fill('.trade-req input','жопа');await mn.waitForSelector('.trade-req .err');
+  if(await mn.locator('.trade-req button:has-text("Add")').isEnabled())throw new Error('rude trade can be added');
+  await mn.fill('.trade-req input','Roofing');await mn.click('.trade-req button:has-text("Add")');
   await mn.waitForSelector('.own-trade input:checked');await mn.click('.custom-svcs button:has-text("Add a category")');await mn.fill('.cs-cat-h input','Repairs');
-  await mn.click('.cs-cat button:has-text("Add a job")');await mn.fill('.cs-cat input[name=custom_name]','Shingle repair');await mn.fill('.cs-cat input[name=custom_price]','450');
+  await mn.click('.cs-cat button:has-text("Add a job")');await mn.fill('.cs-cat input[name=custom_name]','Sh1t removal');await mn.waitForSelector('.submit-wrap.blocked');await mn.hover('.submit-wrap');await mn.waitForSelector('.submit-tip:visible:has-text("rude")');
+  await mn.fill('.cs-cat input[name=custom_name]','Shingle repair');await mn.fill('.cs-cat input[name=custom_price]','450');
   for(let i=0;i<20&&sql("select count(*) from trade_requests where name='Roofing'")!=='1';i++)await mn.waitForTimeout(250);
   if(sql("select count(*) from trade_requests where name='Roofing'")!=='1')throw new Error('own trade not sent to the admin list');
   await mn.check('input[name=agree]');await mn.waitForSelector('.submit-wrap:not(.blocked)',{timeout:5000});
@@ -287,7 +290,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(sql("select count(*) from pro_custom_services c join pros p on p.id=c.pro_id where p.display_name='Mia Minimal' and c.category='Repairs' and c.name='Shingle repair' and c.price=450")!=='1')throw new Error('own category job not saved');
   {const sl=sql("select slug from pros where display_name='Mia Minimal'");await mn.goto(B+'/pro/'+sl);const tx=await mn.textContent('body');if(!/ROOFING/.test(tx)||!/Repairs/.test(tx)||!/Shingle repair/.test(tx))throw new Error('own trade or category not on the page');}
   if(sql("select count(*) from pros p where display_name='Mia Minimal' and photo_url is null and service_polygon is not null and exists(select 1 from pro_photos w where w.pro_id=p.id)")!=='1')throw new Error('minimal pro not saved with map and work photo');
-  step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later; added an own trade (Roofing) with a category and a job, shown on the page');}
+  step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later; added an own trade (Roofing) with a category and a job, shown on the page; a rude trade name and a rude job name are refused');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');

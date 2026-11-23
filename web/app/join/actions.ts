@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { namesMatch } from '@/lib/names';
+import { badText, cleanWordsError, hasCyrillic } from '@/lib/clean-words';
 import { licenseNeeded, serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
@@ -51,6 +52,13 @@ function customOf(f: FormData) {
   return names.map((n, i) => ({ name: n.trim().slice(0, 80), price: Number(prices[i]) > 0 ? Math.round(Number(prices[i])) : null, category: (cats[i] ?? '').trim().slice(0, 60) || null }))
     .filter((x) => x.name.length >= 3).slice(0, 60);
 }
+// Rude words anywhere clients can see, or non-Latin own trade / jobs: refused before saving (the database refuses them too).
+function wordsProblem(f: FormData): string | null {
+  const g = (k: string) => f.getAll(k).map(String).join(' ');
+  if (badText([g('name'), g('custom_trade'), g('bio'), g('experience'), g('skills'), g('custom_name'), g('custom_cat')].join(' '))) return 'Please remove rude or offensive words. Clients see this text.';
+  if (hasCyrillic([g('custom_trade'), g('custom_name'), g('custom_cat')].join(' '))) return 'Write your trade and your own jobs in English (Latin letters).';
+  return null;
+}
 function licenseProblem(services: { service_id: string; price?: number | null }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
   if (licensed) return null;
   const bad = [...services.filter(needsLicense).map((x) => serviceById(x.service_id)!.name), ...custom.filter((c) => (c.price ?? 0) >= 1000).map((c) => c.name)];
@@ -77,6 +85,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const ownTrade = trade === 'other' ? str(f, 'custom_trade', 40) : '';
   if (trade === 'other' && ownTrade.length < 2) return { error: 'Write the name of your trade.' };
   if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
+  const wp = wordsProblem(f); if (wp) return { error: wp };
   if (license && !/^\d{5,8}$/.test(license)) return { error: 'A CSLB license number has 5 to 8 digits.' };
   // The pro chose not to send the number for the check: it is not saved, the profile works as unlicensed.
   if (license && !f.get('license_review')) license = '';
@@ -109,7 +118,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
     license_no: license || null, license_status: license ? 'pending' : 'none', insured: Boolean(f.get('insured')),
     photo_url: photo || null, uniform_color: uniform, ...((fg) => ({ figure_url: fg.url, accent: fg.url && fg.accent ? fg.accent : accentFromUniform(uniform) }))(figureOf(f, me.id, null)),
   });
-  if (error) return { error: error.message };
+  if (error) return { error: cleanWordsError(error.message) ?? error.message };
   // Until the license is confirmed, jobs that need it wait for approval (hidden from clients). Company technicians work under the company's license.
   if (services.length) await sb.from('pro_services').insert(services.map((s) => { const wait = !invite && needsLicense(s); return { ...s, pro_id: me.id, active: !wait, needs_approval: wait }; }));
   await saveCustom(sb, me.id, custom);
@@ -138,6 +147,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
     .map((id) => { const v = Number(str(f, `price_${id}`)); return { service_id: id, price: v > 0 ? v : null }; });
   if (name.length < 3) return { error: 'Enter your name as clients will see it.' };
   if (end <= start) return { error: 'Set your working days and hours.' };
+  const wp2 = wordsProblem(f); if (wp2) return { error: wp2 };
   const custom = customOf(f);
   const licOk = cur!.license_status === 'verified' || Boolean(cur!.company_id);
   const lp = licenseProblem(services, custom, licOk || Boolean(cur!.license_no)); if (lp) return { error: lp };
@@ -154,7 +164,7 @@ export async function updatePro(_p: JoinState, f: FormData): Promise<JoinState> 
     accent: fg.url ? (fg.accent ?? (cur!.figure_url ? cur!.accent : accentFromUniform(uniform))) : accentFromUniform(uniform),
     photo_url: newPhoto && ownPhotoUrl(newPhoto, me.id) ? newPhoto : cur!.photo_url,
   }).eq('id', me.id);
-  if (error) return { error: error.message };
+  if (error) return { error: cleanWordsError(error.message) ?? error.message };
   // Keep job counters: services that are no longer offered are switched off, not deleted.
   const off = sb.from('pro_services').update({ active: false, needs_approval: false }).eq('pro_id', me.id);
   await (services.length ? off.not('service_id', 'in', `(${services.map((x) => x.service_id).join(',')})`) : off);
@@ -189,7 +199,7 @@ export async function registerCompany(_p: JoinState, f: FormData): Promise<JoinS
     city: str(f, 'city', 60), license_no: license || null, since_year: Number(str(f, 'since')) || null,
     warranty_months: Number(str(f, 'warranty')) || 0, about: str(f, 'about', 800), owner_id: me.id,
   }).select('id').single();
-  if (error) return { error: error.message };
+  if (error) return { error: cleanWordsError(error.message) ?? error.message };
   await sb.from('company_members').insert({ company_id: data.id, profile_id: me.id, role: 'owner' });
   if (me.role === 'client') await sb.rpc('become', { new_role: 'company' });
   redirect('/business?joined=1');
@@ -219,6 +229,7 @@ export async function updateCompany(_p: JoinState, f: FormData): Promise<JoinSta
 export async function requestTrade(name: string): Promise<{ ok: boolean; error?: string }> {
   const n = String(name ?? '').trim().slice(0, 60);
   if (n.length < 2) return { ok: false, error: 'Write the name of your trade.' };
+  if (badText(n)) return { ok: false, error: 'Please remove rude or offensive words. Clients see this text.' };
   if (!isLive()) return { ok: true };
   const me = await getMe(); if (!me) return { ok: false, error: 'Please sign in first.' };
   const { error } = await (await supabaseServer()).from('trade_requests').insert({ name: n });

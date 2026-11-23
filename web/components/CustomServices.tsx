@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useT } from './I18n';
+import { badText, hasCyrillic } from '@/lib/clean-words';
 
 type Row = { name: string; price: string; cat: string };
 type Saved = { rows: Row[]; cats: string[] };
@@ -34,6 +35,7 @@ export default function CustomServices({ initial, licensed, draftKey, grouped, w
         <input className="inp" type="number" name="custom_price" min={1} value={r.price} placeholder="$" onChange={(e) => set(rows.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} aria-label={t('price')} />
         <input type="hidden" name="custom_cat" value={grouped ? r.cat : ''} />
         <button type="button" className="clear-btn cs-del" onClick={() => set(rows.filter((_, j) => j !== i))} title={t('Remove')} aria-label={t('Remove')}>✕</button>
+        {(badText(r.name) || hasCyrillic(r.name)) && <small className="lic-msg">⚠ {t(badText(r.name) ? 'Please remove rude or offensive words. Clients see this text.' : 'Write your trade and your own jobs in English (Latin letters).')}</small>}
         {big && <small className="lic-msg">⚠ {t('$1,000 or more needs a CSLB license. Add your license number above or lower the price.')}</small>}
         {waiting && Number(r.price) >= 1000 && <small className="wait-msg">⏳ {t('Waiting for the admin to approve your license')}</small>}
       </div>);
@@ -61,6 +63,7 @@ export default function CustomServices({ initial, licensed, draftKey, grouped, w
         <div key={k} className="cs-cat">
           <div className="cs-cat-h">
             <input className="inp" value={c} maxLength={60} placeholder={t('Category name, e.g. Repairs')} onChange={(e) => rename(k, e.target.value)} aria-label={t('Category name')} />
+            {(badText(c) || hasCyrillic(c)) && <small className="lic-msg cs-cat-msg">⚠ {t(badText(c) ? 'Please remove rude or offensive words. Clients see this text.' : 'Write your trade and your own jobs in English (Latin letters).')}</small>}
             <button type="button" className="clear-btn cs-del" onClick={() => dropCat(k)} title={t('Remove the category and its jobs')} aria-label={t('Remove the category and its jobs')}>✕</button>
           </div>
           {rows.map((r, i) => (r.cat === c ? row(r, i) : null))}

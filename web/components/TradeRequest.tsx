@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { requestTrade } from '@/app/join/actions';
 import { useT } from './I18n';
+import { badText, hasCyrillic } from '@/lib/clean-words';
 
 /**
  * "+ Add your trade": a pro whose trade is not one of the four types its name and gets it right away, only for themselves.
@@ -10,7 +11,8 @@ import { useT } from './I18n';
 export default function TradeRequest({ onAdd, current }: { onAdd: (name: string) => void; current?: string | null }) {
   const t = useT();
   const [open, setOpen] = useState(false); const [name, setName] = useState('');
-  const ok = name.trim().length >= 2;
+  const bad = badText(name) ? 'Please remove rude or offensive words. Clients see this text.' : hasCyrillic(name) ? 'Write your trade and your own jobs in English (Latin letters).' : null;
+  const ok = name.trim().length >= 2 && !bad;
   const add = () => { if (!ok) return; const n = name.trim().slice(0, 40); onAdd(n); requestTrade(n).catch(() => {}); setName(''); setOpen(false); };
   return (
     <div className="trade-req">
@@ -21,6 +23,7 @@ export default function TradeRequest({ onAdd, current }: { onAdd: (name: string)
         <button type="button" className="btn sm" disabled={!ok} onClick={add}>{t('Add')}</button>
         <button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>{t('Cancel')}</button>
       </div>}
+      {open && bad && <span className="err xs">{t(bad)}</span>}
       <span className="mu xs">{t('Your trade is not in the list? Add it: only you see it, and below you make your own categories and jobs.')}</span>
     </div>
   );

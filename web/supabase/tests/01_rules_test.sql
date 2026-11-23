@@ -667,4 +667,16 @@ insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(),
 select pg_temp.ok((select needs_approval from public.pro_custom_services where name = 'Full repipe'), 'big job with a pending license waits for approval');
 select pg_temp.act(null);
 select pg_temp.ok((select count(*) from public.pro_custom_services where name = 'Full repipe') = 0, 'clients do not see jobs waiting for approval');
+
+-- 0033 clean words: rude words refused (with tricks), Latin letters for own trades and jobs; normal words pass
+select pg_temp.ok(public.bad_text('жопа') and public.bad_text('Sh1t repair') and public.bad_text('f*ck') and public.bad_text('PUTA madre') and public.bad_text('pizdec'), 'rude words are found, also with tricks');
+select pg_temp.ok(not public.bad_text('Canal and analysis, document, cucumber, Sussex, употребление, колебания, Mesa, Hui Chen, Dick Smith'), 'normal words are not flagged');
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ begin update public.pros set bio = 'I fix shit fast' where id = auth.uid(); raise exception 'FAIL: rude bio saved';
+  exception when others then if sqlerrm not like 'inappropriate words%' then raise; end if; end $$;
+do $$ begin insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Ремонт крана', 100); raise exception 'FAIL: Cyrillic job saved';
+  exception when others then if sqlerrm not like 'english only%' then raise; end if; end $$;
+do $$ begin insert into public.trade_requests (name) values ('жопа'); raise exception 'FAIL: rude trade request saved';
+  exception when others then if sqlerrm not like 'inappropriate words%' then raise; end if; end $$;
+select pg_temp.ok(true, 'rude bio, Cyrillic job names and rude trade requests are refused by the database');
 \echo ALL RULE TESTS PASSED

@@ -1612,6 +1612,8 @@ export const ES: Record<string, string> = {
 "Upload the CSLB list (CSV or Excel)": "Cargar la lista CSLB (CSV o Excel)",
 "The license is in the name of {lic}, not {name}. An independent pro may only use their own license: do not confirm it.": "La licencia está a nombre de {lic}, no de {name}. Un profesional independiente solo puede usar su propia licencia: no la confirme.",
 "This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.": "Esta licencia está a nombre de {lic}, no de {name}. Un profesional independiente solo puede agregar su propia licencia. Si la licencia es de su empresa, registre la empresa; si no, borre el número.",
+"Please remove rude or offensive words. Clients see this text.": "Quite las palabras groseras u ofensivas. Los clientes ven este texto.",
+"Write your trade and your own jobs in English (Latin letters).": "Escriba su oficio y sus trabajos en inglés (letras latinas).",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3226,4 +3228,6 @@ export const RU: Record<string, string> = {
 "Upload the CSLB list (CSV or Excel)": "Загрузить список CSLB (CSV или Excel)",
 "The license is in the name of {lic}, not {name}. An independent pro may only use their own license: do not confirm it.": "Лицензия оформлена на {lic}, а не на {name}. Частный мастер может использовать только свою лицензию — не подтверждайте её.",
 "This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.": "Эта лицензия оформлена на {lic}, а не на {name}. Частный мастер может указать только свою лицензию. Если лицензия на вашу компанию — зарегистрируйте компанию, иначе уберите номер.",
+"Please remove rude or offensive words. Clients see this text.": "Уберите грубые или оскорбительные слова — этот текст видят клиенты.",
+"Write your trade and your own jobs in English (Latin letters).": "Пишите свою профессию и свои работы на английском (латинскими буквами).",
 };
