@@ -19,6 +19,9 @@ export default function PagePeek({ href, img, label, title }: { href: string; im
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null); const [big, setBig] = useState(false);
   const me = useRef<HTMLSpanElement>(null);
   const [h, setH] = useState(760); // the page top's height at 1100 px wide
+  const [vw, setVw] = useState({ w: 1300, h: 900 });
+  useEffect(() => { if (!big) return; const r = () => setVw({ w: innerWidth, h: innerHeight }); r(); addEventListener('resize', r); return () => removeEventListener('resize', r); }, [big]);
+  const sc = Math.min(1, (vw.w * 0.96) / 1100, (vw.h * 0.92 - 52) / h);
   const loaded = (f: HTMLIFrameElement) => { clean(f); setTimeout(() => { const v = topHeight(f); if (v) setH(Math.min(1000, v)); }, 120); };
   // Next to the picture (right side, or left if there is no room), fully inside the window.
   const place = () => {
@@ -46,9 +49,12 @@ export default function PagePeek({ href, img, label, title }: { href: string; im
         <small>{t('Click to open it bigger')}</small>
       </span>}
       {big && <span className="peek-modal" role="dialog" aria-modal="true" aria-label={title} onClick={() => setBig(false)}>
-        <span className="peek-box" style={{ height: `min(${h + 52}px, 92vh)` }} onClick={(e) => e.stopPropagation()}>
+        <span className="peek-box" style={{ width: Math.round(1100 * sc) }} onClick={(e) => e.stopPropagation()}>
           <span className="peek-top"><b>{title}</b> <span className="mu xs">· {t('Example page')}</span><button type="button" className="btn ghost sm" onClick={() => setBig(false)}>✕ {t('Close')}</button></span>
-          <iframe src={href} title={title} scrolling="no" onLoad={(e) => loaded(e.currentTarget)} />
+          {/* only to look at: the page is shown whole (1100 px wide, scaled to fit) and nothing inside can be clicked */}
+          <span className="peek-big" style={{ height: Math.round(h * sc) }}>
+            <iframe src={href} title={title} scrolling="no" tabIndex={-1} style={{ height: h, transform: `scale(${sc})` }} onLoad={(e) => loaded(e.currentTarget)} />
+          </span>
         </span>
       </span>}
     </span>
