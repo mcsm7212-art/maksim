@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       if (p.countrycode !== 'US' || (p.state && p.state !== 'California')) return '';
       const street = p.street ?? (p.osm_key === 'highway' ? p.name : undefined); if (!street) return '';
       const city = p.city ?? p.town ?? p.village ?? p.county ?? '';
-      const no = typedNo ?? p.housenumber; // the street is found, the house number is the one the person typed
+      const no = /^\d/.test(street) ? "" : typedNo ?? p.housenumber; // the street is found, the house number is the one the person typed
       return [`${no ? `${no} ` : ''}${street}`, city, `CA${p.postcode ? ` ${p.postcode}` : ''}`].filter(Boolean).join(', ');
     }).filter(Boolean))].slice(0, 5);
     return NextResponse.json({ items }, { headers: { 'Cache-Control': 'public, max-age=3600' } });
