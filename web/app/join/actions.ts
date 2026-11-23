@@ -213,3 +213,12 @@ export async function requestTrade(name: string): Promise<{ ok: boolean; error?:
   if (error && !/duplicate|unique/i.test(error.message)) return { ok: false, error: /limit/.test(error.message) ? 'You already sent 5 trades. Thank you!' : 'Could not send. Try again.' };
   return { ok: true };
 }
+
+// Live hint in the sign-up form: what the CSLB master list says about the typed number (public data).
+export async function checkLicense(n: string, trade: string) {
+  const num = String(n ?? '').replace(/\D/g, '');
+  if (!/^\d{5,8}$/.test(num) || !isLive()) return null;
+  const me = await getMe(); if (!me) return null;
+  const { data } = await (await supabaseServer()).rpc('cslb_check', { num, trd: String(trade ?? '') });
+  return data ?? null;
+}

@@ -640,4 +640,24 @@ do $$ begin perform public.submit_license('12ab'); raise exception 'FAIL: bad fo
   exception when others then if sqlerrm not like 'license format%' then raise; end if; end $$;
 select public.submit_license('1234567');
 select pg_temp.ok((select license_no||'/'||license_status from public.pros where id = auth.uid()) = '1234567/pending', 'a new license number waits for the admin check');
+
+-- 0031 CSLB list: the typed number is compared with the list automatically; pros cannot read the list or fake the result
+select pg_temp.act(null);
+reset role;
+insert into public.cslb_licenses (license_no, name, status, classes, expires) values
+  ('1234567', 'SMITH JOHN', 'CLEAR', '{C36}', current_date + 300), ('7654321', 'OLD CO', 'CLEAR', '{C36}', current_date - 1), ('5555555', 'SPARKS', 'CLEAR', '{C10}', current_date + 300);
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select pg_temp.act(null); reset role; update public.pros set trade = 'plumbing', custom_trade = null where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select public.submit_license('1234567');
+select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'ok', 'CSLB list: an active C-36 license fits a plumber');
+select public.submit_license('7654321');
+select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'inactive', 'CSLB list: an expired license is marked');
+select public.submit_license('5555555');
+select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'class', 'CSLB list: an electrical license does not fit a plumber');
+select public.submit_license('99999');
+select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'not_found', 'CSLB list: an unknown number is marked not found');
+update public.pros set license_auto = '{"result":"ok"}' where id = auth.uid();
+select pg_temp.ok((select license_auto->>'result' from public.pros where id = auth.uid()) = 'not_found', 'a pro cannot fake the CSLB result');
+select pg_temp.ok((select count(*) from public.cslb_licenses) = 0, 'pros cannot read the CSLB list directly');
 \echo ALL RULE TESTS PASSED

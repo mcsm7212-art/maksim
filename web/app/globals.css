@@ -1065,3 +1065,10 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .lic-box{display:flex;flex-direction:column;gap:6px}
 .lic-box.verified{border-color:rgba(63,178,127,.55)}
 .lic-box.pending{border-color:color-mix(in srgb,var(--cu) 60%,var(--line))}
+
+/* what the CSLB list says about a license number */
+.cslb-mark{display:inline-block;font-size:13px;line-height:1.4;padding:6px 10px;border-radius:10px;border:1px solid var(--line)}
+.cslb-mark.ok{border-color:rgba(63,178,127,.55);background:rgba(63,178,127,.08)}
+.cslb-mark.bad{border-color:rgba(224,86,79,.5);background:rgba(224,86,79,.07)}
+.cslb-mark.grey{color:var(--mu)}
+.cslb-mark small{color:var(--mu)}

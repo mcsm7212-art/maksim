@@ -1,4 +1,6 @@
 import { resolveProblem } from '@/app/orders/actions';
+import CslbMark from '@/components/CslbMark';
+import CslbUpload from '@/components/CslbUpload';
 import { PROBLEM_KINDS } from '@/lib/orders';
 import { getLang, getT } from '@/lib/i18n';
 /* eslint-disable @next/next/no-img-element */
@@ -24,7 +26,7 @@ export default async function Admin() {
   if (me.role !== 'admin') redirect('/');
   const sb = await supabaseServer();
   const [{ data: pros }, { data: cos }, { data: reports }, { count: live }, { data: problems }, { data: flagged }] = await Promise.all([
-    sb.from('pros').select('id, slug, display_name, trade, license_no, photo_url, area, years_exp, insured, insurance_claimed, created_at, company:companies(name, license_no)').eq('status', 'pending').order('created_at'),
+    sb.from('pros').select('id, slug, display_name, trade, license_no, license_auto, photo_url, area, years_exp, insured, insurance_claimed, created_at, company:companies(name, license_no)').eq('status', 'pending').order('created_at'),
     sb.from('companies').select('id, slug, name, trade, license_no, city, owner_id, created_at').eq('status', 'pending').order('created_at'),
     sb.from('review_reports').select('id, reason, details, created_at, review:reviews(id, body, punctuality, workmanship, cleanliness, communication, pricing, author_name, pro:pros(display_name, slug))').eq('status', 'open').order('created_at'),
     sb.from('pros').select('id', { count: 'exact', head: true }).eq('status', 'verified'),
@@ -32,7 +34,8 @@ export default async function Admin() {
     sb.from('reviews').select('id, client_id, author_name, body, punctuality, workmanship, cleanliness, communication, pricing, weight, weight_reason, created_at, pro:pros(display_name, slug)').eq('needs_review', true).order('created_at').limit(50),
   ]);
   // licenses added or corrected by pros whose profile is already public
-  const { data: licQueue } = await sb.from('pros').select('id, slug, display_name, trade, license_no, created_at').eq('status', 'verified').eq('license_status', 'pending').not('license_no', 'is', null).order('created_at');
+  const { data: licQueue } = await sb.from('pros').select('id, slug, display_name, trade, license_no, license_auto, created_at').eq('status', 'verified').eq('license_status', 'pending').not('license_no', 'is', null).order('created_at');
+  const { data: lastImport } = await sb.from('cslb_imports').select('rows, data_date, created_at').order('id', { ascending: false }).limit(1).maybeSingle();
   const { data: tradeReqs } = await sb.from('trade_requests').select('name, created_at').order('created_at', { ascending: false }).limit(500);
   const tradeCounts = [...(tradeReqs ?? []).reduce((m: Map<string, number>, r: any) => { const k = String(r.name).trim().toLowerCase(); m.set(k, (m.get(k) ?? 0) + 1); return m; }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
   const authors = [...new Set((flagged ?? []).map((r: any) => r.client_id as string))];
@@ -44,10 +47,15 @@ export default async function Admin() {
       <div className="eyebrow">{tr("Moderation")}</div><h2>{tr("Admin")}</h2>
       <p className="mu sm">{tr('{n} verified pros live. Check each license on the CSLB site before approving.', { n: live ?? 0 })}</p>
 
+      <h3>{tr('CSLB license list')}</h3>
+      <p className="mu sm">{lastImport ? tr('Last upload: {n} licenses, list of {d}.', { n: Number(lastImport.rows).toLocaleString('en-US'), d: lastImport.data_date ?? '—' }) : tr('Not uploaded yet.')}</p>
+      <div style={{ marginBottom: 24 }}><CslbUpload /></div>
+
       <h3>{tr('Licenses to check')} ({(licQueue ?? []).length})</h3>
       {(licQueue ?? []).length ? <div className="list" style={{ marginBottom: 24 }}>{(licQueue ?? []).map((p: any) => (
         <div key={p.id} className="card bk lic-q">
           <span><b>{p.display_name}</b> <span className="mu sm">· {tr(TRADES[p.trade as Trade]?.name ?? '')} · {tr('wants license')} <b>#{p.license_no}</b> ({TRADES[p.trade as Trade]?.license || 'B'})</span><br />
+            <CslbMark a={p.license_auto} admin /><br />
             <a href={cslb(p.license_no)} target="_blank" rel="noreferrer">{tr('Open in CSLB')} ↗</a> <span className="mu xs">· {tr('Check: the license is active, the class fits the trade, the name matches the pro.')}</span></span>
           <span className="chips">
             <form action={licenseFound}><input type="hidden" name="id" value={p.id} /><button className="btn sm">✓ {tr('Confirm')}</button></form>
@@ -71,7 +79,7 @@ export default async function Admin() {
                 </div>
               </div>
               <div className="chips">
-                <label className="chk"><input type="checkbox" name="license_ok" defaultChecked={!lic} /> {tr("License active and name matches")}</label>
+                {p.license_no && <><CslbMark a={p.license_auto} admin /><br /></>}<label className="chk"><input type="checkbox" name="license_ok" defaultChecked={!lic || p.license_auto?.result === 'ok'} /> {tr("License active and name matches")}</label>
                 <label className="chk"><input type="checkbox" name="id_ok" /> {tr("ID matches photo")}</label>
                 <label className="chk"><input type="checkbox" name="insured_ok" defaultChecked={p.insured} /> {tr("Insurance seen")}{p.insurance_claimed && <span className="mu xs"> · {tr("the pro says they are insured")}</span>}</label>
               </div>
