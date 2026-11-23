@@ -34,7 +34,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, photo_url, bio, service_polygon, base_lat, license_no, license_auto, company_id, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, display_name, photo_url, bio, service_polygon, base_lat, license_no, license_auto, company_id, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -85,7 +85,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
             <Link className="btn sm" href="/account/profile">{tr('Fill in now')}</Link>
           </div>;
         })()}
-        {!proRow?.company_id && proRow?.trade !== 'handyman' && <LicenseBox number={proRow?.license_no ?? null} status={proRow?.license_status ?? 'none'} auto={proRow?.license_auto ?? null} cslb="https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx" />}
+        {!proRow?.company_id && proRow?.trade !== 'handyman' && <LicenseBox number={proRow?.license_no ?? null} status={proRow?.license_status ?? 'none'} auto={proRow?.license_auto ?? null} proName={proRow?.display_name ?? me.name} cslb="https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx" />}
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>{tr('Status')}: {tr(me.pro.status === 'verified' ? 'Public' : 'Waiting for verification')}</b><br />
             <span className="mu sm"><Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/work">{tr('Work & chat settings')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>

@@ -16,6 +16,7 @@ import FigureField from '@/components/FigureField';
 import ProPreview, { type PreviewData } from '@/components/ProPreview';
 import { checkLicense, registerPro, updatePro } from '../actions';
 import CslbMark, { type CslbAuto } from '@/components/CslbMark';
+import { namesMatch } from '@/lib/names';
 import { useLang, useT } from '@/components/I18n';
 import { groupName, svcName } from '@/lib/i18n-core';
 
@@ -68,11 +69,13 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
     const id = setTimeout(async () => { const r = (await checkLicense(licDigits, trade).catch(() => null)) as CslbAuto; if (live) { setLicAuto(r); setCheckedFor(`${licDigits}/${trade}`); } }, 500);
     return () => { live = false; clearTimeout(id); };
   }, [licDigits, licValid, trade, edit, invite]);
-  const autoOk = licAuto?.result === 'ok';
+  // found in CSLB but in someone else's name: not accepted for an independent pro (no manual check either)
+  const nameBad = Boolean(licAuto && !['not_found', 'no_list'].includes(licAuto.result) && !namesMatch(name, licAuto.name, licAuto.name2));
+  const autoOk = licAuto?.result === 'ok' && !nameBad;
   // licensed: confirmed (company technician, or a checked license when editing). pending: a number waits for the admin;
   // then license jobs may be chosen, but they stay hidden from clients until the admin approves the license.
   const licensed = Boolean(invite) || (edit && Boolean(I?.licensed));
-  const licWait = !licensed && (edit ? Boolean(I?.licensePending) : licValid && !checking && (autoOk || review));
+  const licWait = !licensed && (edit ? Boolean(I?.licensePending) : licValid && !checking && !nameBad && (autoOk || review));
   const [prices, setPrices] = useState<Record<string, string>>({});
   const needsLic = (s: (typeof SERVICES)[number]) => licenseNeeded(s, Number(prices[s.id] ?? I?.services[s.id] ?? 0));
   const [figure, setFigure] = useState<string | null>(I?.figure ?? null);
@@ -126,9 +129,9 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
           </div>
           {!invite && !edit && <label className="f">CSLB license #{TRADES[trade].license ? ` (${TRADES[trade].license})` : trade === 'other' ? '' : ' (B)'} <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
             {checking && <span className="cslb-mark grey"><i className="spin" aria-hidden /> {tt('Checking the number in the CSLB list…')}</span>}
-            {!checking && licValid && licAuto && licAuto.result !== 'no_list' && <CslbMark a={licAuto} />}
+            {!checking && licValid && licAuto && licAuto.result !== 'no_list' && <CslbMark a={licAuto} proName={name} />}
             {!checking && licValid && autoOk && <><input type="hidden" name="license_review" value="1" /><span className="xs">{tt('The admin will only compare the name on the license with your ID.')}</span></>}
-            {!checking && licValid && !autoOk && <span className="lic-review">
+            {!checking && licValid && !autoOk && !nameBad && <span className="lic-review">
               <b className="sm">{tt('We could not confirm this number automatically.')}</b>
               <label className="chk"><input type="checkbox" name="license_review" value="1" checked={review} onChange={(e) => setReview(e.target.checked)} /> {tt('Send it to the NovaFides admin for a manual check')}</label>
               <span className="xs mu">{tt(review ? 'Until the admin approves it, jobs under $1,000 work right away; bigger jobs and jobs with a permit can be added now and are shown to clients after the approval.' : 'The number will not be saved: you take only jobs under $1,000 without a permit.')}</span>
@@ -203,7 +206,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       {!edit && <label className="agree"><input type="checkbox" name="agree" required />
         <span>{licensed || licWait ? tt('I confirm I hold every license, permit and insurance my work requires, and I agree to the') : tt('I confirm I take only jobs under $1,000 (with materials) that need no permit until I add a CSLB license, I hold any insurance my work requires, and I agree to the')} <a href="/terms" target="_blank">{tt('Terms of Use')}</a> {tt('and the')} <a href="/privacy" target="_blank">{tt('Privacy Policy')}</a>. {tt('Prices, payment, contracts and warranty are between me and the client; NovaFides is not a party.')}</span></label>}
       <FormDraft form={formRef} id={edit ? 'pro-edit' : 'pro-new'} done={Boolean(state?.saved)} again={state?.error ? state : undefined} />
-      {state?.error && <div className="err" role="alert">{tt(state.error)}</div>}
+      {state?.error && <div className="err" role="alert">{tt(state.error, state.errorVars)}</div>}
       {state?.saved && <div className="okmsg" role="status">{tt("Saved. Your page is updated.")}</div>}
       {state?.demo && <div className="note">{tt("Demo mode: the form checks out, but nothing was saved. Connect the database to accept real sign-ups.")}</div>}
       <div className="chips">

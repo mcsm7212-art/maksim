@@ -1,10 +1,11 @@
 'use client';
 import { useT } from './I18n';
+import { namesMatch } from '@/lib/names';
 
 export type CslbAuto = { result: 'ok' | 'class' | 'inactive' | 'not_found' | 'no_list'; name?: string; name2?: string; city?: string; status?: string; status2?: string; classes?: string[]; expires?: string | null; list_date?: string | null } | null;
 
 /** What the CSLB master list says about a typed license number (green = found and fits, red = something is wrong). */
-export default function CslbMark({ a, admin }: { a: CslbAuto; admin?: boolean }) {
+export default function CslbMark({ a, admin, proName }: { a: CslbAuto; admin?: boolean; proName?: string }) {
   const t = useT();
   if (!a) return null;
   if (a.result === 'no_list') return admin ? <span className="cslb-mark grey">{t('CSLB list not uploaded yet')}</span> : null;
@@ -14,7 +15,9 @@ export default function CslbMark({ a, admin }: { a: CslbAuto; admin?: boolean })
     inactive: 'Found in the CSLB list, but the license is not active or expired',
     not_found: 'Not found in the CSLB list',
   };
-  return (
+  // An independent pro's license must be in their own name (a company license belongs to a company sign-up).
+  const mismatch = a.result !== 'not_found' && proName != null && proName.trim().length >= 2 && !namesMatch(proName, a.name, a.name2);
+  return (<>
     <span className={`cslb-mark ${a.result === 'ok' ? 'ok' : 'bad'}`}>
       {a.result === 'ok' ? '✅' : '⚠'} {t(text[a.result])}
       {a.result !== 'not_found' && <small>
@@ -23,5 +26,6 @@ export default function CslbMark({ a, admin }: { a: CslbAuto; admin?: boolean })
       </small>}
       {admin && a.result === 'ok' && <small className="mu"> · {t('Check that this name matches the pro’s ID.')}</small>}
     </span>
-  );
+    {mismatch && <span className="cslb-mark bad name-bad">⛔ {t(admin ? 'The license is in the name of {lic}, not {name}. An independent pro may only use their own license: do not confirm it.' : 'This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.', { lic: [a.name, a.name2].filter(Boolean).join(' / '), name: proName!.trim() })}</span>}
+  </>);
 }

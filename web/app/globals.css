@@ -1080,3 +1080,4 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .sv-row.wait{background:color-mix(in srgb,#E0A030 8%,transparent);border-left:3px solid #E0A030;border-radius:8px;padding-left:8px}
 .wait-msg{display:block;color:#E0A030;font-size:12px;margin-top:2px}
 .lic-note.wait{border-left-color:#E0A030}
+.cslb-mark.name-bad{display:block;margin-top:6px}

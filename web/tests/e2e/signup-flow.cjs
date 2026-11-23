@@ -303,6 +303,10 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(sql("select count(*) from cslb_licenses")!=='4'||sql("select classes::text from cslb_licenses where license_no='1121547'")!=='{C36,C10}')throw new Error('CSLB list not uploaded right');
   if(sql("select license_auto->>'result' from pros where display_name='Max Solo'")!=='ok')throw new Error('pros not checked again after the upload');
   await fk.goto(B+'/account');await fk.waitForSelector('.lic-box');await fk.fill('.lic-box input[name=license]','12ab');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err');
+  await fk.fill('.lic-box input[name=license]','1121547');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err:has-text("SOLO MAX")');
+  if(sql("select coalesce(license_no,'none') from pros where display_name='Fred Fake'")!=='none')throw new Error('someone else\'s license was accepted');
+  {const nn=await user(b,'nm@test.local','Nina Other');await nn.goto(B+'/join/pro');await nn.fill('input[name=name]','Nina Other');await nn.fill('input[name=license]','1121547');
+   await nn.waitForSelector('.name-bad');if(await nn.locator('.lic-review').count())throw new Error('manual check offered for someone else\'s license');}
   await fk.fill('.lic-box input[name=license]','1076543');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box.pending');
   if(sql("select license_no||'/'||license_status from pros where display_name='Fred Fake'")!=='1076543/pending')throw new Error('corrected license not pending');
   if(sql("select license_auto->>'result' from pros where display_name='Fred Fake'")!=='ok')throw new Error('corrected license not found in the CSLB list');await fk.waitForSelector('.lic-box .cslb-mark.ok');
@@ -310,7 +314,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await ad.goto(B+'/admin');await ad.click('.lic-q:has-text("Fred Fake") button:has-text("Confirm")');
   for(let i=0;i<20&&sql("select license_status from pros where display_name='Fred Fake'")!=='verified';i++)await ad.waitForTimeout(300);
   if(sql("select license_status from pros where display_name='Fred Fake'")!=='verified')throw new Error('admin confirm failed');
-  step('a made-up license number does not count: not confirmed automatically → offered to the admin for a manual check, the permit job is saved as waiting; the profile waits for the check; the admin does not confirm it → number removed, permit job switched off, small jobs stay; the pro sends a corrected number from the account (bad format refused) → admin uploads the CSLB list (CSV) → the number is found automatically (green mark for the pro and the admin) → admin confirms it');}
+  step('a made-up license number does not count: not confirmed automatically → offered to the admin for a manual check, the permit job is saved as waiting; the profile waits for the check; the admin does not confirm it → number removed, permit job switched off, small jobs stay; the pro sends a corrected number from the account (bad format refused) → admin uploads the CSLB list (CSV) → the number is found automatically (green mark for the pro and the admin) → admin confirms it; a license in someone else\'s name is refused in the account and flagged in the sign-up form');}
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

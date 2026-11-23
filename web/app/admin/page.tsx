@@ -55,7 +55,7 @@ export default async function Admin() {
       {(licQueue ?? []).length ? <div className="list" style={{ marginBottom: 24 }}>{(licQueue ?? []).map((p: any) => (
         <div key={p.id} className="card bk lic-q">
           <span><b>{p.display_name}</b> <span className="mu sm">· {tr(TRADES[p.trade as Trade]?.name ?? '')} · {tr('wants license')} <b>#{p.license_no}</b> ({TRADES[p.trade as Trade]?.license || 'B'})</span><br />
-            <CslbMark a={p.license_auto} admin /><br />
+            <CslbMark a={p.license_auto} admin proName={p.display_name} /><br />
             <a href={cslb(p.license_no)} target="_blank" rel="noreferrer">{tr('Open in CSLB')} ↗</a> <span className="mu xs">· {tr('Check: the license is active, the class fits the trade, the name matches the pro.')}</span></span>
           <span className="chips">
             <form action={licenseFound}><input type="hidden" name="id" value={p.id} /><button className="btn sm">✓ {tr('Confirm')}</button></form>
@@ -79,7 +79,7 @@ export default async function Admin() {
                 </div>
               </div>
               <div className="chips">
-                {p.license_no && <><CslbMark a={p.license_auto} admin /><br /></>}<label className="chk"><input type="checkbox" name="license_ok" defaultChecked={!lic || p.license_auto?.result === 'ok'} /> {tr("License active and name matches")}</label>
+                {p.license_no && <><CslbMark a={p.license_auto} admin proName={p.display_name} /><br /></>}<label className="chk"><input type="checkbox" name="license_ok" defaultChecked={!lic || p.license_auto?.result === 'ok'} /> {tr("License active and name matches")}</label>
                 <label className="chk"><input type="checkbox" name="id_ok" /> {tr("ID matches photo")}</label>
                 <label className="chk"><input type="checkbox" name="insured_ok" defaultChecked={p.insured} /> {tr("Insurance seen")}{p.insurance_claimed && <span className="mu xs"> · {tr("the pro says they are insured")}</span>}</label>
               </div>

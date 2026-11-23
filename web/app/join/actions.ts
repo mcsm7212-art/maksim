@@ -1,13 +1,14 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
+import { namesMatch } from '@/lib/names';
 import { licenseNeeded, serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { ownPhotoUrl } from '@/lib/photos';
 
-export type JoinState = { error?: string; demo?: boolean; saved?: boolean } | undefined;
+export type JoinState = { error?: string; errorVars?: Record<string, string>; demo?: boolean; saved?: boolean } | undefined;
 const str = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
 
 async function uniqueSlug(table: 'pros' | 'companies', base: string) {
@@ -79,6 +80,13 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   if (license && !/^\d{5,8}$/.test(license)) return { error: 'A CSLB license number has 5 to 8 digits.' };
   // The pro chose not to send the number for the check: it is not saved, the profile works as unlicensed.
   if (license && !f.get('license_review')) license = '';
+  // An independent pro may only use a license in their own name (a company license belongs to a company sign-up).
+  if (license && !invite && isLive()) {
+    const { data: chk } = await (await supabaseServer()).rpc('cslb_check', { num: license, trd: trade });
+    const c = chk as { result?: string; name?: string; name2?: string } | null;
+    if (c?.result && !['not_found', 'no_list'].includes(c.result) && !namesMatch(name, c.name, c.name2))
+      return { error: 'This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.', errorVars: { lic: [c.name, c.name2].filter(Boolean).join(' / '), name } };
+  }
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };

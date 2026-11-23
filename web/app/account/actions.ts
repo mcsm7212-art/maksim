@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
+import { namesMatch } from '@/lib/names';
 import { supabaseServer } from '@/lib/supabase/server';
 import { isLive } from '@/lib/supabase/config';
 import { ownPhotoUrl } from '@/lib/photos';
@@ -114,10 +115,18 @@ export async function deleteJobPart(f: FormData) {
 }
 
 // A pro sends or corrects their CSLB license number: it waits for the NovaFides check (see the admin page).
-export async function sendLicense(_p: { error?: string; ok?: boolean } | undefined, f: FormData): Promise<{ error?: string; ok?: boolean }> {
+export async function sendLicense(_p: { error?: string; ok?: boolean } | undefined, f: FormData): Promise<{ error?: string; errorVars?: Record<string, string>; ok?: boolean }> {
   const { me, sb } = await need(); if (!me.pro) return { error: 'Only pros can add a license.' };
   const n = String(f.get('license') ?? '').replace(/\D/g, '');
   if (!/^\d{5,8}$/.test(n)) return { error: 'A CSLB license number has 5 to 8 digits.' };
+  // An independent pro may only use a license in their own name.
+  const { data: pro } = await sb.from('pros').select('display_name, trade, company_id').eq('id', me.id).single();
+  if (pro && !pro.company_id) {
+    const { data: chk } = await sb.rpc('cslb_check', { num: n, trd: pro.trade });
+    const c = chk as { result?: string; name?: string; name2?: string } | null;
+    if (c?.result && !['not_found', 'no_list'].includes(c.result) && !namesMatch(pro.display_name, c.name, c.name2))
+      return { error: 'This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.', errorVars: { lic: [c.name, c.name2].filter(Boolean).join(' / '), name: pro.display_name } };
+  }
   const { error } = await sb.rpc('submit_license', { n });
   if (error) return { error: 'Could not send. Try again.' };
   revalidatePath('/account');
