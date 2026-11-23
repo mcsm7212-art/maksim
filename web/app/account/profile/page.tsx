@@ -1,5 +1,6 @@
 import { getT } from '@/lib/i18n';
 import Link from 'next/link';
+import LicenseBox from '@/components/LicenseBox';
 import { redirect } from 'next/navigation';
 import ProForm, { type ProInitial } from '@/app/join/pro/ProForm';
 import { getMe } from '@/lib/auth';
@@ -31,6 +32,7 @@ export default async function EditProfile() {
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow"><Link href="/account">{tr("My account")}</Link> {tr("· Profile")}</div><h2>{tr("Edit your profile")}</h2>
       <p className="mu sm">{tr("Work photos are on the")} <Link href="/account">{tr("account page")}</Link>. <Link href={`/pro/${p.slug}`}>{tr("View my public page")}</Link></p>
+      {!p.company_id && p.trade !== 'handyman' && <div id="license" style={{ scrollMarginTop: 90 }}><LicenseBox number={p.license_no ?? null} status={p.license_status ?? 'none'} auto={p.license_auto ?? null} proName={p.display_name} cslb="https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx" /></div>}
       <ProForm initial={initial} />
     </div></section>
   );

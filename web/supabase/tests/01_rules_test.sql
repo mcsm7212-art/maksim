@@ -687,4 +687,21 @@ do $$ begin update public.pros set bio = 'Чиню краны быстро' wher
   exception when others then if sqlerrm not like 'english only%' then raise; end if; end $$;
 update public.pros set display_name = 'José Peña' where id = auth.uid();
 select pg_temp.ok((select display_name from public.pros where id = auth.uid()) = 'José Peña', 'a pro profile in English is saved (accented names too)');
+
+-- 0035 quiet chats: a new client writes to a pro who is not taking jobs → no notification until the pro answers
+select pg_temp.act(null); reset role;
+update public.pros set accepting = false, paused_until = null, status = 'verified' where id = '00000000-0000-0000-0000-0000000000b2';
+delete from public.conversations where pro_id = '00000000-0000-0000-0000-0000000000b2';
+delete from public.notifications where user_id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+insert into public.conversations (id, client_id, pro_id) values ('40000000-0000-0000-0000-0000000000b2', auth.uid(), '00000000-0000-0000-0000-0000000000b2');
+insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-0000000000b2', auth.uid(), 'Hello, are you free?');
+select pg_temp.act(null); reset role;
+select pg_temp.ok((select quiet from public.conversations where id = '40000000-0000-0000-0000-0000000000b2')
+  and (select count(*) from public.notifications where user_id = '00000000-0000-0000-0000-0000000000b2') = 0, 'new client while not taking jobs: quiet chat, no notification');
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.messages (conversation_id, sender_id, body) values ('40000000-0000-0000-0000-0000000000b2', auth.uid(), 'Yes, tomorrow');
+select pg_temp.act(null); reset role;
+select pg_temp.ok(not (select quiet from public.conversations where id = '40000000-0000-0000-0000-0000000000b2'), 'the pro answered: the chat is normal again');
+update public.pros set accepting = true where id = '00000000-0000-0000-0000-0000000000b2';
 \echo ALL RULE TESTS PASSED

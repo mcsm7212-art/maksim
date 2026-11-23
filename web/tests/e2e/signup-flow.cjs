@@ -154,8 +154,15 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  // taking jobs, schedule, colleague settings, neighbors, construction
  await s.goto(B+'/account/work');await s.click('button:has-text("Pause new jobs")');await s.waitForSelector('text=Not taking new jobs');
  await c.goto(B+'/max');await c.waitForSelector('text=is not taking new jobs right now');if(await c.locator('.pricebox2 a:has-text("Pick a time")').count())throw new Error('paused pro still bookable');
- await s.click('button:has-text("Take jobs again")');await s.waitForSelector('text=Taking new jobs');
- await s.check('input[name=on_6]');await s.selectOption('select[name=start_6]','09:00');await s.selectOption('select[name=end_6]','13:00');await s.click('button:has-text("Save schedule")');await s.waitForSelector('text=Schedule saved.');
+ {const nc=await user(b,'newc@test.local','Nora New');let asked='';nc.on('dialog',d=>{asked=d.message();d.accept();});await nc.goto(B+'/max');await nc.click('.pricebox2 button:has-text("Message")');await nc.waitForURL(/messages\//);
+  if(!/not taking new jobs/.test(asked))throw new Error('new client not warned before writing');
+  const n0=sql("select count(*) from notifications n join pros p on p.id=n.user_id where p.slug='max'");
+  await nc.fill('textarea[name=body]','Hello, can you come next week?');await nc.click('button:has-text("Send")');await nc.waitForSelector('text=Hello, can you come next week?');
+  if(sql("select quiet::text from conversations c join pros p on p.id=c.pro_id join auth.users u on u.id=c.client_id where p.slug='max' and u.email='newc@test.local'")!=='true')throw new Error('chat from a new client is not quiet');
+  if(sql("select count(*) from notifications n join pros p on p.id=n.user_id where p.slug='max'")!==n0)throw new Error('the pro was notified while paused');
+  await s.goto(B+'/account');await s.waitForSelector('.desk-top.off');await s.waitForSelector('.desk-msg:has-text("while paused")');}
+ await s.click('.desk-top button:has-text("Take jobs")');await s.waitForSelector('.desk-top.on');
+ await s.goto(B+'/account/work');await s.check('input[name=on_6]');await s.selectOption('select[name=start_6]','09:00');await s.selectOption('select[name=end_6]','13:00');await s.click('button:has-text("Save schedule")');await s.waitForSelector('text=Schedule saved.');
  if(sql("select start_time||'-'||end_time from availability_rules a join pros p on p.id=a.pro_id where p.display_name='Max Solo' and weekday=6")!=='09:00:00-13:00:00')throw new Error('schedule not saved');
  step('Max paused new jobs (no Book button for clients), resumed, set Saturday 9-13');
  await t.goto(B+'/max');await t.click('button:has-text("Add to my colleagues")');await t.waitForSelector('button:has-text("My colleague")');
@@ -307,7 +314,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await ad.goto(B+'/admin');await ad.setInputFiles('input[type=file][accept*=csv]',__dirname+'/cslb-sample.csv');await ad.waitForSelector('.okmsg:has-text("Done")',{timeout:60000});
   if(sql("select count(*) from cslb_licenses")!=='4'||sql("select classes::text from cslb_licenses where license_no='1121547'")!=='{C36,C10}')throw new Error('CSLB list not uploaded right');
   if(sql("select license_auto->>'result' from pros where display_name='Max Solo'")!=='ok')throw new Error('pros not checked again after the upload');
-  await fk.goto(B+'/account');await fk.waitForSelector('.lic-box');await fk.fill('.lic-box input[name=license]','12ab');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err');
+  await fk.goto(B+'/account/profile');await fk.waitForSelector('.lic-box');await fk.fill('.lic-box input[name=license]','12ab');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err');
   await fk.fill('.lic-box input[name=license]','1121547');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err:has-text("SOLO MAX")');
   if(sql("select coalesce(license_no,'none') from pros where display_name='Fred Fake'")!=='none')throw new Error('someone else\'s license was accepted');
   {const nn=await user(b,'nm@test.local','Nina Other');await nn.goto(B+'/join/pro');await nn.fill('input[name=name]','Nina Other');await nn.fill('input[name=license]','1121547');

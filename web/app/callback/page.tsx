@@ -22,6 +22,7 @@ export default async function Callback({ searchParams }: { searchParams: Promise
         <span><b>{pro.name}</b><br /><span className="mu sm">{pro.company?.name ?? tr('Independent pro')}{pro.callHours ? ` · ${tr('Calls')}: ${pro.callHours}` : ''}</span></span>
         <Link href={`/${pro.slug}`} className="btn ghost sm side">{tr('Profile')}</Link>
       </div>
+      {!pro.accepting && !pro.isDemo && <div className="note" style={{ marginBottom: 14 }}>⏸ {tr('{name} is not taking new jobs right now and may not answer soon. You can still write.', { name: first })}</div>}
       {pro.isDemo && <div className="note" style={{ marginBottom: 14 }}>🧪 {tr('This is an example profile: the form shows how it works, but sending is turned off. With a real pro, your request goes to them.')}</div>}
       <ActionForm action={msg ? sendFirstMessage : requestCallback} className="card formcard">
         <input type="hidden" name="pro" value={pro.slug} />

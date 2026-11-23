@@ -129,6 +129,6 @@ export async function sendLicense(_p: { error?: string; ok?: boolean } | undefin
   }
   const { error } = await sb.rpc('submit_license', { n });
   if (error) return { error: 'Could not send. Try again.' };
-  revalidatePath('/account');
+  revalidatePath('/account'); revalidatePath('/account/profile');
   return { ok: true };
 }

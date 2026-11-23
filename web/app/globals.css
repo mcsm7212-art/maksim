@@ -1092,3 +1092,32 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .wh-day input{accent-color:var(--cu);width:16px;height:16px}
 .wh-row:not(.off) .wh-day{border-color:var(--cu);background:color-mix(in srgb,var(--cu) 14%,var(--card))}
 @media (max-width:520px){.wh-row{grid-template-columns:76px 1fr auto 1fr}.wh-row>:nth-child(5){display:none}}
+
+/* pro desk: the top of a pro's account */
+.desk{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}
+.desk-top{display:grid;grid-template-columns:1fr auto;gap:12px 16px;align-items:center;border-width:1.5px}
+.desk-top.on{border-color:rgba(63,178,127,.6);background:linear-gradient(100deg,rgba(63,178,127,.10),transparent 60%),var(--card)}
+.desk-top.off{border-color:color-mix(in srgb,#E0A030 60%,var(--line));background:linear-gradient(100deg,rgba(224,160,48,.10),transparent 60%),var(--card)}
+.desk-acc{display:flex;flex-direction:column;gap:4px;min-width:0}
+.desk-state{font-size:19px}
+.desk-top.on .desk-state{color:#3FB27F}.desk-top.off .desk-state{color:#E0A030}
+.desk-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.desk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.desk-grid{grid-template-columns:1fr}.desk-top{grid-template-columns:1fr}}
+.desk-card{display:flex;flex-direction:column;gap:8px;min-width:0}
+.desk-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.desk-msg{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);text-decoration:none;color:var(--ink);min-width:0}
+.desk-msg>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.desk-msg .badge{margin-left:6px}
+a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
+.desk-friends{display:flex;flex-wrap:wrap;gap:10px}
+.desk-friend{display:flex;flex-direction:column;align-items:center;gap:4px;width:58px;text-decoration:none;color:var(--ink)}
+.desk-friend .post-ava{width:44px;height:44px}
+.dot-on{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3FB27F;margin-right:4px;vertical-align:1px}
+.desk-links{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 14px}
+.desk-photos{margin:16px 0 26px}.desk-photos>summary{cursor:pointer}
+.desk-top,.desk-card{padding:16px 18px}
+.desk-top .btn{white-space:nowrap}
+.notes-box>summary{cursor:pointer;list-style:none}.notes-box>summary::-webkit-details-marker{display:none}
+.notes-box:not([open])>summary{margin:0}
+.todo-card{padding:14px 18px}

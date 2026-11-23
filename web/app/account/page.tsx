@@ -6,7 +6,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
 import PhotoPicker from '@/components/PhotoPicker';
-import LicenseBox from '@/components/LicenseBox';
+import ProDesk from '@/components/ProDesk';
 import { CITIES } from '@/lib/areas';
 import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
@@ -21,7 +21,7 @@ const SKILLS = [['punctuality', 'Punctuality'], ['workmanship', 'Workmanship'], 
 const when = (b: any, tr: T) => b.starts_at ? slotLabel(b.starts_at, tr).join(' · ') : b.day_pref ? `${tr('Preferred')}: ${tr(b.day_pref === 'week' ? 'this week' : b.day_pref === 'today' ? 'today' : 'tomorrow')}` : tr('Time to be agreed');
 const PRO_FIELDS = 'id, slug, display_name, accent, photo_url';
 
-export default async function Account({ searchParams }: { searchParams: Promise<{ booked?: string; joined?: string }> }) {
+export default async function Account({ searchParams }: { searchParams: Promise<{ booked?: string; joined?: string; find?: string }> }) {
   const lang = await getLang(); const tr = makeT(lang);
   const svc = (id: string | null) => svcName(serviceById(id ?? ''), lang) || tr('Estimate visit');
   if (!isLive()) return <section className="sec pad"><div className="in"><h2>{tr('My account')}</h2><p className="mu">{tr('Demo mode: accounts turn on when the database is connected.')}</p></div></section>;
@@ -34,7 +34,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, display_name, photo_url, bio, service_polygon, base_lat, license_no, license_auto, company_id, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('accepting, paused_until, public_phone, call_hours, online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, display_name, photo_url, bio, service_polygon, base_lat, license_no, license_auto, company_id, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -62,14 +62,22 @@ export default async function Account({ searchParams }: { searchParams: Promise<
       {sp.booked && <div className="note" style={{ marginBottom: 14 }}>{tr('Request sent. You will get a notification when it is confirmed.')}</div>}
       {sp.joined && me.pro?.status !== 'verified' && <div className="note" style={{ marginBottom: 14 }}>{tr('Profile created. We will check your license and ID, then your profile goes public.')}</div>}
 
-      {(notes ?? []).length > 0 && <div className="card formcard" style={{ marginBottom: 18 }}>
+
+      {!me.pro && (notes ?? []).length > 0 && <details className="card formcard notes-box" style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
+        <summary>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
-          {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div>
+          {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
         {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{noteText(n.body, tr)} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
-      </div>}
+      </details>}
 
       {me.pro && <>
-        <h3>{tr('My pro profile')}</h3>
+        <ProDesk me={{ id: me.id, pro: { slug: me.pro.slug } }} row={proRow} tr={tr} lang={lang} find={sp.find} />
+        {(notes ?? []).length > 0 && <details className="card formcard notes-box" style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
+        <summary>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
+          {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
+        {(notes ?? []).map((n) => <div key={n.id} className={n.read_at ? 'mu sm' : 'sm'}>{noteText(n.body, tr)} <span className="mu2 xs">· {dateLabel(n.created_at, lang)}</span></div>)}
+      </details>}
         {(() => {
           // What a client still cannot see: filled in later, after sign-up.
           const todo = [
@@ -85,15 +93,9 @@ export default async function Account({ searchParams }: { searchParams: Promise<
             <Link className="btn sm" href="/account/profile">{tr('Fill in now')}</Link>
           </div>;
         })()}
-        {!proRow?.company_id && proRow?.trade !== 'handyman' && <LicenseBox number={proRow?.license_no ?? null} status={proRow?.license_status ?? 'none'} auto={proRow?.license_auto ?? null} proName={proRow?.display_name ?? me.name} cslb="https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx" />}
-        <div className="card bk" style={{ marginBottom: 12 }}>
-          <span><b>{tr('Status')}: {tr(me.pro.status === 'verified' ? 'Public' : 'Waiting for verification')}</b><br />
-            <span className="mu sm"><Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/work">{tr('Work & chat settings')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>
-          {online
-            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● {proRow?.online_area ? tr('Online in {city}', { city: proRow.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
-            : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={proRow?.online_area ?? proRow?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
-                {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
-                <input type="hidden" name="hours" value={4} /><button className="btn sm">{tr('Go online for 4 h')}</button></form>}
+        <div className="desk-links mu sm">
+          {!proRow?.company_id && proRow?.trade !== 'handyman' && <span>{tr('CSLB license')}: <b>{tr(proRow?.license_status === 'verified' ? 'checked' : proRow?.license_status === 'pending' ? 'being checked' : 'none')}</b> · <Link href="/account/profile#license">{tr('Change')}</Link></span>}
+          <Link href="/account/reviews">{tr('My reviews')}</Link><Link href="/account/calendar">{tr('Calendar')}</Link><Link href="/account/card">{tr('Business card')}</Link>
         </div>
         <div className="card bk urgent-set" style={{ marginBottom: 12 }}>
           <span><b>⚡ {tr('Urgent calls')}: {tr(proRow?.urgent_ok ? 'on' : 'off')}</b><br />
@@ -105,19 +107,6 @@ export default async function Account({ searchParams }: { searchParams: Promise<
             : <form action={setUrgent} className="chips"><input type="hidden" name="take" value="1" />
                 <input className="inp" name="fee" inputMode="numeric" placeholder={tr('Extra fee, $ (optional)')} aria-label={tr('Extra fee for urgent call-out, $')} style={{ width: 190, padding: '7px 10px' }} />
                 <button className="btn sm">⚡ {tr('I take urgent calls')}</button></form>}
-        </div>
-        <h3>{tr('My work photos')} <span className="mu sm">({(portfolio ?? []).length})</span></h3>
-        <div className="card formcard" style={{ marginBottom: 18 }}>
-          {(portfolio ?? []).length > 0 && <div className="works" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(96px,1fr))' }}>
-            {(portfolio ?? []).map((p: any) => (
-              <form key={p.id} action={deletePhoto} className="work"><input type="hidden" name="id" value={p.id} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.url} alt="" style={{ aspectRatio: '1', objectFit: 'cover', display: 'block', width: '100%' }} /><button className="btn ghost sm" style={{ width: '100%', borderRadius: 0 }}>{tr('Delete')}</button></form>
-            ))}</div>}
-          <form action={addPhotos} className="list"><PhotoPicker name="work_url" prefix="work" max={24} label={tr('Add work photos')} />
-            <select className="inp" name="service" defaultValue="" style={{ width: 'auto' }} aria-label={tr('What job is this?')}><option value="">{tr('What job is this? (helps photo search)')}</option>
-              {SERVICES.filter((s) => s.trade === proRow?.trade).map((s) => <option key={s.id} value={s.id}>{svcName(s, lang)}</option>)}</select>
-            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save photos')}</button></form>
         </div>
         <h3>{tr('My jobs')}</h3>
         <div className="list" style={{ marginBottom: 26 }}>
@@ -169,6 +158,20 @@ export default async function Account({ searchParams }: { searchParams: Promise<
           ))}
           {!(jobs ?? []).length && <div className="card empty">{tr('No jobs yet.')}</div>}
         </div>
+        <details className="card desk-photos"><summary><b>{tr('My work photos')}</b> <span className="mu sm">({(portfolio ?? []).length})</span></summary>
+        <div className="formcard" style={{ marginTop: 10 }}>
+          {(portfolio ?? []).length > 0 && <div className="works" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(96px,1fr))' }}>
+            {(portfolio ?? []).map((p: any) => (
+              <form key={p.id} action={deletePhoto} className="work"><input type="hidden" name="id" value={p.id} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.url} alt="" style={{ aspectRatio: '1', objectFit: 'cover', display: 'block', width: '100%' }} /><button className="btn ghost sm" style={{ width: '100%', borderRadius: 0 }}>{tr('Delete')}</button></form>
+            ))}</div>}
+          <form action={addPhotos} className="list"><PhotoPicker name="work_url" prefix="work" max={24} label={tr('Add work photos')} />
+            <select className="inp" name="service" defaultValue="" style={{ width: 'auto' }} aria-label={tr('What job is this?')}><option value="">{tr('What job is this? (helps photo search)')}</option>
+              {SERVICES.filter((s) => s.trade === proRow?.trade).map((s) => <option key={s.id} value={s.id}>{svcName(s, lang)}</option>)}</select>
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Save photos')}</button></form>
+        </div>
+        </details>
       </>}
 
       {me.companies.some((c) => c.role !== 'technician') && <div className="note" style={{ marginBottom: 18 }}>{tr('Manage your company jobs and team on the')} <Link href="/business">{tr('Business page')}</Link>.</div>}

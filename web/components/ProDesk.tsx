@@ -1,0 +1,129 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Link from 'next/link';
+import Figure from './Figure';
+import { setAccepting, toggleColleague } from '@/app/account/work/actions';
+import { setOnline } from '@/app/account/actions';
+import { supabaseServer } from '@/lib/supabase/server';
+import { CITIES } from '@/lib/areas';
+import { TRADES, tradeLabel, type Trade } from '@/lib/catalog';
+import { dateLabel } from '@/lib/time';
+import type { T } from '@/lib/i18n-core';
+
+const ago = (iso: string, tr: T) => {
+  const m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  return m < 60 ? tr('{n} min ago', { n: m }) : m < 1440 ? tr('{n} h ago', { n: Math.round(m / 60) }) : tr('{n} d ago', { n: Math.round(m / 1440) });
+};
+const CALLBACK = '📞 Call-back request';
+
+/**
+ * The top of a pro's account: what a pro needs every day. Taking jobs or not, online, messages from clients,
+ * call-back requests, how clients reach them, and pro friends. Rare things (license, work photos) live lower or in the profile.
+ */
+export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: string; pro: { slug: string } }; row: any; tr: T; lang: 'en' | 'es' | 'ru'; find?: string }) {
+  const sb = await supabaseServer();
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  const accepting = row?.accepting !== false || (row?.paused_until && row.paused_until <= today);
+  const online = row?.online_until && new Date(row.online_until) > new Date();
+
+  const [{ data: convs }, { data: friends }, { data: found }] = await Promise.all([
+    sb.from('conversations').select('id, quiet, last_message_at, client_id, client:profiles!conversations_client_id_fkey(full_name)')
+      .eq('pro_id', me.id).is('peer_id', null).order('last_message_at', { ascending: false, nullsFirst: false }).limit(30),
+    sb.from('pro_contacts').select('colleague:pros!pro_contacts_colleague_id_fkey(id, slug, display_name, trade, custom_trade, photo_url, accent, online_until)').eq('pro_id', me.id).order('created_at').limit(12),
+    find && find.trim().length >= 2
+      ? sb.from('pros').select('id, slug, display_name, trade, custom_trade, photo_url, accent, area').eq('status', 'verified').eq('is_demo', false).neq('id', me.id).ilike('display_name', `%${find.trim().replace(/[%_]/g, '')}%`).limit(8)
+      : Promise.resolve({ data: null as any[] | null }),
+  ]);
+  const ids = (convs ?? []).map((c: any) => c.id);
+  const { data: msgs } = ids.length ? await sb.from('messages').select('conversation_id, body, sender_id, created_at').in('conversation_id', ids).order('created_at', { ascending: false }).limit(200) : { data: [] as any[] };
+  const lastOf = (id: string) => (msgs ?? []).find((m: any) => m.conversation_id === id);
+  const calls = (msgs ?? []).filter((m: any) => m.sender_id !== me.id && String(m.body).startsWith(CALLBACK)).slice(0, 4);
+  const field = (body: string, k: string) => body.split('\n').find((l) => l.startsWith(k + ':'))?.slice(k.length + 1).trim() ?? '';
+  const nameOf = (c: any) => c?.client?.full_name || tr('Client');
+  const friendIds = new Set((friends ?? []).map((f: any) => f.colleague?.id).filter(Boolean));
+
+  return (
+    <div className="desk">
+      {/* 1) taking jobs + online + my page */}
+      <div className={`card desk-top ${accepting ? 'on' : 'off'}`}>
+        <div className="desk-acc">
+          <b className="desk-state">{accepting ? `● ${tr('I take new jobs')}` : `⏸ ${tr('I do not take new jobs')}`}</b>
+          <span className="mu xs">{accepting
+            ? tr('Clients can book you and write to you.')
+            : row?.paused_until ? tr('Until {date}. New clients see a warning and their messages come without a notification; your clients write as usual.', { date: dateLabel(row.paused_until + 'T12:00:00', lang) })
+              : tr('New clients see a warning and their messages come without a notification; your clients write as usual.')}</span>
+        </div>
+        {accepting
+          ? <form action={setAccepting}><input type="hidden" name="take" value="0" /><button className="btn ghost">⏸ {tr('Stop taking jobs')}</button></form>
+          : <form action={setAccepting}><input type="hidden" name="take" value="1" /><button className="btn">▶ {tr('Take jobs')}</button></form>}
+        <div className="desk-row">
+          {online
+            ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● {row?.online_area ? tr('Online in {city}', { city: row.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
+            : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={row?.online_area ?? row?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>
+                {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
+                <input type="hidden" name="hours" value={4} /><button className="btn ghost sm">{tr('Go online for 4 h')}</button></form>}
+          <Link className="btn ghost sm" href={`/pro/${me.pro.slug}`}>👁 {tr('My page as clients see it')}</Link>
+          <Link className="btn ghost sm" href="/account/profile">✎ {tr('Edit profile')}</Link>
+          <Link className="btn ghost sm" href="/account/work">⚙ {tr('Settings')}</Link>
+        </div>
+      </div>
+
+      <div className="desk-grid">
+        {/* 2) messages from clients */}
+        <div className="card desk-card">
+          <div className="desk-h"><b>💬 {tr('Messages from clients')}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
+          {(convs ?? []).slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
+            <Link key={c.id} className="desk-msg" href={`/messages/${c.id}`}>
+              <span><b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
+                <br /><span className="mu xs">{m ? (String(m.body).startsWith(CALLBACK) ? `📞 ${tr('Call-back request')}` : `${m.sender_id === me.id ? tr('You') + ': ' : ''}${String(m.body).slice(0, 70)}`) : tr('No messages yet')}</span></span>
+              {m && <small className="mu">{ago(m.created_at, tr)}</small>}
+            </Link>); })}
+          {!(convs ?? []).length && <span className="mu sm">{tr('No messages yet. Clients write to you from your page.')}</span>}
+        </div>
+
+        {/* 3) call-back requests */}
+        <div className="card desk-card">
+          <div className="desk-h"><b>📞 {tr('Call-back requests')}</b></div>
+          {calls.map((m: any) => { const c = (convs ?? []).find((x: any) => x.id === m.conversation_id); const ph = field(m.body, 'Phone'); return (
+            <div key={m.conversation_id + m.created_at} className="desk-msg">
+              <span><b>{nameOf(c)}</b> · <a href={`tel:${ph.replace(/[^\d+]/g, '')}`}>{ph}</a><br /><span className="mu xs">{field(m.body, 'When')}{field(m.body, 'Problem') ? ` · ${field(m.body, 'Problem').slice(0, 60)}` : ''}</span></span>
+              <Link className="xs" href={`/messages/${m.conversation_id}`}>{tr('Chat')} →</Link>
+            </div>); })}
+          {!calls.length && <span className="mu sm">{tr('No call-back requests yet.')}</span>}
+        </div>
+
+        {/* 4) how clients reach me */}
+        <div className="card desk-card">
+          <div className="desk-h"><b>☎ {tr('How clients reach you')}</b><Link className="xs" href="/account/work">{tr('Change')} →</Link></div>
+          <span className="sm">{row?.public_phone ? <>📞 {tr('Phone on your page')}: <b>{row.public_phone}</b>{row?.call_hours ? <span className="mu"> · {row.call_hours}</span> : null}</> : <>📵 {tr('Your phone is not shown. Clients write to you or ask for a call back.')}</>}</span>
+          <span className="sm">💬 {tr('Clients can always write to you in the chat.')}</span>
+        </div>
+
+        {/* 5) pro friends */}
+        <div className="card desk-card">
+          <div className="desk-h"><b>🤝 {tr('My pro friends')}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
+          <div className="desk-friends">
+            {(friends ?? []).filter((f: any) => f.colleague).map((f: any) => { const c = f.colleague; const on = c.online_until && new Date(c.online_until) > new Date(); return (
+              <Link key={c.id} href={`/${c.slug}`} className="desk-friend" title={c.display_name}>
+                <span className="post-ava"><Figure name={c.display_name} accent={c.accent ?? '#B57A50'} photo={c.photo_url} /></span>
+                <span className="xs">{on && <i className="dot-on" aria-label={tr('Online')} />}{c.display_name.split(' ')[0]}</span>
+              </Link>); })}
+            {!(friends ?? []).length && <span className="mu sm">{tr('No friends yet. Find a pro below and add them.')}</span>}
+          </div>
+          <form className="chips" action="/account" method="get">
+            <input className="inp" name="find" defaultValue={find ?? ''} placeholder={tr('Find a pro by name')} aria-label={tr('Find a pro by name')} style={{ flex: '1 1 160px' }} />
+            <button className="btn ghost sm">{tr('Find')}</button>
+          </form>
+          {found && <div className="list" style={{ gap: 6 }}>
+            {found.map((p: any) => (
+              <div key={p.id} className="desk-msg">
+                <span><Link href={`/${p.slug}`}><b>{p.display_name}</b></Link><br /><span className="mu xs">{tr(tradeLabel({ trade: p.trade as Trade, customTrade: p.custom_trade }) || TRADES.plumbing.name)}{p.area ? ` · ${p.area}` : ''}</span></span>
+                {friendIds.has(p.id) ? <span className="mu xs">✓ {tr('Friend')}</span>
+                  : <form action={toggleColleague}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="on" value="1" /><input type="hidden" name="path" value="/account" /><button className="btn sm">+ {tr('Add')}</button></form>}
+              </div>))}
+            {!found.length && <span className="mu sm">{tr('Nobody found by that name.')}</span>}
+          </div>}
+        </div>
+      </div>
+    </div>
+  );
+}

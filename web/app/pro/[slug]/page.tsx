@@ -17,6 +17,7 @@ import { getTheme } from '@/lib/theme';
 import { makeT, svcName } from '@/lib/i18n-core';
 import { SERVICES } from '@/lib/catalog';
 import SaveButton from '@/components/SaveButton';
+import ConfirmButton from '@/components/ConfirmButton';
 import HelpfulButton from '@/components/HelpfulButton';
 import PeerPicks from '@/components/PeerPicks';
 import ServiceAreaMap from '@/components/ServiceAreaMap';
@@ -66,6 +67,10 @@ export default async function ProPage({ params, searchParams }: Props) {
   const stats = showStats(pro);
   const fromPrice = pro.services.length ? Math.min(...pro.services.map((x) => priceFor(pro, x.id) ?? 1e9)) : null;
   const [me, saves, saved, posts, colleagues, projects] = await Promise.all([getMe(), mySaves(), saveCount(pro.id), postsOf(pro.id), colleaguesOf(pro.id), listProjects({ proId: pro.id, limit: 6 })]);
+  // Not taking jobs: a new client is asked before writing (clients the pro already knows are not asked).
+  const knownClient = me && isLive() && !pro.isDemo ? Boolean((await (await supabaseServer()).from('conversations').select('id').eq('client_id', me.id).eq('pro_id', pro.id).limit(1)).data?.length) : false;
+  const pausedAsk = !pro.accepting && !pro.isDemo && !knownClient && me?.id !== pro.id
+    ? tr('{name} is not taking new jobs right now and may not answer soon. Do you still want to write?', { name: pro.name.split(' ')[0] }) : null;
   const own = isLive() ? (((await (await supabaseServer()).from('pro_custom_services').select('name, price, category').eq('pro_id', pro.id).order('id')).data ?? []) as { name: string; price: number | null; category: string | null }[]) : [];
   const alsoMap = pro.isDemo ? new Map<string, number>() : await alsoChosen(pro.id, 6);
   const alsoPros = alsoMap.size ? (await listPros()).filter((p) => alsoMap.has(p.id)).sort((a, b) => (alsoMap.get(b.id) ?? 0) - (alsoMap.get(a.id) ?? 0)) : [];
@@ -190,7 +195,7 @@ export default async function ProPage({ params, searchParams }: Props) {
               {(pro.accepting || pro.isDemo) && <Link className="btn" href={bookHref()}>{tr('Pick a time')} <Icon name="arrow" /></Link>}
               {(pro.accepting || pro.isDemo) && <Link className="btn ghost" href={estHref}>{tr('Ask for estimate')}</Link>}
               {pro.isDemo ? <Link className="btn ghost" href={`/callback?pro=${pro.slug}&msg=1`}><Icon name="chat" /> {tr('Message {name}', { name: first })}</Link>
-                : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</button></form>}
+                : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><ConfirmButton ask={pausedAsk} className="btn ghost" style={{ width: '100%' }}><Icon name="chat" /> {tr('Message {name}', { name: first })}</ConfirmButton></form>}
               <Link className="btn ghost" href={`/callback?pro=${pro.slug}`}>📞 {tr('Request a call back')}</Link>
               {pro.publicPhone && <div className="callrow">
                 {pro.isDemo ? <span className="btn ghost off">📞 {pro.publicPhone}</span> : <a className="btn ghost" href={`tel:${pro.publicPhone.replace(/[^\d+]/g, '')}`}>📞 {tr('Call')} {pro.publicPhone}</a>}
@@ -314,7 +319,7 @@ export default async function ProPage({ params, searchParams }: Props) {
         </div>
         {alsoPros.length > 0 && <div className="blk"><PeerPicks pros={alsoPros} counts={alsoMap} title={tr('Clients who chose {name} also choose', { name: first })} note={tr('Counted from finished jobs, saves and high ratings. Shown only when at least 3 clients agree.')} /></div>}
       </div></div>
-      <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo || pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><button className="btn">{tr('Message {name}', { name: first })}</button></form>}</div>
+      <div className="stick3"><span style={{ minWidth: 0 }}><span className="mu xs" style={{ display: 'block' }}>{pro.name}{selSvc ? ` · ${svcName(selSvc, lang)}` : ''}</span>{selPrice != null ? <b className="num" style={{ fontSize: 20 }}>≈ {usd(selPrice)}</b> : pro.rating != null && pro.reviewCount > 0 ? <span>★ {pro.rating.toFixed(1)}</span> : <span className="mu sm">{tr('Just joined')}</span>}</span>{pro.isDemo || pro.accepting ? <Link className="btn" href={bookHref()}>{tr('Pick a time')}</Link> : <form action={startChat}><input type="hidden" name="pro" value={pro.slug} /><ConfirmButton ask={pausedAsk} className="btn">{tr('Message {name}', { name: first })}</ConfirmButton></form>}</div>
     </div>
   );
 }
