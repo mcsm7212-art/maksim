@@ -21,6 +21,7 @@ import HelpfulButton from '@/components/HelpfulButton';
 import PeerPicks from '@/components/PeerPicks';
 import ServiceAreaMap from '@/components/ServiceAreaMap';
 import ProjectCard from '@/components/ProjectCard';
+import HeroJobs from '@/components/HeroJobs';
 import { listProjects } from '@/lib/projects';
 import { SITE } from '@/lib/seo';
 import { alsoChosen } from '@/lib/discovery';
@@ -136,6 +137,9 @@ export default async function ProPage({ params, searchParams }: Props) {
             {stats
               ? <div className="hexlvl"><i /><div><small>{tr('Pro level')}</small><b style={{ color: 'var(--cu-l)' }}>{tr(levelOf(pro.jobs, pro.rating).n)}</b></div></div>
               : pro.founding && <div className="hexlvl" title={tr('Joined NovaFides during the launch')}><i /><div><small>NovaFides</small><b style={{ color: 'var(--cu-l)' }}>{tr('Founding Pro')}</b></div></div>}
+            <HeroJobs title={tr('Popular jobs')} from={tr('from')} jobs={[...pro.services].sort((a, b) => (b.jobs ?? 0) - (a.jobs ?? 0)).slice(0, 3).flatMap((x) => {
+              const sv = serviceById(x.id); const p = priceFor(pro, x.id); return sv && p ? [{ id: x.id, name: svcName(sv, lang), price: p, href: `/book?pro=${pro.slug}&svc=${x.id}` }] : [];
+            })} />
           </div>
           <div className="figcol">
             <div className="lbl">{tr(TRADES[pro.trade].name).toUpperCase()} / {tr(colorWord(pro.accent))}</div>

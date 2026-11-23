@@ -23,7 +23,7 @@ export default function CustomServices({ initial, licensed, draftKey }: { initia
             {big && <small className="lic-msg">⚠ {t('$1,000 or more needs a CSLB license. Add your license number above or lower the price.')}</small>}
           </div>);
       })}
-      {rows.length < 20 && <button type="button" className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={() => set([...rows, { name: '', price: '' }])}>+ {t('Add your own service')}</button>}
+      {rows.length < 20 && <button type="button" className="add-own" onClick={() => set([...rows, { name: '', price: '' }])}><i aria-hidden>+</i><span><b>{t('Add your own service')}</b><small>{t('A job that is not in the list, with your price')}</small></span></button>}
     </div>
   );
 }

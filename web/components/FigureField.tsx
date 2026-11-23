@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { avatarFrom, cropImage, cutOut, flipImage } from '@/lib/cutout';
 import CropBox from './CropBox';
+import PhotoTips from './PhotoTips';
+import { findFeet } from './FigStand';
 import { uploadBlob } from '@/lib/upload';
 import { isLive } from '@/lib/supabase/config';
 import Figure from './Figure';
@@ -43,6 +45,7 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
       const c = await cutOut(file);
       if (c.personShare < 0.06) throw new Error('small');
       onAccent(c.accent); await putFigure(c.blob);
+      await checkStance(c.blob);
     } catch {
       // No full-height person found: keep the photo as a simple picture (no figure).
       const v = URL.createObjectURL(file); const u = await up(file, 'avatar').catch(() => '');
@@ -50,6 +53,15 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
       setErr(t('We could not find you in full height, so this photo is used as a simple picture. For the glowing figure, take a photo from head to shoes.'));
     }
     setBusy(null);
+  }
+  // One foot far forward makes the figure look like it floats: suggest another photo (only a hint, the photo is kept).
+  async function checkStance(b: Blob) {
+    try {
+      const img = new Image(); img.src = URL.createObjectURL(b); await img.decode();
+      const st = findFeet(img);
+      if (!st) setErr(t('We could not find your shoes in the photo. For the best page, take the photo from head to shoes, with a little floor under them.'));
+      else if (st.feet.length === 2 && Math.abs(st.feet[0].y - st.feet[1].y) > 4.5) setErr(t('One foot is far in front of the other, so on your page you may look like you float. For the best look, stand with your feet side by side (see the tips below).'));
+    } catch { /* no check */ }
   }
   async function mirror() {
     setErr(null); setBusy(t('Mirroring…'));
@@ -111,6 +123,7 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
         </label>
         {ava.view && fig.view && <span className="ava-mini"><img src={ava.view} alt="" /> <span className="mu xs">{t('Small picture for cards and search (made automatically)')}</span></span>}
         {err && <span className="note xs">{err}</span>}
+        <PhotoTips open={!has} />
         <input type="hidden" name="figure_url" value={fig.url ?? ''} />
         <input type="hidden" name="figure_accent" value={fig.view ? accent : ''} />
         <input type="hidden" name="photo_override" value={ava.url} />

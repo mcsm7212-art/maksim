@@ -51,7 +51,9 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
   const mirrorFig = useRef<(() => Promise<void>) | null>(null);
   function openPreview() {
     const f = new FormData(formRef.current ?? undefined); const v = (k: string) => String(f.get(k) ?? '');
-    setPreview({ name: v('name'), trade, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent });
+    const jobs = SERVICES.filter((x) => x.trade === trade && f.get(`svc_${x.id}`)).slice(0, 3)
+      .map((x) => ({ id: x.id, name: svcName(x, lang), price: roundPrice(Number(v(`price_${x.id}`)) || marketMid(x)) }));
+    setPreview({ name: v('name'), trade, area: v('area'), years: Number(v('years')) || 0, languages: v('languages'), bio: v('bio'), experience: v('experience'), skills: v('skills'), photo, figure, accent, jobs });
   }
   // What still stops "Create my profile": shown when the pointer is over the disabled button.
   const [missing, setMissing] = useState<string[]>([]); const [tap, setTap] = useState(false);

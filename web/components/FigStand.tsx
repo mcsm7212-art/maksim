@@ -9,7 +9,7 @@ type Stand = { drop: number; feet: Foot[]; amb: { l: number; w: number; y: numbe
  * Finds the soles in a cut-out figure (transparent background): the lowest solid pixels of each foot.
  * People often stand half-turned with one foot forward, so the soles are at different heights.
  */
-function findFeet(img: HTMLImageElement): Stand | null {
+export function findFeet(img: HTMLImageElement): Stand | null {
   const W = Math.min(220, img.naturalWidth), H = Math.round((img.naturalHeight * W) / img.naturalWidth);
   if (!W || !H) return null;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -42,7 +42,7 @@ function findFeet(img: HTMLImageElement): Stand | null {
 /** A cut-out figure standing on the floor: soles on the floor line, a soft shadow under each foot. */
 export default function FigStand({ src, alt, eager }: { src: string; alt: string; eager?: boolean }) {
   const [st, setSt] = useState<Stand | null>(null);
-  const ref = useRef<HTMLImageElement>(null);
+  const ref = useRef<HTMLImageElement>(null); const [cors, setCors] = useState(true);
   const measure = (img: HTMLImageElement) => { try { setSt(findFeet(img)); } catch { /* picture from another site: keep the plain shadow */ } };
   // A cached picture can finish loading before the page comes alive: measure it then.
   useEffect(() => { const i = ref.current; if (i?.complete && i.naturalWidth) measure(i); }, [src]);
@@ -55,7 +55,8 @@ export default function FigStand({ src, alt, eager }: { src: string; alt: string
             {st.feet.map((f, i) => <i key={i} className="ffoot" aria-hidden style={{ left: `${f.l}%`, width: `${f.w}%`, top: `${f.y}%` }} />)}
           </>
         : <i className="fshadow" aria-hidden />}
-      <img ref={ref} src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} crossOrigin="anonymous" onLoad={(e) => measure(e.currentTarget)} />
+      <img ref={ref} src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} crossOrigin={cors ? 'anonymous' : undefined} onLoad={(e) => { if (cors) measure(e.currentTarget); }}
+        onError={() => setCors(false) /* the photo host does not allow reading it: just show it, with the plain shadow */} />
     </span>
   );
 }
