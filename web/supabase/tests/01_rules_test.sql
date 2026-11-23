@@ -606,4 +606,14 @@ select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
 do $$ begin insert into public.pro_custom_services (pro_id, name, price) values ('00000000-0000-0000-0000-0000000000b2', 'Fake', 10); raise exception 'FAIL: wrote another pro''s service';
   exception when insufficient_privilege then null; end $$;
 select pg_temp.ok(true, 'only the pro edits their own services');
+
+-- 0028 trade requests: own insert, private to the author and admins
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+insert into public.trade_requests (name) values ('  Roofing ');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.ok((select count(*) from public.trade_requests) = 0, 'other people do not see trade requests');
+do $$ begin insert into public.trade_requests (user_id, name) values ('00000000-0000-0000-0000-0000000000b2', 'Fake'); raise exception 'FAIL: wrote a request for someone else';
+  exception when insufficient_privilege then null; end $$;
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select pg_temp.ok((select name from public.trade_requests) = 'Roofing', 'a pro asks for a new trade (name trimmed)');
 \echo ALL RULE TESTS PASSED

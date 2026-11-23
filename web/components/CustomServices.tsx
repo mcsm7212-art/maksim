@@ -11,8 +11,8 @@ export default function CustomServices({ initial, licensed, draftKey }: { initia
   const set = (next: Row[]) => { setRows(next); try { localStorage.setItem(draftKey, JSON.stringify(next)); } catch { /* storage off */ } };
   return (
     <div className="custom-svcs">
-      <b className="sm">{t('Your own services')}</b>
-      <span className="mu xs">{t('Jobs that are not in the list. Clients see them on your page and ask for an estimate.')}</span>
+      <h4 className="cs-h">{t('Your own services')}</h4>
+      <span className="mu sm">{t('Jobs that are not in the list. Clients see them on your page and ask for an estimate.')}</span>
       {rows.map((r, i) => {
         const big = !licensed && Number(r.price) >= 1000;
         return (
@@ -23,7 +23,7 @@ export default function CustomServices({ initial, licensed, draftKey }: { initia
             {big && <small className="lic-msg">⚠ {t('$1,000 or more needs a CSLB license. Add your license number above or lower the price.')}</small>}
           </div>);
       })}
-      {rows.length < 20 && <button type="button" className="add-own" onClick={() => set([...rows, { name: '', price: '' }])}><i aria-hidden>+</i><span><b>{t('Add your own service')}</b><small>{t('A job that is not in the list, with your price')}</small></span></button>}
+      {rows.length < 20 && <button type="button" className="add-own" onClick={() => set([...rows, { name: '', price: '' }])}><i aria-hidden>+</i><b>{t('Add your own service')}</b></button>}
     </div>
   );
 }

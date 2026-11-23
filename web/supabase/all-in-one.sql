@@ -1,4 +1,4 @@
--- NovaFides: the whole database in one file (migrations 0001-0027 + service catalog).
+-- NovaFides: the whole database in one file (migrations 0001-0028 + service catalog).
 -- Paste into Supabase → SQL Editor → New query → Run. Run it once, on an empty project.
 -- NovaFides marketplace: initial schema
 -- Roles: client, pro (independent or company technician), company (owner/manager accounts).
@@ -629,6 +629,7 @@ $$;
 grant execute on function public.invite_info(text) to authenticated;
 
 grant execute on function public.accept_invite(text) to authenticated;
+
 -- Photo storage (Supabase only). Public bucket; each user writes only inside a folder named after their user id.
 insert into storage.buckets (id, name, public) values ('photos', 'photos', true) on conflict (id) do nothing;
 create policy photos_read on storage.objects for select using (bucket_id = 'photos');
@@ -638,6 +639,7 @@ create policy photos_update_own on storage.objects for update to authenticated
   using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy photos_delete_own on storage.objects for delete to authenticated
   using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
 -- Launch version of pro profiles: pros describe their experience and skills and upload work photos.
 -- Levels, job counters and the skill passport stay hidden until a pro has enough real jobs and reviews (see lib/levels.ts).
 
@@ -689,6 +691,7 @@ create policy pro_photos_delete on public.pro_photos for delete using (pro_id = 
 
 grant select on public.pro_photos to anon, authenticated;
 grant insert, update, delete on public.pro_photos to authenticated;
+
 -- Pros can stop offering a service without losing its verified job count.
 alter table public.pro_services add column if not exists active boolean not null default true;
 
@@ -814,6 +817,7 @@ drop policy conversations_read on public.conversations;
 create policy conversations_read on public.conversations for select using (
   client_id = auth.uid() or pro_id = auth.uid() or (company_id is not null and public.is_company_staff(company_id)) or public.is_admin()
 );
+
 -- Photos in chat: a message can be a photo with an optional caption.
 alter table public.messages add column if not exists photo_url text;
 alter table public.messages drop constraint if exists messages_body_check;
@@ -831,6 +835,7 @@ language sql security definer set search_path = public as $$
   where id = auth.uid();
 $$;
 grant execute on function public.set_online(int, text) to authenticated;
+
 -- Invoices: the pro or the company office bills the client for a booking. NovaFides does not take payments;
 -- the invoice shows how to pay (Zelle, card link, check...) and the pro marks it paid.
 create sequence if not exists public.invoice_no start 1001;
@@ -916,6 +921,7 @@ create policy invoices_insert on public.invoices for insert with check (public.c
 create policy invoices_update on public.invoices for update using (public.can_bill(booking_id)) with check (public.can_bill(booking_id));
 grant select, insert, update on public.invoices to authenticated;
 grant usage on sequence public.invoice_no to authenticated;
+
 -- Calendar sync without OAuth:
 --  1) export: each pro gets a secret iCal feed URL with their NovaFides jobs (Google / Apple / Outlook subscribe to it);
 --  2) import: a pro pastes the secret iCal address of their own calendar; we store only busy time ranges (no titles).
@@ -968,6 +974,7 @@ language sql stable security definer set search_path = public as $$
     and b.status in ('requested', 'confirmed', 'on_the_way', 'in_progress', 'done');
 $$;
 grant execute on function public.calendar_feed(text) to anon, authenticated;
+
 -- Explicit table permissions for the API roles. Newer Supabase projects no longer grant these automatically.
 -- Row Level Security (enabled on every table) still decides which rows each user may read or change.
 grant usage on schema public to anon, authenticated;
@@ -977,6 +984,7 @@ grant usage, select on all sequences in schema public to authenticated;
 grant execute on all functions in schema public to anon, authenticated;
 -- notify() writes notifications for others; keep it callable only from the database's own functions.
 revoke execute on function public.notify(uuid, text, text) from public, anon, authenticated;
+
 -- Short addresses (novafides.com/max) and business cards.
 -- The pro's handle is pros.slug. Old handles are kept here so printed cards and QR codes keep working after a change.
 create table public.pro_handles (
@@ -1018,6 +1026,7 @@ begin
 end;
 $$;
 grant execute on function public.set_handle(text) to authenticated;
+
 -- Launch period: NovaFides charges nothing. Every pro who joins before the subscription start date is a Founding Pro
 -- and keeps that mark (and the special terms announced with the start date). When billing is announced, a later
 -- migration sets the default to false so new pros are no longer founding.
@@ -1038,6 +1047,7 @@ end;
 $$;
 create trigger pros_protect_founding before insert or update on public.pros
   for each row execute function public.protect_founding();
+
 -- Social features: saved / hidden pros ("My pros"), pro posts with likes (feed), colleague recommendations, popular pros.
 
 -- "My pros": a user saves a pro (also follows their posts) or hides a pro from their search.
@@ -1151,6 +1161,7 @@ $$;
 grant select, insert, update, delete on public.pro_saves, public.posts, public.post_likes, public.pro_recommendations to authenticated;
 grant select on public.posts, public.post_likes, public.pro_recommendations to anon;
 grant execute on function public.save_counts(uuid[]), public.popular_pros(int) to anon, authenticated;
+
 -- Urgent calls: a pro says "I take urgent calls" (optionally with an extra call-out fee).
 -- Clients see the pro as ready for urgent calls only while the pro is also online.
 alter table public.pros add column if not exists urgent_ok boolean not null default false;
@@ -1166,8 +1177,10 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.set_urgent(boolean, numeric) from public, anon;
 grant execute on function public.set_urgent(boolean, numeric) to authenticated;
+
 -- Full-height photo of the pro on a transparent background, shown big on their page with a glow in their clothing colour.
 alter table public.pros add column if not exists figure_url text check (figure_url is null or char_length(figure_url) <= 500);
+
 -- Community: comments on posts, questions answered by verified pros, and the pros-only Lounge.
 -- Names shown next to comments/questions are saved when written: pros by their public name,
 -- everyone else by first name + last initial ("Anna C."), so clients never expose their full name.
@@ -1412,6 +1425,7 @@ begin
   return new;
 end;
 $$;
+
 -- 1) Construction becomes a fourth trade (CSLB B, General Building Contractor).
 -- 2) Pros can pause new jobs ("not taking jobs now", optionally until a date).
 -- 3) Pros keep a colleague list and choose who may message them: all pros, only colleagues, or nobody.
@@ -1639,6 +1653,7 @@ begin
   return new;
 end;
 $$;
+
 -- Photo search: a client photographs a problem, AI recognizes the job, and we show pros who have done it,
 -- with their photos of that kind of job. Job photos (before/after) stay private unless the pro shows them
 -- on their page; the client of that job can always hide them again.
@@ -1697,6 +1712,7 @@ begin
 end;
 $$;
 grant execute on function public.photo_search_quota(text, int) to anon, authenticated;
+
 -- Parts that pros installed on NovaFides jobs: NovaFides' own parts database.
 -- "Max replaced this exact Grohe cartridge 3 times" — no client details are stored or shown.
 create table if not exists public.job_parts (
@@ -1753,6 +1769,7 @@ language sql stable security definer set search_path = public as $$
   from m group by pro_id order by bool_or(exact) desc, count(*) desc limit 20;
 $$;
 grant execute on function public.parts_lookup(text[], text, text) to anon, authenticated;
+
 -- Quotes in chat and a clear order flow:
 --   pro sends a quote in the chat → client accepts (price agreed) → client picks a time (visit requested)
 --   → pro confirms → on the way → in progress → pro marks done → client confirms the job is complete.
@@ -2000,6 +2017,7 @@ create trigger problems_after_update before update on public.problems for each r
 drop index if exists public.bookings_no_double;
 create unique index bookings_no_double on public.bookings (pro_id, starts_at)
   where status not in ('cancelled', 'done') and pro_id is not null and starts_at is not null;
+
 -- Trust badges with dates, insurance only confirmed by NovaFides, pinned posts and post types, colleague notifications.
 
 -- ───────── when each check was done ─────────
@@ -2065,6 +2083,7 @@ language sql stable security definer set search_path = public as $$
   select pro_id from public.pro_contacts where colleague_id = auth.uid();
 $$;
 grant execute on function public.added_me() to authenticated;
+
 -- Demo profiles, photos on the first request, and "I have the same problem" requests from a pro's work example.
 
 -- Demo (example) profiles: clearly labeled, never bookable, never counted as available.
@@ -2117,6 +2136,7 @@ drop policy if exists work_requests_insert on public.work_requests;
 create policy work_requests_insert on public.work_requests for insert with check (client_id = auth.uid() and client_id <> pro_id);
 grant select, insert on public.work_requests to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+
 -- Honest rating: every review stays visible, but reviews that follow a suspicious pattern count less (or not at all)
 -- in the rating, and a moderator looks at them. An honest one-off negative review always counts in full.
 --
@@ -2287,6 +2307,7 @@ from public.pros p
 left join pub r on r.pro_id = p.id
 group by p.id;
 grant select on public.pro_stats to anon, authenticated;
+
 -- Terms of Use and Privacy Policy: which version each person accepted, and when.
 alter table public.profiles
   add column if not exists terms_version text,
@@ -2319,6 +2340,7 @@ end;
 $$;
 revoke execute on function public.accept_terms(text) from public, anon;
 grant execute on function public.accept_terms(text) to authenticated;
+
 -- Discovery: "clients with similar picks choose…", saved searches, client "My project" posts confirmed by the pro, a simple public client card.
 
 -- ── Who likes which pro (private; only counts leave the database) ──
@@ -2488,6 +2510,7 @@ language sql stable security definer set search_path = public as $$
   from public.profiles p where p.id = uid;
 $$;
 grant execute on function public.client_card(uuid) to anon, authenticated;
+
 -- Contact: a pro may show a phone number and call hours on their page (off by default).
 alter table public.pros
   add column if not exists public_phone text check (char_length(public_phone) <= 30),
@@ -2503,11 +2526,13 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke execute on function public.invite_prefill(text) from public, anon;
 grant execute on function public.invite_prefill(text) to authenticated;
+
 -- Service area on a map: a point (the pro's base) and a radius in miles. Only the pro's own row; shown as a circle, never an exact address.
 alter table public.pros
   add column if not exists base_lat numeric(8,5) check (base_lat between 32 and 42.5),
   add column if not exists base_lng numeric(8,5) check (base_lng between -125 and -114),
   add column if not exists service_radius_mi int check (service_radius_mi between 1 and 150);
+
 -- Service area as a polygon the pro draws on the map (any US place, not only California).
 alter table public.pros drop constraint if exists pros_base_lat_check;
 alter table public.pros drop constraint if exists pros_base_lng_check;
@@ -2517,6 +2542,7 @@ alter table public.pros add constraint pros_base_lng_check check (base_lng betwe
 alter table public.pros add constraint pros_service_radius_mi_check check (service_radius_mi between 1 and 1500);
 alter table public.pros add column if not exists service_polygon jsonb
   check (service_polygon is null or (jsonb_typeof(service_polygon) = 'array' and jsonb_array_length(service_polygon) between 3 and 60));
+
 -- A pro's own services that are not in the catalog (name + price). Shown on the pro's page; clients ask for an estimate.
 create table if not exists public.pro_custom_services (
   id bigint generated always as identity primary key,
@@ -2551,6 +2577,34 @@ end;
 $$;
 drop trigger if exists pro_custom_services_rules on public.pro_custom_services;
 create trigger pro_custom_services_rules before insert or update on public.pro_custom_services for each row execute function public.pro_custom_service_rules();
+
+-- "My trade is not in the list": a pro names their trade; admins see the requests and decide which trades to add next.
+create table if not exists public.trade_requests (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles (id) on delete cascade default auth.uid(),
+  name text not null check (char_length(btrim(name)) between 2 and 60),
+  created_at timestamptz not null default now(),
+  unique (user_id, name)
+);
+alter table public.trade_requests enable row level security;
+drop policy if exists trade_requests_insert on public.trade_requests;
+create policy trade_requests_insert on public.trade_requests for insert with check (user_id = auth.uid());
+drop policy if exists trade_requests_read on public.trade_requests;
+create policy trade_requests_read on public.trade_requests for select using (user_id = auth.uid() or public.is_admin());
+grant select, insert on public.trade_requests to authenticated;
+
+-- At most 5 requests per person.
+create or replace function public.limit_trade_requests() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.trade_requests where user_id = new.user_id) >= 5 then raise exception 'trade request limit: 5'; end if;
+  new.name := btrim(new.name);
+  return new;
+end;
+$$;
+drop trigger if exists trade_requests_limit on public.trade_requests;
+create trigger trade_requests_limit before insert on public.trade_requests for each row execute function public.limit_trade_requests();
+
 -- generated by scripts/gen-seed.mjs; do not edit by hand
 insert into public.services (id, trade, group_name, name, price_low, price_high, unit, needs_permit, emergency, handyman_ok) values
 ('faucet-replacement','plumbing','Faucets & Sinks','Faucet replacement',250,450,'job',false,false,true),
@@ -2686,3 +2740,4 @@ insert into public.services (id, trade, group_name, name, price_low, price_high,
 ('siding-repair','construction','Exterior & Structure','Siding repair',1000,6000,'job',false,false,false),
 ('structural-framing-repair','construction','Exterior & Structure','Structural framing repair',2000,15000,'job',true,false,false)
 on conflict (id) do update set trade = excluded.trade, group_name = excluded.group_name, name = excluded.name, price_low = excluded.price_low, price_high = excluded.price_high, unit = excluded.unit, needs_permit = excluded.needs_permit, emergency = excluded.emergency, handyman_ok = excluded.handyman_ok;
+

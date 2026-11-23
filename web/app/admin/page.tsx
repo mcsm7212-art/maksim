@@ -31,6 +31,8 @@ export default async function Admin() {
     sb.from('problems').select('*').eq('status', 'open').order('created_at'),
     sb.from('reviews').select('id, client_id, author_name, body, punctuality, workmanship, cleanliness, communication, pricing, weight, weight_reason, created_at, pro:pros(display_name, slug)').eq('needs_review', true).order('created_at').limit(50),
   ]);
+  const { data: tradeReqs } = await sb.from('trade_requests').select('name, created_at').order('created_at', { ascending: false }).limit(500);
+  const tradeCounts = [...(tradeReqs ?? []).reduce((m: Map<string, number>, r: any) => { const k = String(r.name).trim().toLowerCase(); m.set(k, (m.get(k) ?? 0) + 1); return m; }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
   const authors = [...new Set((flagged ?? []).map((r: any) => r.client_id as string))];
   const { data: history } = authors.length ? await sb.from('reviews').select('client_id, punctuality, workmanship, cleanliness, communication, pricing, weight, pro:pros(display_name, slug)').in('client_id', authors) : { data: [] as any[] };
   const sc = (r: any) => ((r.punctuality + r.workmanship + r.cleanliness + r.communication + r.pricing) / 5).toFixed(1);
@@ -111,6 +113,9 @@ export default async function Admin() {
         ))}
         {!(flagged ?? []).length && <div className="card empty">{tr('Nothing suspicious right now.')}</div>}
       </div>
+
+      <h3 style={{ marginTop: 28 }}>{tr('Trades pros asked for')} ({tradeCounts.length})</h3>
+      {tradeCounts.length ? <div className="chips">{tradeCounts.map(([n, k]) => <span key={n} className="chip">{n} · {k}</span>)}</div> : <p className="mu sm">{tr('No requests yet.')}</p>}
 
       <h3 style={{ marginTop: 28 }}>{tr('Problems on orders')} ({(problems ?? []).length})</h3>
       <div className="list">

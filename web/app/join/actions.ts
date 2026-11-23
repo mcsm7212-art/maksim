@@ -198,3 +198,14 @@ export async function updateCompany(_p: JoinState, f: FormData): Promise<JoinSta
   const { error } = await sb.from('companies').update(patch).eq('id', co.id);
   return error ? { error: error.message } : { saved: true };
 }
+
+// "My trade is not in the list": saved for NovaFides admins.
+export async function requestTrade(name: string): Promise<{ ok: boolean; error?: string }> {
+  const n = String(name ?? '').trim().slice(0, 60);
+  if (n.length < 2) return { ok: false, error: 'Write the name of your trade.' };
+  if (!isLive()) return { ok: true };
+  const me = await getMe(); if (!me) return { ok: false, error: 'Please sign in first.' };
+  const { error } = await (await supabaseServer()).from('trade_requests').insert({ name: n });
+  if (error && !/duplicate|unique/i.test(error.message)) return { ok: false, error: /limit/.test(error.message) ? 'You already sent 5 trades. Thank you!' : 'Could not send. Try again.' };
+  return { ok: true };
+}

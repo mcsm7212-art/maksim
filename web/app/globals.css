@@ -1018,9 +1018,17 @@ details.grp:not([open]):has(.sv-row.lic input[type=checkbox]:checked){animation:
 .ptips figure.ok figcaption b{color:#3FB27F}.ptips figure.no figcaption b{color:#E0564F}
 .ptips ul{margin:8px 0 4px;padding-left:18px;font-size:13px;color:var(--mu)}.ptips li{margin:3px 0}
 
-/* "+ Add your own service": a clear, full-width button */
-.add-own{display:flex;align-items:center;gap:14px;width:100%;padding:12px 14px;border:1.5px dashed color-mix(in srgb,var(--cu) 60%,var(--line));border-radius:14px;
-  background:color-mix(in srgb,var(--cu) 6%,transparent);color:var(--ink);cursor:pointer;text-align:left;font:inherit;transition:background .15s ease,border-color .15s ease}
-.add-own:hover{background:color-mix(in srgb,var(--cu) 12%,transparent);border-color:var(--cu)}
-.add-own i{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--cu);color:#fff;font-style:normal;font-size:26px;line-height:1;font-weight:500}
-.add-own span{display:flex;flex-direction:column;gap:2px}.add-own small{color:var(--mu);font-size:12.5px}
+/* "+ Add your own service" / "+ Add your trade": copper button with a "+" tile */
+.add-own{display:inline-flex;align-items:center;gap:16px;align-self:flex-start;min-width:min(100%,380px);padding:10px 22px 10px 10px;border:1.5px solid color-mix(in srgb,var(--cu-l,#C08A62) 85%,transparent);border-radius:14px;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--cu) 62%,var(--card)) 0%,color-mix(in srgb,var(--cu) 22%,var(--card)) 55%,color-mix(in srgb,var(--cu) 10%,var(--card)) 100%);color:var(--ink);cursor:pointer;text-align:left;font:inherit;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25),0 6px 22px color-mix(in srgb,var(--cu) 28%,transparent);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.add-own:hover{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 8px 28px color-mix(in srgb,var(--cu) 40%,transparent)}
+.add-own i{flex:none;width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-style:normal;font-size:28px;line-height:1;font-weight:400;color:var(--cu-l,#E0A878);
+  background:linear-gradient(160deg,#3A3A40,#1E1E22);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 6px rgba(0,0,0,.4)}
+.add-own b{font-size:17px;font-weight:700}
+[data-theme="light"] .add-own{background:linear-gradient(100deg,color-mix(in srgb,var(--cu) 30%,#fff) 0%,color-mix(in srgb,var(--cu) 8%,#fff) 70%);box-shadow:0 6px 18px color-mix(in srgb,var(--cu) 22%,transparent)}
+[data-theme="light"] .add-own i{background:linear-gradient(160deg,#4A4A52,#2A2A30)}
+.cs-h{margin:6px 0 0;font-size:20px}
+.custom-svcs{display:flex;flex-direction:column;gap:10px}
+.trade-req{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.trade-req-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trade-req-row .inp{flex:1 1 220px}

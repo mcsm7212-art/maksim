@@ -9,6 +9,7 @@ import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
 import FormDraft, { ClearBtn } from '@/components/FormDraft';
 import CustomServices from '@/components/CustomServices';
+import TradeRequest from '@/components/TradeRequest';
 import GroupAll from '@/components/GroupAll';
 import PhotoPicker from '@/components/PhotoPicker';
 import FigureField from '@/components/FigureField';
@@ -85,6 +86,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
               <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />
                 <Icon name={TRADES[t].icon} size={18} /> {tt(TRADES[t].name)}</label>))}</div>
             {edit && <span className="mu xs">{tt('The trade cannot be changed after sign-up. Write to us if it is wrong.')}</span>}
+            {!edit && <TradeRequest />}
           </div>
           {!invite && !edit && <label className="f">CSLB license # ({TRADES[trade].license || 'B'}) <span className="mu xs">{tt('optional')}</span><span className="fieldwrap"><input className="inp" name="license" onInput={(e) => setLicText((e.target as HTMLInputElement).value)} inputMode="numeric" placeholder="1234567" /><ClearBtn /></span>
             <span className="mu xs">{tt('No license? You can still join: you take jobs under $1,000 with materials, without a permit. Jobs that need a license are marked red below.')}</span></label>}

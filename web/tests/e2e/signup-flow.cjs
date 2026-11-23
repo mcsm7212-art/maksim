@@ -275,11 +275,13 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await mn.locator('.sa-map').scrollIntoViewIfNeeded();const box=await mn.locator('.sa-map').boundingBox();await mn.mouse.click(box.x+box.width/2,box.y+box.height/2);await mn.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10);
   await mn.setInputFiles('.drop input[multiple]',IMG('face'));await mn.waitForSelector('input[name=work_url]',{state:'attached',timeout:60000});
   await mn.reload();await mn.waitForFunction(()=>(document.querySelector('input[name=service_polygon]')?.value||'').length>10,null,{timeout:15000});await mn.waitForSelector('input[name=work_url]',{state:'attached',timeout:15000});
+  await mn.click('.trade-req .add-own');await mn.fill('.trade-req input','Roofing');await mn.click('.trade-req button:has-text("Send")');await mn.waitForSelector('.trade-req .okmsg');
+  if(sql("select count(*) from trade_requests where name='Roofing'")!=='1')throw new Error('trade request not saved');
   await mn.check('input[name=agree]');await mn.waitForSelector('.submit-wrap:not(.blocked)',{timeout:5000});
   if(!/only jobs under \$1,000/.test(await mn.textContent('label.agree')))throw new Error('agree text still claims a license');
   await mn.click('button:has-text("Create my profile")');await mn.waitForURL(/account/);await mn.waitForSelector('.todo-card');
   if(sql("select count(*) from pros p where display_name='Mia Minimal' and photo_url is null and service_polygon is not null and exists(select 1 from pro_photos w where w.pro_id=p.id)")!=='1')throw new Error('minimal pro not saved with map and work photo');
-  step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later');}
+  step('a pro signs up with just a name and trade: the button is dimmed and explains what is missing; map and work photos survive a reload; account lists what to fill in later; asked for a new trade (Roofing)');}
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});
