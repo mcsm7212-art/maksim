@@ -77,7 +77,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <span className="mu xs">✎ {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
         {!edit && <div className="note xs">⏱ {tt('To create the profile you only need your name and trade. Photo, services, prices, map and work photos can be added now or later in your account.')}</div>}
         <div className="row2">
-          <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required defaultValue={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="Mike Reyes" /><ClearBtn /></span></label>
+          <label className="f">{tt("Name clients see")}<span className="fieldwrap"><input className="inp" name="name" required defaultValue={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="Mike Reyes" autoComplete="name" /></span></label>
           <div className="f" style={{ gridColumn: '1/-1' }} role="radiogroup" aria-label={tt("Trade")}>{tt("Trade")}
             <div className="trade-pick">{(Object.keys(TRADES) as Trade[]).map((t) => (
               <label key={t}><input type="radio" name="trade" value={t} checked={trade === t} disabled={edit && trade !== t} onChange={() => setTrade(t)} />

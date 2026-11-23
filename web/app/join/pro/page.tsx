@@ -15,10 +15,12 @@ export default async function JoinPro({ searchParams }: { searchParams: Promise<
     const me = await getMe();
     if (!me) redirect(`/login?next=${encodeURIComponent(`/join/pro${invite ? `?invite=${invite}` : ''}`)}`);
     if (me.pro) redirect('/account');
+    if (me.name && !me.name.includes('@')) prefill = { name: me.name }; // the name given when signing in
     if (invite) {
       const { data } = await (await supabaseServer()).rpc('invite_info', { invite_code: invite });
       companyName = data?.[0]?.company_name;
-      prefill = ((await (await supabaseServer()).rpc('invite_prefill', { invite_code: invite })).data ?? undefined) as typeof prefill;
+      const office = ((await (await supabaseServer()).rpc('invite_prefill', { invite_code: invite })).data ?? {}) as Record<string, unknown>;
+      prefill = { ...prefill, ...Object.fromEntries(Object.entries(office).filter(([, v]) => v != null && v !== '')) };
     }
   }
   return (
