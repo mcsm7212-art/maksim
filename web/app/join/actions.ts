@@ -76,6 +76,7 @@ export async function registerPro(_p: JoinState, f: FormData): Promise<JoinState
   const ownTrade = trade === 'other' ? str(f, 'custom_trade', 40) : '';
   if (trade === 'other' && ownTrade.length < 2) return { error: 'Write the name of your trade.' };
   if (!f.get('agree')) return { error: 'Tick the box to agree to the Terms of Use' };
+  if (license && !/^\d{5,8}$/.test(license)) return { error: 'A CSLB license number has 5 to 8 digits.' };
   // No license is fine: such pros take only jobs under $1,000 without a permit (checked below with the chosen services).
   const custom = customOf(f);
   const lp = licenseProblem(services, custom, Boolean(invite) || license.length >= 6); if (lp) return { error: lp };

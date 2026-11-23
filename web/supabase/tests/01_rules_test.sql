@@ -628,4 +628,16 @@ select pg_temp.ok((select category from public.pro_custom_services where name = 
 do $$ begin insert into public.pro_custom_services (pro_id, name, price) values (auth.uid(), 'Exactly a grand', 1000); raise exception 'FAIL: $1,000 without a license';
   exception when others then if sqlerrm not like 'license needed%' then raise; end if; end $$;
 select pg_temp.ok(true, '$1,000 or more needs a CSLB license');
+
+-- 0030 license check: no self-verification, no swapping a checked number, new numbers wait for the admin
+select pg_temp.act(null);
+reset role;
+update public.pros set license_no = '1121547', license_status = 'verified' where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ begin update public.pros set license_no = '9999999' where id = auth.uid(); raise exception 'FAIL: swapped a checked license';
+  exception when others then if sqlerrm not like 'license number changes%' then raise; end if; end $$;
+do $$ begin perform public.submit_license('12ab'); raise exception 'FAIL: bad format accepted';
+  exception when others then if sqlerrm not like 'license format%' then raise; end if; end $$;
+select public.submit_license('1234567');
+select pg_temp.ok((select license_no||'/'||license_status from public.pros where id = auth.uid()) = '1234567/pending', 'a new license number waits for the admin check');
 \echo ALL RULE TESTS PASSED

@@ -6,6 +6,7 @@ import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel, slotLabel } from '@/lib/time';
 import PhotoPicker from '@/components/PhotoPicker';
+import LicenseBox from '@/components/LicenseBox';
 import { CITIES } from '@/lib/areas';
 import { noteText } from '@/lib/notes';
 import { getLang } from '@/lib/i18n';
@@ -33,7 +34,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
     sb.from('bookings').select(`*, pro:pros!bookings_pro_id_fkey(${PRO_FIELDS}), proposed:pros!bookings_swap_proposed_pro_fkey(${PRO_FIELDS}), company:companies(slug, name)`).eq('client_id', me.id).order('created_at', { ascending: false }).limit(30),
     me.pro ? sb.from('bookings').select('*, client:profiles!bookings_client_id_fkey(full_name, phone)').eq('pro_id', me.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(30) : Promise.resolve({ data: [] as any[] }),
     sb.from('reviews').select('booking_id').eq('client_id', me.id),
-    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, photo_url, bio, service_polygon, base_lat, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
+    me.pro ? sb.from('pros').select('online_until, online_area, area, status, license_status, urgent_ok, urgent_fee, trade, photo_url, bio, service_polygon, base_lat, license_no, company_id, pro_services(count)').eq('id', me.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
   // Photos: my portfolio (if pro) and before/after photos on my jobs and my bookings
   const bookingIds = [...(mine ?? []), ...(jobs ?? [])].map((b: any) => b.id);
@@ -84,9 +85,10 @@ export default async function Account({ searchParams }: { searchParams: Promise<
             <Link className="btn sm" href="/account/profile">{tr('Fill in now')}</Link>
           </div>;
         })()}
+        {!proRow?.company_id && proRow?.trade !== 'handyman' && <LicenseBox number={proRow?.license_no ?? null} status={proRow?.license_status ?? 'none'} cslb="https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx" />}
         <div className="card bk" style={{ marginBottom: 12 }}>
           <span><b>{tr('Status')}: {tr(me.pro.status === 'verified' ? 'Public' : 'Waiting for verification')}</b><br />
-            <span className="mu sm">{tr('License check')}: {tr(proRow?.license_status ?? 'none')} · <Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/work">{tr('Work & chat settings')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>
+            <span className="mu sm"><Link href={`/pro/${me.pro.slug}`}>{tr('View my page')}</Link> · <Link href="/account/profile">{tr('Edit profile')}</Link> · <Link href="/account/reviews">{tr('My reviews')}</Link> · <Link href="/account/work">{tr('Work & chat settings')}</Link> · <Link href="/account/calendar">{tr('Calendar')}</Link> · <Link href="/account/card">{tr('Business card')}</Link></span></span>
           {online
             ? <form action={setOnline}><input type="hidden" name="hours" value={0} /><button className="btn ghost sm">● {proRow?.online_area ? tr('Online in {city}', { city: proRow.online_area }) : tr('Online')} · {tr('go offline')}</button></form>
             : <form action={setOnline} className="chips"><select className="inp" name="area" defaultValue={proRow?.online_area ?? proRow?.area ?? ''} aria-label={tr('City you are in now')} style={{ width: 'auto', padding: '7px 10px' }}>

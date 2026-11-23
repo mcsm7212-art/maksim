@@ -297,7 +297,13 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(sql("select coalesce(license_no,'none')||'/'||license_status from pros where display_name='Fred Fake'")!=='none/none')throw new Error('unconfirmed license kept');
   if(sql("select count(*) from pro_services s join pros p on p.id=s.pro_id where p.display_name='Fred Fake' and s.active and s.service_id='tank-water-heater-replacement'")!=='0')throw new Error('license job still active');
   if(sql("select count(*) from pro_services s join pros p on p.id=s.pro_id where p.display_name='Fred Fake' and s.active and s.service_id='faucet-replacement'")!=='1')throw new Error('small job removed');
-  step('a made-up license number does not count: the profile waits for the check; the admin does not confirm it → number removed, permit job switched off, small jobs stay');}
+  await fk.goto(B+'/account');await fk.waitForSelector('.lic-box');await fk.fill('.lic-box input[name=license]','12ab');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box .err');
+  await fk.fill('.lic-box input[name=license]','1076543');await fk.click('.lic-box button');await fk.waitForSelector('.lic-box.pending');
+  if(sql("select license_no||'/'||license_status from pros where display_name='Fred Fake'")!=='1076543/pending')throw new Error('corrected license not pending');
+  await ad.goto(B+'/admin');await ad.click('.lic-q:has-text("Fred Fake") button:has-text("Confirm")');
+  for(let i=0;i<20&&sql("select license_status from pros where display_name='Fred Fake'")!=='verified';i++)await ad.waitForTimeout(300);
+  if(sql("select license_status from pros where display_name='Fred Fake'")!=='verified')throw new Error('admin confirm failed');
+  step('a made-up license number does not count: the profile waits for the check; the admin does not confirm it → number removed, permit job switched off, small jobs stay; the pro sends a corrected number from the account (bad format refused) → admin confirms it in “Licenses to check”');}
  step('search: Russian phrase → "what needs doing?" with the right job; Spanish phrase → straight to the job');
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});

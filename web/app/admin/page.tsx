@@ -9,7 +9,7 @@ import { TRADES, type Trade } from '@/lib/catalog';
 import { isLive } from '@/lib/supabase/config';
 import { supabaseServer } from '@/lib/supabase/server';
 import { dateLabel } from '@/lib/time';
-import { approveCompany, approvePro, countFlagged, hideFlagged, hideReview, keepFlagged, keepReview, rejectCompany, rejectPro } from './actions';
+import { approveCompany, approvePro, countFlagged, hideFlagged, hideReview, keepFlagged, keepReview, rejectCompany, rejectPro, licenseFound, licenseNotFound } from './actions';
 
 export const metadata = { title: 'Admin' };
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -31,6 +31,8 @@ export default async function Admin() {
     sb.from('problems').select('*').eq('status', 'open').order('created_at'),
     sb.from('reviews').select('id, client_id, author_name, body, punctuality, workmanship, cleanliness, communication, pricing, weight, weight_reason, created_at, pro:pros(display_name, slug)').eq('needs_review', true).order('created_at').limit(50),
   ]);
+  // licenses added or corrected by pros whose profile is already public
+  const { data: licQueue } = await sb.from('pros').select('id, slug, display_name, trade, license_no, created_at').eq('status', 'verified').eq('license_status', 'pending').not('license_no', 'is', null).order('created_at');
   const { data: tradeReqs } = await sb.from('trade_requests').select('name, created_at').order('created_at', { ascending: false }).limit(500);
   const tradeCounts = [...(tradeReqs ?? []).reduce((m: Map<string, number>, r: any) => { const k = String(r.name).trim().toLowerCase(); m.set(k, (m.get(k) ?? 0) + 1); return m; }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
   const authors = [...new Set((flagged ?? []).map((r: any) => r.client_id as string))];
@@ -41,6 +43,17 @@ export default async function Admin() {
     <section className="sec pad"><div className="in">
       <div className="eyebrow">{tr("Moderation")}</div><h2>{tr("Admin")}</h2>
       <p className="mu sm">{tr('{n} verified pros live. Check each license on the CSLB site before approving.', { n: live ?? 0 })}</p>
+
+      <h3>{tr('Licenses to check')} ({(licQueue ?? []).length})</h3>
+      {(licQueue ?? []).length ? <div className="list" style={{ marginBottom: 24 }}>{(licQueue ?? []).map((p: any) => (
+        <div key={p.id} className="card bk lic-q">
+          <span><b>{p.display_name}</b> <span className="mu sm">· {tr(TRADES[p.trade as Trade]?.name ?? '')} · {tr('wants license')} <b>#{p.license_no}</b> ({TRADES[p.trade as Trade]?.license || 'B'})</span><br />
+            <a href={cslb(p.license_no)} target="_blank" rel="noreferrer">{tr('Open in CSLB')} ↗</a> <span className="mu xs">· {tr('Check: the license is active, the class fits the trade, the name matches the pro.')}</span></span>
+          <span className="chips">
+            <form action={licenseFound}><input type="hidden" name="id" value={p.id} /><button className="btn sm">✓ {tr('Confirm')}</button></form>
+            <form action={licenseNotFound}><input type="hidden" name="id" value={p.id} /><button className="btn ghost sm">✕ {tr('Not found')}</button></form>
+          </span>
+        </div>))}</div> : <p className="mu sm" style={{ marginBottom: 24 }}>{tr('No licenses waiting.')}</p>}
 
       <h3>{tr('Pros waiting')} ({(pros ?? []).length})</h3>
       <div className="list">

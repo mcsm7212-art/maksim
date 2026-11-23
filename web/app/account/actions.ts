@@ -112,3 +112,14 @@ export async function deleteJobPart(f: FormData) {
   await sb.from('job_parts').delete().eq('id', Number(f.get('id')));
   revalidatePath('/account');
 }
+
+// A pro sends or corrects their CSLB license number: it waits for the NovaFides check (see the admin page).
+export async function sendLicense(_p: { error?: string; ok?: boolean } | undefined, f: FormData): Promise<{ error?: string; ok?: boolean }> {
+  const { me, sb } = await need(); if (!me.pro) return { error: 'Only pros can add a license.' };
+  const n = String(f.get('license') ?? '').replace(/\D/g, '');
+  if (!/^\d{5,8}$/.test(n)) return { error: 'A CSLB license number has 5 to 8 digits.' };
+  const { error } = await sb.rpc('submit_license', { n });
+  if (error) return { error: 'Could not send. Try again.' };
+  revalidatePath('/account');
+  return { ok: true };
+}
