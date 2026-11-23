@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from './I18n';
 
 // Inside the preview only the page itself is shown (no site menu, footer or bottom bar).
-const CLEAN = 'header.bar,footer.ft,.bnav,.stick3,.demo-note{display:none!important}body{padding-bottom:0!important}';
+// Only the top of the pro page (name, trade, popular jobs, figure): nothing below it and no scrolling.
+const CLEAN = 'header.bar,footer.ft,.bnav,.stick3,.demo-note{display:none!important}.in>:not(.ph3){display:none!important}html,body{overflow:hidden!important;padding-bottom:0!important}';
+/** Height of the visible top of the page inside the frame (so the window has no empty space). */
+const topHeight = (f: HTMLIFrameElement) => { try { const el = f.contentDocument?.querySelector('.ph3'); return el ? Math.ceil(el.getBoundingClientRect().bottom + 20) : null; } catch { return null; } };
 const clean = (f: HTMLIFrameElement | null) => { try { const d = f?.contentDocument; if (d && !d.getElementById('peek-css')) { const s = d.createElement('style'); s.id = 'peek-css'; s.textContent = CLEAN; d.head.appendChild(s); } } catch { /* other site */ } };
 
 /**
@@ -15,10 +18,12 @@ export default function PagePeek({ href, img, label, title }: { href: string; im
   const t = useT();
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null); const [big, setBig] = useState(false);
   const me = useRef<HTMLSpanElement>(null);
+  const [h, setH] = useState(760); // the page top's height at 1100 px wide
+  const loaded = (f: HTMLIFrameElement) => { clean(f); setTimeout(() => { const v = topHeight(f); if (v) setH(Math.min(1000, v)); }, 120); };
   // Next to the picture (right side, or left if there is no room), fully inside the window.
   const place = () => {
     const r = me.current?.getBoundingClientRect(); if (!r) return null;
-    const W = 379, H = 470, gap = 12;
+    const W = 379, H = 300, gap = 12;
     const x = r.right + gap + W <= innerWidth - 8 ? r.right + gap : Math.max(8, r.left - gap - W);
     const y = Math.min(Math.max(72, r.top + r.height / 2 - H / 2), innerHeight - H - 8);
     return { x, y };
@@ -37,13 +42,13 @@ export default function PagePeek({ href, img, label, title }: { href: string; im
         <img src={img} alt="" loading="lazy" /><span>{label}</span>
       </button>
       {hover && !big && <span className="peek-pop" role="button" tabIndex={-1} style={{ left: hover.x, top: hover.y }} onClick={() => { setHover(null); setBig(true); }}>
-        <span className="peek-frame"><iframe src={href} title={title} loading="lazy" tabIndex={-1} onLoad={(e) => clean(e.currentTarget)} /></span>
+        <span className="peek-frame" style={{ height: Math.round(h * 0.33) }}><iframe src={href} title={title} loading="lazy" tabIndex={-1} scrolling="no" style={{ height: h }} onLoad={(e) => loaded(e.currentTarget)} /></span>
         <small>{t('Click to open it bigger')}</small>
       </span>}
       {big && <span className="peek-modal" role="dialog" aria-modal="true" aria-label={title} onClick={() => setBig(false)}>
-        <span className="peek-box" onClick={(e) => e.stopPropagation()}>
+        <span className="peek-box" style={{ height: `min(${h + 52}px, 92vh)` }} onClick={(e) => e.stopPropagation()}>
           <span className="peek-top"><b>{title}</b> <span className="mu xs">· {t('Example page')}</span><button type="button" className="btn ghost sm" onClick={() => setBig(false)}>✕ {t('Close')}</button></span>
-          <iframe src={href} title={title} onLoad={(e) => clean(e.currentTarget)} />
+          <iframe src={href} title={title} scrolling="no" onLoad={(e) => loaded(e.currentTarget)} />
         </span>
       </span>}
     </span>
