@@ -1,5 +1,6 @@
 'use server';
 import { revalidatePath } from 'next/cache';
+import { ENGLISH_ONLY, nonLatin } from '@/lib/clean-words';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -32,6 +33,7 @@ export async function addTechnician(f: FormData) {
   const trade = ['plumbing', 'electrical', 'handyman', 'construction'].includes(s(f, 'trade')) ? s(f, 'trade') : 'plumbing';
   const prefill = { name: s(f, 'name').trim().slice(0, 60), trade, area: s(f, 'area').trim().slice(0, 60), years: Math.max(0, Math.min(60, Number(s(f, 'years')) || 0)) };
   if (prefill.name.length < 3) redirect('/business?error=' + encodeURIComponent('Enter the technician’s name.'));
+  if (nonLatin(prefill.name + ' ' + prefill.area)) redirect('/business?error=' + encodeURIComponent(ENGLISH_ONLY));
   await sb.from('company_invites').insert({ company_id: s(f, 'company'), role: 'technician', prefill });
   revalidatePath('/business');
 }

@@ -17,7 +17,7 @@ import ProPreview, { type PreviewData } from '@/components/ProPreview';
 import { checkLicense, registerPro, updatePro } from '../actions';
 import CslbMark, { type CslbAuto } from '@/components/CslbMark';
 import { namesMatch } from '@/lib/names';
-import { badText, hasCyrillic } from '@/lib/clean-words';
+import { badText, ENGLISH_ONLY, nonLatin, notEnglish } from '@/lib/clean-words';
 import { useLang, useT } from '@/components/I18n';
 import { groupName, svcName } from '@/lib/i18n-core';
 
@@ -100,7 +100,8 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
     if (f.querySelector('.sv-row.lic input[type=checkbox]:checked, .cs-row.lic')) m.push('Jobs marked red need a CSLB license: untick them, lower the price, or add your license number');
     const val = (sel: string) => [...f.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(sel)].map((x) => x.value).join(' ');
     if (badText(val('input[name=name], textarea[name=bio], textarea[name=experience], input[name=skills], input[name=custom_trade], input[name=custom_name], .cs-cat-h input'))) m.push('Please remove rude or offensive words. Clients see this text.');
-    if (hasCyrillic(val('input[name=custom_name], .cs-cat-h input, input[name=custom_trade]'))) m.push('Write your trade and your own jobs in English (Latin letters).');
+    // Everything clients read is in English; the site translates only its own menus.
+    if (nonLatin(val('input[name=name], input[name=area], input[name=languages]')) || [...f.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('textarea[name=bio], textarea[name=experience], input[name=skills], input[name=custom_trade], input[name=custom_name], .cs-cat-h input')].some((x) => notEnglish(x.value))) m.push(ENGLISH_ONLY);
     if (!edit && !f.querySelector<HTMLInputElement>('input[name=agree]')?.checked) m.push('Tick the box to agree to the Terms of Use');
     setMissing((cur) => (cur.join('|') === m.join('|') ? cur : m));
   };

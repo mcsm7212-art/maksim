@@ -679,4 +679,12 @@ do $$ begin insert into public.pro_custom_services (pro_id, name, price) values 
 do $$ begin insert into public.trade_requests (name) values ('жопа'); raise exception 'FAIL: rude trade request saved';
   exception when others then if sqlerrm not like 'inappropriate words%' then raise; end if; end $$;
 select pg_temp.ok(true, 'rude bio, Cyrillic job names and rude trade requests are refused by the database');
+
+-- 0034 English only: non-Latin letters refused in profiles; accented Latin names are fine
+select pg_temp.ok(public.non_latin('Сантехник') and public.non_latin('水管工') and not public.non_latin('Lucía Peña, José — 24/7 “fast”'), 'non-Latin letters are found, accented Latin is fine');
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ begin update public.pros set bio = 'Чиню краны быстро' where id = auth.uid(); raise exception 'FAIL: Russian bio saved';
+  exception when others then if sqlerrm not like 'english only%' then raise; end if; end $$;
+update public.pros set display_name = 'José Peña' where id = auth.uid();
+select pg_temp.ok((select display_name from public.pros where id = auth.uid()) = 'José Peña', 'a pro profile in English is saved (accented names too)');
 \echo ALL RULE TESTS PASSED

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { requestTrade } from '@/app/join/actions';
 import { useT } from './I18n';
-import { badText, hasCyrillic } from '@/lib/clean-words';
+import { badText, ENGLISH_ONLY, notEnglish } from '@/lib/clean-words';
 
 /**
  * "+ Add your trade": a pro whose trade is not one of the four types its name and gets it right away, only for themselves.
@@ -11,7 +11,7 @@ import { badText, hasCyrillic } from '@/lib/clean-words';
 export default function TradeRequest({ onAdd, current }: { onAdd: (name: string) => void; current?: string | null }) {
   const t = useT();
   const [open, setOpen] = useState(false); const [name, setName] = useState('');
-  const bad = badText(name) ? 'Please remove rude or offensive words. Clients see this text.' : hasCyrillic(name) ? 'Write your trade and your own jobs in English (Latin letters).' : null;
+  const bad = badText(name) ? 'Please remove rude or offensive words. Clients see this text.' : notEnglish(name) ? ENGLISH_ONLY : null;
   const ok = name.trim().length >= 2 && !bad;
   const add = () => { if (!ok) return; const n = name.trim().slice(0, 40); onAdd(n); requestTrade(n).catch(() => {}); setName(''); setOpen(false); };
   return (

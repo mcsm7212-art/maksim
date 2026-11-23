@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useT } from './I18n';
+import { nonLatin, notEnglish } from '@/lib/clean-words';
 
 type Saved = Record<string, string | boolean>;
-const NON_LATIN = /[Ѐ-ӿ֐-ۿ一-鿿]/; // Cyrillic, Hebrew/Arabic, Chinese
 const setVal = (el: HTMLInputElement | HTMLTextAreaElement, v: string) => {
   const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
   Object.getOwnPropertyDescriptor(proto, 'value')?.set?.call(el, v);
@@ -25,7 +25,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
   const ready = useRef(false);
   const check = () => {
     const f = form.current; if (!f) return;
-    setForeign(fields(f).filter((el) => isText(el) && NON_LATIN.test(el.value)).map((el) => (el.closest('label')?.childNodes[0]?.textContent ?? el.name).trim()));
+    setForeign(fields(f).filter((el) => isText(el) && (['name', 'area', 'languages'].includes(el.name) ? nonLatin(el.value) : notEnglish(el.value))).map((el) => (el.closest('label')?.childNodes[0]?.textContent ?? el.name).trim()));
   };
   const restore = () => {
     const f = form.current; if (!f) return false;
@@ -73,7 +73,7 @@ export default function FormDraft({ form, id, done, again }: { form: RefObject<H
 
   return <>
     {restored && <div className="note xs draft-note">↺ {t('We kept what you typed before. Nothing is saved on the site until you press Save.')} <button type="button" className="linkbtn xs" onClick={() => { clearDraft(key); location.reload(); }}>{t('Start over')}</button></div>}
-    {foreign.length > 0 && <div className="note xs en-warn">⚠ {t('Please write in English. Most clients in the Bay Area read English. Not in English yet:')} <b>{foreign.join(', ')}</b></div>}
+    {foreign.length > 0 && <div className="note xs en-warn">⚠ {t('Write in English: clients in California read English, and the site translates only its own menus, not your text. Not in English yet:')} <b>{foreign.join(', ')}</b></div>}
   </>;
 }
 

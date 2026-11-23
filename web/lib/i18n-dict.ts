@@ -1614,6 +1614,8 @@ export const ES: Record<string, string> = {
 "This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.": "Esta licencia está a nombre de {lic}, no de {name}. Un profesional independiente solo puede agregar su propia licencia. Si la licencia es de su empresa, registre la empresa; si no, borre el número.",
 "Please remove rude or offensive words. Clients see this text.": "Quite las palabras groseras u ofensivas. Los clientes ven este texto.",
 "Write your trade and your own jobs in English (Latin letters).": "Escriba su oficio y sus trabajos en inglés (letras latinas).",
+"Write in English (Latin letters): clients in California read English. The site translates only its own menus, not your text.": "Escriba en inglés (letras latinas): los clientes en California leen inglés. El sitio traduce solo sus menús, no su texto.",
+"Write in English: clients in California read English, and the site translates only its own menus, not your text. Not in English yet:": "Escriba en inglés: los clientes en California leen inglés y el sitio traduce solo sus menús, no su texto. Aún no está en inglés:",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3230,4 +3232,6 @@ export const RU: Record<string, string> = {
 "This license is in the name of {lic}, not {name}. An independent pro can only add their own license. If the license belongs to your company, register the company instead; otherwise remove the number.": "Эта лицензия оформлена на {lic}, а не на {name}. Частный мастер может указать только свою лицензию. Если лицензия на вашу компанию — зарегистрируйте компанию, иначе уберите номер.",
 "Please remove rude or offensive words. Clients see this text.": "Уберите грубые или оскорбительные слова — этот текст видят клиенты.",
 "Write your trade and your own jobs in English (Latin letters).": "Пишите свою профессию и свои работы на английском (латинскими буквами).",
+"Write in English (Latin letters): clients in California read English. The site translates only its own menus, not your text.": "Пишите на английском (латинскими буквами): клиенты в Калифорнии читают по-английски. Сайт переводит только своё меню, а не ваш текст.",
+"Write in English: clients in California read English, and the site translates only its own menus, not your text. Not in English yet:": "Пишите на английском: клиенты в Калифорнии читают по-английски, а сайт переводит только своё меню, не ваш текст. Ещё не на английском:",
 };

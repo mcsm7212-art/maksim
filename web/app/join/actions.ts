@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
 import { namesMatch } from '@/lib/names';
-import { badText, cleanWordsError, hasCyrillic } from '@/lib/clean-words';
+import { badText, cleanWordsError, ENGLISH_ONLY, nonLatin, notEnglish } from '@/lib/clean-words';
 import { licenseNeeded, serviceById, slugify, TRADES, type Tier, type Trade } from '@/lib/catalog';
 import { accentFromUniform, isHex } from '@/lib/colors';
 import { isLive } from '@/lib/supabase/config';
@@ -56,7 +56,8 @@ function customOf(f: FormData) {
 function wordsProblem(f: FormData): string | null {
   const g = (k: string) => f.getAll(k).map(String).join(' ');
   if (badText([g('name'), g('custom_trade'), g('bio'), g('experience'), g('skills'), g('custom_name'), g('custom_cat')].join(' '))) return 'Please remove rude or offensive words. Clients see this text.';
-  if (hasCyrillic([g('custom_trade'), g('custom_name'), g('custom_cat')].join(' '))) return 'Write your trade and your own jobs in English (Latin letters).';
+  if (nonLatin([g('name'), g('area'), g('languages')].join(' ')) || ['custom_trade', 'bio', 'experience', 'skills'].some((k) => notEnglish(g(k)))
+    || [...f.getAll('custom_name'), ...f.getAll('custom_cat')].map(String).some((x) => notEnglish(x))) return ENGLISH_ONLY;
   return null;
 }
 function licenseProblem(services: { service_id: string; price?: number | null }[], custom: { name: string; price: number | null }[], licensed: boolean): string | null {
@@ -184,6 +185,8 @@ export async function registerCompany(_p: JoinState, f: FormData): Promise<JoinS
   const base = ['dark', 'graphite', 'light', 'teal'].includes(str(f, 'base')) ? str(f, 'base') : 'dark';
   if (name.length < 3) return { error: 'Enter the company name.' };
   if (!f.get('agree')) return { error: 'Please confirm your licenses and agree to the Terms of Use.' };
+  if (badText([name, str(f, 'about', 2000), str(f, 'city', 60)].join(' '))) return { error: 'Please remove rude or offensive words. Clients see this text.' };
+  if (nonLatin([name, str(f, 'city', 60)].join(' ')) || notEnglish(str(f, 'about', 2000))) return { error: ENGLISH_ONLY };
   if (!(trade in TRADES)) return { error: 'Choose the main trade.' };
   if (trade !== 'handyman' && license.length < 6) return { error: 'A CSLB license number is required.' };
   if (!isLive()) return { demo: true };
@@ -230,6 +233,7 @@ export async function requestTrade(name: string): Promise<{ ok: boolean; error?:
   const n = String(name ?? '').trim().slice(0, 60);
   if (n.length < 2) return { ok: false, error: 'Write the name of your trade.' };
   if (badText(n)) return { ok: false, error: 'Please remove rude or offensive words. Clients see this text.' };
+  if (notEnglish(n)) return { ok: false, error: ENGLISH_ONLY };
   if (!isLive()) return { ok: true };
   const me = await getMe(); if (!me) return { ok: false, error: 'Please sign in first.' };
   const { error } = await (await supabaseServer()).from('trade_requests').insert({ name: n });
