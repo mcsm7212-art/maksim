@@ -34,7 +34,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await s.goto(B+'/account/profile');await s.fill('textarea[name=experience]','Ten years now. Tankless heaters are my favorite.');await s.click('button:has-text("Save changes")');await s.waitForSelector('text=Saved');
  if(!sql("select experience from pros where display_name='Max Solo'").startsWith('Ten years'))throw new Error('profile edit not saved');step('pro edited profile');
  if(sql("select count(*) from pro_services p join pros x on x.id=p.pro_id where x.display_name='Max Solo' and active")!=='1')throw new Error('services lost on edit');
- await s.goto(B+'/account');await s.selectOption('select[name=area]','Redwood City');await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=Online in Redwood City');
+ await s.goto(B+'/account');await s.click('button:has-text("Go online")');await s.check('input[name=go_mode] >> nth=1');await s.selectOption('.go-online select','Redwood City');await s.click('.go-online .chip:has-text("15 mi")');await s.click('.go-online button.btn:has-text("Go online")');await s.waitForSelector('text=Online in Redwood City');if(sql("select online_lat||'|'||online_radius_mi from pros where display_name='Max Solo'")!=='37.49|15')throw new Error('online place not saved rounded');
  const v=await b.newPage();await v.goto(B+'/online?city=Redwood%20City');await v.waitForSelector('text=Max Solo');if(!(await v.textContent('main')).includes('now in Redwood City'))throw new Error('map city missing');await v.screenshot({path:D+'e_online.png',fullPage:true});await v.close();step('pro went online in Redwood City → shown on the map');
  // calendar: import busy time (tomorrow 8-12) hides slots; feed link exports jobs
  await s.goto(B+'/account/calendar');await s.fill('input[name=url]','http://127.0.0.1:54398/basic.ics');await s.click('button:has-text("Save and sync")');await s.waitForSelector('text=1 busy blocks');
@@ -171,9 +171,9 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  if(sql("select start_time||'-'||end_time from availability_rules a join pros p on p.id=a.pro_id where p.display_name='Max Solo' and weekday=6")!=='09:00:00-13:00:00')throw new Error('schedule not saved');
  step('Max paused new jobs (no Book button for clients), resumed, set Saturday 9-13');
  await t.goto(B+'/max');await t.click('button:has-text("Add to my colleagues")');await t.waitForSelector('button:has-text("My colleague")');
- await s.goto(B+'/account/work');await s.check('input[name=mode][value=off]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
+ await s.goto(B+'/friends?tab=friends');await s.check('input[name=mode][value=off]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
  await t.goto(B+'/messages');await t.click('text=Max Solo');await t.fill('textarea[name=body]','Are you free Friday?');await t.click('form button:has-text("Send")');await t.waitForSelector('text=does not take messages from colleagues');
- await s.goto(B+'/account/work');await s.check('input[name=mode][value=all]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
+ await s.goto(B+'/friends?tab=friends');await s.check('input[name=mode][value=all]');await s.click('form:has(input[name=mode]) button:has-text("Save")');await s.waitForTimeout(800);
  if(sql("select colleague_chat from pros where display_name='Max Solo'")!=='all')throw new Error('chat setting not saved');
  step('Tom added Max to colleagues; Max turned colleague chat off → Tom could not write; turned back on');
  await c.goto(B+'/neighbors');await c.check('input[name=open]');await c.selectOption('select[name=city]','San Carlos');await c.check('input[name=scope][value=city]');await c.check('input[name=interest][value=electrical]');await c.click('button:has-text("Save")');await c.waitForSelector('text=Neighbors you can talk to');
@@ -210,7 +210,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await s.fill('.quoteform .qline >> nth=1 >> input[name=label]','Grohe cartridge 47678000');await s.fill('.quoteform .qline >> nth=1 >> input[name=amount]','120');
  await s.fill('.quoteform textarea[name=includes]','Parts, cleanup, 1-year warranty on labor');await s.click('.quoteform button:has-text("Send quote")');await s.waitForSelector('text=Quote sent.');
  await c.goto(B+'/messages/'+conv);await c.waitForSelector('.quote >> text=$370.00');await c.click('.quote button:has-text("Accept quote")');await c.waitForURL(/\/orders\/[0-9a-f-]{36}/);const ourl=c.url();
- await c.waitForSelector('text=Price agreed: pick a time');await c.check('.slotpick input >> nth=0');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Send time to the pro")');await c.waitForSelector('text=Waiting for the pro to confirm the visit');
+ await c.waitForSelector('text=Price agreed: pick a time');await c.click('.day:not(:disabled) >> nth=0');await c.click('.daypick .tbtn label >> nth=0');await c.fill('input[name=address]','200 Elm St, San Carlos');await c.click('button:has-text("Send time to the pro")');await c.waitForSelector('text=Waiting for the pro to confirm the visit');
  await s.goto(ourl);for(const b of ['Confirm visit','On my way','Start work','Job done']){await s.click('button:has-text("'+b+'")');await s.waitForTimeout(700);}
  await s.waitForSelector('text=Waiting for the client to confirm');
  await c.goto(ourl);await c.click('button:has-text("Confirm the job is complete")');await c.waitForSelector('text=Job complete');
@@ -329,6 +329,30 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await t.goto(B+'/friends?tab=stores');if(/Ferguson/.test(await t.textContent('.fr-main')))throw new Error('another trade sees the tip');
   sql("update pros set trade='"+tr0[0]+"', status='"+tr0[1]+"' where display_name='Tom Tech'");
   step('pros I need: Max keeps Tom in a private list with a note; a store tip is seen and voted by a pro of the same trade, hidden from another trade');}
+ {const gc=await b.newContext({viewport:{width:1200,height:900}});const g=await gc.newPage();g.on('pageerror',e=>errs.push('guest '+e.message));
+  await g.goto(B+'/book?pro=max');await g.waitForSelector('.day');if(await g.locator('.daypick .tbtn').count())throw new Error('times shown before a day is chosen');
+  await g.click('.day:not(:disabled) >> nth=0');await g.click('.daypick .tbtn label >> nth=0');
+  await g.fill('input[name=address]','1399 El Camino');await g.click('.addr-list li >> nth=0');if(!/San Mateo, CA 94401/.test(await g.inputValue('input[name=address]')))throw new Error('address suggestion not used');
+  await g.fill('input[name=g_name]','Gina Guest');await g.fill('input[name=g_email]','gina@test.dev');await g.fill('input[name=phone]','(650) 555-0199');await g.check('input[name=g_agree]');
+  await g.click('button:has-text("Send booking request")');await g.waitForSelector('.code-step input');await g.fill('.code-step input',await code('gina@test.dev'));await g.click('button:has-text("Confirm and send")');
+  await g.waitForURL(/orders\/[0-9a-f-]{36}/);if(!/650/.test(sql("select notes from bookings where client_id=(select id from profiles where full_name='Gina Guest')")))throw new Error('guest phone not saved');
+  await g.goto(B+'/book?pro=max');await g.selectOption('select[name=svc]','__other');await g.waitForSelector('.other-note');if(await g.locator('.daypick').count())throw new Error('calendar shown for a job that is not in the list');
+  await g.fill('textarea[name=notes]','Need a custom copper rain chain installed on the porch.');await g.selectOption('select[name=city]','San Mateo');await g.click('button:has-text("Send to Max")');await g.waitForURL(/messages\/[0-9a-f-]{36}/);
+  const gconv=g.url().match(/messages\/([0-9a-f-]{36})/)[1];await s.goto(B+'/messages/'+gconv);await s.waitForSelector('text=rain chain');await s.click('button:has-text("Send a quote")');await s.fill('.quoteform input[name=title]','Install rain chain');
+  await s.fill('.quoteform .qline >> nth=0 >> input[name=label]','Labor');await s.fill('.quoteform .qline >> nth=0 >> input[name=amount]','180');await s.fill('.quoteform input[name=duration]','About 2 hours');await s.click('.quoteform button:has-text("Send quote")');
+  await g.reload();await g.waitForSelector('.quote:has-text("About 2 hours")');await g.click('button:has-text("Accept quote")');await g.waitForURL(/orders\//);await g.waitForSelector('.daypick .day');await gc.close();
+  step('guest books without leaving the form (day → time, address suggestion, email code); job not in the list → no calendar → quote with price and duration → calendar');}
+ {const an=await b.newPage();
+  await s.goto(B+'/account/work');await s.fill('form:has(input[name=call_from]) input[name=phone]','(650) 555-0142');await s.check('input[name=call_from][value=clients]');await s.check('input[name=hide_paused]');await s.click('form:has(input[name=call_from]) button:has-text("Save")');await s.waitForSelector('form:has(input[name=call_from]) .okmsg');
+  if(sql("select coalesce(public_phone,'none')||'|'||call_from||'|'||(select phone from pro_client_phone where pro_id=pros.id) from pros where display_name='Max Solo'")!=='none|clients|(650) 555-0142')throw new Error('clients-only phone not saved apart');
+  await an.goto(B+'/pro/max');if(/555-0142/.test(await an.content()))throw new Error('a visitor sees the clients-only phone');
+  await s.check('input[name=call_from][value=all]');await s.click('form:has(input[name=call_from]) button:has-text("Save")');await s.waitForTimeout(900);
+  await an.goto(B+'/pro/max');await an.waitForSelector('a[href^="tel:"]');if(!/Calls: /.test(await an.textContent('.callrow')))throw new Error('call hours not shown');
+  const acc=sql("select accepting from pros where display_name='Max Solo'");sql("update pros set accepting=false, paused_until=null where display_name='Max Solo'");
+  await an.goto(B+'/pro/max');if(await an.locator('a[href^="tel:"]').count())throw new Error('call button shown while not taking jobs');await an.waitForSelector('text=is not taking calls right now');
+  await an.goto(B+'/search');if(/Max Solo/.test(await an.textContent('main')))throw new Error('paused pro who asked to hide is in the search');
+  sql("update pros set accepting="+(acc==='t'?'true':'false')+", hide_paused=false where display_name='Max Solo'");await an.close();
+  step('calls: clients-only phone is kept apart and hidden from visitors; call hours follow the schedule; no calls and no search while not taking jobs');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
@@ -387,7 +411,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await s.goto(B+'/max');await s.waitForSelector('.figcol .fig-sil.cut img');
  step('pro added a full-height photo in the profile form → background removed in the browser, mirrored, cropped with the frame (shadow under the shoes), kept after a language switch, previewed, saved; glow colour '+fa.slice(-7)+' from clothes, shown on the page');
  // urgent calls
- await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online for 4 h")');await s.waitForSelector('text=go offline')}
+ await s.goto(B+'/account');if(!(await s.textContent('main')).includes('go offline')){await s.click('button:has-text("Go online")');await s.check('input[name=go_mode] >> nth=1');await s.click('.go-online button.btn:has-text("Go online")');await s.waitForSelector('text=go offline')}
  await s.fill('input[name=fee]','75');await s.click('button:has-text("I take urgent calls")');await s.waitForSelector('text=Urgent call-out: +$75');
  sql("update pros set online_until=now()+interval '2 hours' where display_name='Tom Tech'");
  await c.goto(B+'/');const hu=await c.textContent('.urg-stats a[href="/online?urgent=1"] b');const ho=await c.textContent('.urg-stats a[href="/online"] b');if(hu!=='1'||ho!=='2')throw new Error('home urgent counts wrong: '+hu+' '+ho);
