@@ -804,7 +804,7 @@ a.card:active,.card.pc:active{transform:translateY(0) scale(.985);transition-dur
 /* OpenStreetMap is light; on the dark site make it dark so it matches */
 :root:not([data-theme="light"]) .sa-map .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.9) saturate(.6)}
 :root:not([data-theme="light"]) .sa-map{background:#191b20}
-.flipbar{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+.flipbar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 14px;margin-top:10px}
 .flipbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
 .flipbtn:hover{border-color:var(--cu-l,#C08A62);transform:scale(1.06)}
 .flipbtn:disabled{opacity:.5;cursor:default}

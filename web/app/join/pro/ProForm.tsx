@@ -128,7 +128,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       <div className="card formcard">
         <h3 style={{ margin: 0 }}>{tt("Photo and page color")}</h3>
         <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_photo`}
-          onAccent={(c) => setFigAccent(c)} onChange={({ figure: f, photo: p }) => { setFigure(f); setPhoto(p); if (!f) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} />
+          onAccent={(c) => setFigAccent(c)} onChange={({ figure: f, photo: p }) => { setFigure(f); setPhoto(p); if (!f) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} onPreview={() => openPreview()} />
         <label className="f">{tt("Work-clothes color")}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="color" name="uniform" value={uniform} onChange={(e) => { setUniform(e.target.value); setFigAccent(null); }} style={{ width: 52, height: 40, border: 0, background: 'none' }} />
           <span className="mu xs">{tt(figAccent ? 'Taken from your clothes in the photo. Pick another colour if you like.' : accent === '#B57A50' ? 'Dark clothes: your page uses NovaFides copper.' : 'Your page will use this color.')}</span></span></label>

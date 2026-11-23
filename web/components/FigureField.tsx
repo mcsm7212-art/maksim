@@ -20,9 +20,9 @@ const Arrow = ({ dir }: { dir: 'l' | 'r' }) => (
  * comes from the clothes, and the small square photo for cards and search is cut from it automatically.
  * Round arrows under the picture mirror it. Results go into hidden inputs and are saved with the form.
  */
-export default function FigureField({ name, initialFigure, initialPhoto, accent, onAccent, onChange, bindMirror, required, draftKey }: {
+export default function FigureField({ name, initialFigure, initialPhoto, accent, onAccent, onChange, bindMirror, required, draftKey, onPreview }: {
   name: string; initialFigure: string | null; initialPhoto: string | null; accent: string; onAccent: (c: string | null) => void; draftKey?: string;
-  onChange?: (v: { figure: string | null; photo: string | null }) => void; bindMirror?: (fn: () => Promise<void>) => void; required?: boolean;
+  onChange?: (v: { figure: string | null; photo: string | null }) => void; bindMirror?: (fn: () => Promise<void>) => void; required?: boolean; onPreview?: () => void;
 }) {
   const t = useT();
   const [fig, setFig] = useState<{ view: string | null; url: string | null }>({ view: initialFigure, url: initialFigure });
@@ -110,6 +110,7 @@ export default function FigureField({ name, initialFigure, initialPhoto, accent,
           <span className="mu xs">{t('Mirror')}</span>
           <button type="button" className="flipbtn" onClick={mirror} disabled={!!busy} title={t('Mirror')} aria-label={t('Mirror')}><Arrow dir="r" /></button>
           <button type="button" className="btn ghost sm cropbtn" onClick={() => setCrop(true)} disabled={!!busy}>✂ {t('Crop')}</button>
+          {onPreview && <button type="button" className="btn ghost sm cropbtn" onClick={onPreview} disabled={!!busy}>👁 {t('Preview my page')}</button>}
         </div>}
         </>}
       </div>
