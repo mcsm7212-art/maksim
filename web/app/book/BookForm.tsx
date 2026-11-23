@@ -67,7 +67,7 @@ export default function BookForm({ hidden, children, when, where, whereOther, ct
         : when}
       {other ? whereOther : where}
 
-      {guest && !signed && <div className="card step guest-step">
+      {guest && <div className="card step guest-step" hidden={signed}>
         <h3><i>✉</i>{t('How to reach you')}</h3>
         <span className="mu sm">{t('No password and no separate sign-up page: we email you a 6-digit code, you type it here and the request is sent. The answer of the pro comes to this email.')}</span>
         <div className="row2">

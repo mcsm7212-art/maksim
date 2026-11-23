@@ -54,9 +54,9 @@ export default function ServiceAreaMap({ polygon, lat, lng, radius = 15, readOnl
       map.current = m; layer.current = L.layerGroup().addTo(m); draw();
       // No area yet: the first click drops a shape around that spot.
       if (!readOnly) m.on('click', (e) => setPts((cur) => cur ?? ring([e.latlng.lat, e.latlng.lng], 10)));
-      const fit = () => { m.invalidateSize(); draw(); };
+      const fit = () => { if (!alive || map.current !== m) return; m.invalidateSize(); draw(); }; // the map may already be closed
       setTimeout(fit, 60); setTimeout(fit, 400);
-      const ro = new ResizeObserver(() => m.invalidateSize()); ro.observe(box.current);
+      const ro = new ResizeObserver(() => { if (alive && map.current === m) m.invalidateSize(); }); ro.observe(box.current);
       m.once('unload', () => ro.disconnect());
     })();
     return () => { alive = false; map.current?.remove(); map.current = null; layer.current = null; };
