@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { getMe } from '@/lib/auth';
 import { isLive } from '@/lib/supabase/config';
+import { supabaseServer } from '@/lib/supabase/server';
 import { getT } from '@/lib/i18n';
 import { Suspense } from 'react';
 import LangSwitch from './LangSwitch';
@@ -17,6 +18,12 @@ import Ic3d from './Ic3d';
 
 export default async function Header() {
   const me = await getMe(); const t = await getT(); const theme = await getThemeChoice();
+  // Unread things: the chat icon and "My account" pulse softly so people see where to look.
+  let newMsgs = 0, newAny = 0;
+  if (me && isLive()) {
+    const { data } = await (await supabaseServer()).from('notifications').select('link').eq('user_id', me.id).is('read_at', null).limit(100);
+    newAny = (data ?? []).length; newMsgs = (data ?? []).filter((n) => String(n.link ?? '').startsWith('/messages/')).length;
+  }
   return (
     <>
       {!isLive() && <div className="demo">{t('Demo mode: sample pros, sign-up turns on when the database is connected.')}</div>}
@@ -35,10 +42,11 @@ export default async function Header() {
           </nav>
           <div className="hdr-me">
             {me && <Link href="/my-pros" className="ico" title={t('My pros')} aria-label={t('My pros')}>♥</Link>}
-            {me && <Link href="/messages" className="ico ico-chat" title={t('Messages')} aria-label={t('Messages')}>
+            {me && <Link href="/messages" className={`ico ico-chat${newMsgs ? ' pulse-green' : ''}`} title={t('Messages')} aria-label={t('Messages')}>
+              {newMsgs > 0 && <b className="ico-n">{newMsgs > 9 ? '9+' : newMsgs}</b>}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
             </Link>}
-            {me ? <AccountMenu label={t('My account')} signOut={t('Sign out')} links={[
+            {me ? <AccountMenu alert={newAny > 0} label={t('My account')} signOut={t('Sign out')} links={[
               { href: '/account', text: t('My account') },
               { href: '/my-pros', text: '♥ ' + t('My pros') },
               { href: '/my-home', text: '🏠 ' + t('My home') },

@@ -37,11 +37,21 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
   // Unread chats: notifications about a chat that were not opened yet.
   const { data: un } = await sb.from('notifications').select('link').eq('user_id', me.id).is('read_at', null).like('link', '/messages/%').limit(200);
   const unread = new Map<string, number>(); (un ?? []).forEach((n: any) => { const k = String(n.link).slice(10); unread.set(k, (unread.get(k) ?? 0) + 1); });
-  const sorted = [...(convs ?? [])].sort((a: any, b: any) => Number(unread.has(b.id)) - Number(unread.has(a.id)));
+  // Chats started by another pro are friend chats: they do not belong in "Messages from clients".
+  const starters = [...new Set((convs ?? []).map((c: any) => c.client_id as string))];
+  const { data: proStarters } = starters.length ? await sb.from('pros').select('id').in('id', starters) : { data: [] as { id: string }[] };
+  const isPro = new Set((proStarters ?? []).map((x) => x.id));
+  const clientConvs = (convs ?? []).filter((c: any) => !isPro.has(c.client_id));
+  const clientIds = new Set(clientConvs.map((c: any) => c.id));
+  // New from friends: unread chats that are not client chats, and "added you as a colleague".
+  const { data: addedMe } = await sb.from('notifications').select('id').eq('user_id', me.id).is('read_at', null).like('body', '%added you as a colleague.').limit(20);
+  const friendNews = [...unread.keys()].filter((k) => !clientIds.has(k)).length + (addedMe ?? []).length;
+  const sorted = [...clientConvs].sort((a: any, b: any) => Number(unread.has(b.id)) - Number(unread.has(a.id)));
   const newChats = sorted.filter((c: any) => unread.has(c.id)).length;
   const { data: msgs } = ids.length ? await sb.from('messages').select('conversation_id, body, sender_id, created_at').in('conversation_id', ids).order('created_at', { ascending: false }).limit(200) : { data: [] as any[] };
   const lastOf = (id: string) => (msgs ?? []).find((m: any) => m.conversation_id === id);
   const calls = (msgs ?? []).filter((m: any) => m.sender_id !== me.id && String(m.body).startsWith(CALLBACK)).slice(0, 4);
+  const newCalls = calls.some((m: any) => unread.has(m.conversation_id));
   const field = (body: string, k: string) => body.split('\n').find((l) => l.startsWith(k + ':'))?.slice(k.length + 1).trim() ?? '';
   const nameOf = (c: any) => c?.client?.full_name || tr('Client');
   const friendIds = new Set((friends ?? []).map((f: any) => f.colleague?.id).filter(Boolean));
@@ -74,8 +84,8 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
       <div className="desk-grid">
         {/* 2) messages from clients */}
-        <div className={`card desk-card${newChats > 0 ? ' has-new' : ''}`}>
-          <div className="desk-h"><b>💬 {tr('Messages from clients')}{newChats > 0 && <span className="badge cu" style={{ marginLeft: 8 }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
+        <div className={`card desk-card${newChats > 0 ? ' pulse-green' : ''}`}>
+          <div className="desk-h"><b>💬 {tr('Messages from clients')}{newChats > 0 && <span className="badge ok" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>{tr('{n} new', { n: newChats })}</span>}</b><Link className="xs" href="/messages">{tr('All messages')} →</Link></div>
           {sorted.slice(0, 6).map((c: any) => { const m = lastOf(c.id); return (
             <Link key={c.id} className={`desk-msg${unread.has(c.id) ? ' new' : ''}`} href={`/messages/${c.id}`}>
               <span>{unread.has(c.id) && <i className="dot-new" aria-label={tr('New')} />}<b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
@@ -86,10 +96,10 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
         </div>
 
         {/* 3) call-back requests */}
-        <div className="card desk-card">
-          <div className="desk-h"><b>📞 {tr('Call-back requests')}</b></div>
-          {calls.map((m: any) => { const c = (convs ?? []).find((x: any) => x.id === m.conversation_id); const ph = field(m.body, 'Phone'); return (
-            <div key={m.conversation_id + m.created_at} className="desk-msg">
+        <div className={`card desk-card${newCalls ? ' pulse-green' : ''}`}>
+          <div className="desk-h"><b>📞 {tr('Call-back requests')}{newCalls && <span className="badge ok" style={{ marginLeft: 8 }}>{tr('New')}</span>}</b></div>
+          {calls.map((m: any) => { const c = (convs ?? []).find((x: any) => x.id === m.conversation_id); const fresh = unread.has(m.conversation_id); const ph = field(m.body, 'Phone'); return (
+            <div key={m.conversation_id + m.created_at} className={`desk-msg${fresh ? ' new' : ''}`}>
               <span><b>{nameOf(c)}</b> · <a href={`tel:${ph.replace(/[^\d+]/g, '')}`}>{ph}</a><br /><span className="mu xs">{field(m.body, 'When')}{field(m.body, 'Problem') ? ` · ${field(m.body, 'Problem').slice(0, 60)}` : ''}</span></span>
               <Link className="xs" href={`/messages/${m.conversation_id}`}>{tr('Chat')} →</Link>
             </div>); })}
@@ -105,7 +115,7 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
 
         {/* 5) pro friends */}
         <div className="card desk-card">
-          <div className="desk-h"><b>🤝 {tr('My pro friends')}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
+          <div className="desk-h"><b>🤝 {tr('My pro friends')}{friendNews > 0 && <Link href="/messages" className="friend-news" title={tr('New from your pro friends')}><i className="dot-live" aria-hidden /> {friendNews}</Link>}</b><Link className="xs" href="/lounge">{tr('Pro Lounge')} →</Link></div>
           <div className="desk-friends">
             {(friends ?? []).filter((f: any) => f.colleague).map((f: any) => { const c = f.colleague; const on = c.online_until && new Date(c.online_until) > new Date(); return (
               <Link key={c.id} href={`/${c.slug}`} className="desk-friend" title={c.display_name}>

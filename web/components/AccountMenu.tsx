@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useHoverIntent } from './useHoverIntent';
 
 /** "My account ▾" dropdown in the header. Closes on navigation and on a click outside. */
-export default function AccountMenu({ label, links, signOut }: { label: string; links: { href: string; text: string }[]; signOut: string }) {
+export default function AccountMenu({ label, links, signOut, alert }: { label: string; links: { href: string; text: string }[]; signOut: string; alert?: boolean }) {
   const ref = useRef<HTMLDetailsElement>(null); useHoverIntent(ref); const path = usePathname();
   useEffect(() => { if (ref.current) ref.current.open = false; }, [path]);
   useEffect(() => {
@@ -13,8 +13,8 @@ export default function AccountMenu({ label, links, signOut }: { label: string; 
     document.addEventListener('click', close); return () => document.removeEventListener('click', close);
   }, []);
   return (
-    <details className="acct" ref={ref}>
-      <summary>{label} <span aria-hidden>▾</span></summary>
+    <details className={`acct${alert ? ' pulse-green' : ''}`} ref={ref}>
+      <summary>{alert && <i className="dot-live" aria-hidden />}{label} <span aria-hidden>▾</span></summary>
       <div className="acct-menu">
         {links.map((l) => <Link key={l.href} href={l.href}>{l.text}</Link>)}
         <form action="/auth/signout" method="post"><button>{signOut}</button></form>

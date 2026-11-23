@@ -1127,3 +1127,20 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .desk-card.has-new{border-color:var(--cu);box-shadow:0 0 0 1px color-mix(in srgb,var(--cu) 40%,transparent)}
 .desk-msg.new{border-color:var(--cu);background:color-mix(in srgb,var(--cu) 10%,transparent)}
 .dot-new{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--cu-l,#E0A878);margin-right:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--cu) 25%,transparent)}
+
+/* soft green pulse: "look here" (new messages, call-back requests, things waiting in the account) */
+@keyframes pulse-green{0%,100%{border-color:var(--line);box-shadow:0 0 0 0 rgba(63,178,127,0)}50%{border-color:rgba(63,178,127,.9);box-shadow:0 0 0 1px rgba(63,178,127,.35),0 0 18px rgba(63,178,127,.28)}}
+.pulse-green{animation:pulse-green 3.2s ease-in-out infinite}
+.desk-card.pulse-green{background:linear-gradient(180deg,rgba(63,178,127,.07),transparent 70%),var(--card)}
+.desk-card.pulse-green .desk-msg.new{border-color:rgba(63,178,127,.7);background:rgba(63,178,127,.09)}
+.desk-card.pulse-green .dot-new{background:#3FB27F;box-shadow:0 0 0 3px rgba(63,178,127,.25)}
+.acct.pulse-green{border-radius:12px;border:1px solid var(--line)}
+.ico.pulse-green{border:1px solid var(--line);border-radius:10px;color:#3FB27F;position:relative}
+.ico-chat{position:relative}
+.ico-n{position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#3FB27F;color:#06140D;font-size:10.5px;line-height:16px;text-align:center;font-weight:700}
+@keyframes dot-live{0%,100%{opacity:.45;box-shadow:0 0 0 0 rgba(63,178,127,.0)}50%{opacity:1;box-shadow:0 0 0 4px rgba(63,178,127,.28)}}
+.dot-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3FB27F;margin-right:6px;vertical-align:1px;animation:dot-live 2.6s ease-in-out infinite}
+.friend-news{margin-left:8px;font-size:12.5px;color:#3FB27F;text-decoration:none}
+.notes-box.lit{border-color:rgba(63,178,127,.6);box-shadow:0 0 14px rgba(63,178,127,.14)}
+@media (prefers-reduced-motion:reduce){.pulse-green,.dot-live{animation:none}.pulse-green{border-color:rgba(63,178,127,.8)}}
+.desk-h>b{display:flex;align-items:center;flex-wrap:wrap;gap:2px}

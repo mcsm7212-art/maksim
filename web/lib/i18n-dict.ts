@@ -1672,6 +1672,7 @@ export const ES: Record<string, string> = {
 "Nothing to check.": "Nada que comprobar.",
 "Links to your reviews on Yelp, Google or Thumbtack (Settings)": "Enlaces a sus reseñas en Yelp, Google o Thumbtack (Ajustes)",
 "We could not confirm that the review-site links are your profiles, so they were removed. Add the right links in Settings.": "No pudimos confirmar que los enlaces son sus perfiles, así que se quitaron. Agregue los enlaces correctos en Ajustes.",
+"New from your pro friends": "Novedades de sus amigos profesionales",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3346,4 +3347,5 @@ export const RU: Record<string, string> = {
 "Nothing to check.": "Проверять нечего.",
 "Links to your reviews on Yelp, Google or Thumbtack (Settings)": "Ссылки на ваши отзывы на Yelp, Google или Thumbtack (в Настройках)",
 "We could not confirm that the review-site links are your profiles, so they were removed. Add the right links in Settings.": "Мы не смогли подтвердить, что ссылки ведут на ваши профили, поэтому они удалены. Добавьте правильные ссылки в Настройках.",
+"New from your pro friends": "Новое от друзей-мастеров",
 };

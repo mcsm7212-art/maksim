@@ -63,7 +63,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
       {sp.joined && me.pro?.status !== 'verified' && <div className="note" style={{ marginBottom: 14 }}>{tr('Profile created. We will check your license and ID, then your profile goes public.')}</div>}
 
 
-      {!me.pro && (notes ?? []).length > 0 && <details className="card formcard notes-box" style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
+      {!me.pro && (notes ?? []).length > 0 && <details className={`card formcard notes-box${unread > 0 ? ' lit' : ''}`} style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
         <summary>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
           {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
@@ -72,7 +72,7 @@ export default async function Account({ searchParams }: { searchParams: Promise<
 
       {me.pro && <>
         <ProDesk me={{ id: me.id, pro: { slug: me.pro.slug } }} row={proRow} tr={tr} lang={lang} find={sp.find} />
-        {(notes ?? []).length > 0 && <details className="card formcard notes-box" style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
+        {(notes ?? []).length > 0 && <details className={`card formcard notes-box${unread > 0 ? ' lit' : ''}`} style={{ marginBottom: 18 }} open={!me.pro && unread > 0}>
         <summary>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{tr('Notifications')} {unread > 0 && <span className="badge cu">{tr('{n} new', { n: unread })}</span>}</b>
           {unread > 0 && <form action={markRead}><button className="btn ghost sm">{tr('Mark read')}</button></form>}</div></summary>
