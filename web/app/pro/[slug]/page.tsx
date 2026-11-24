@@ -35,6 +35,7 @@ import { colleaguesOf, mySaves, postsOf, saveCount } from '@/lib/social';
 import { recommendPro, unrecommendPro } from '@/app/social/actions';
 import { toggleColleague } from '@/app/account/work/actions';
 import { callHoursText, callsOpenNow } from '@/lib/calls';
+import LicenseTag from '@/components/LicenseTag';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -177,7 +178,7 @@ export default async function ProPage({ params, searchParams }: Props) {
           <span className="mu2 xs">{pro.extCheckedAt ? `✓ ${tr('NovaFides checked that these profiles belong to this pro.')}` : tr('Links added by the pro; NovaFides has not checked them yet.')} {tr('Ratings there are not ours: open the site to see them.')}</span>
         </div>}
         <div className="tchips">
-          {pro.verified.license && pro.license && <span className="tchip"><Icon name="shield" size={16} /> CSLB #{pro.license}</span>}
+          {!pro.isDemo && <LicenseTag license={pro.license} tr={tr} className="tchip lic-tag" />}
           {pro.verified.id && <span className="tchip">{tr('ID checked')}</span>}
           {pro.verified.insured && <span className="tchip">{tr('Insured')}</span>}
           {pro.languages.length > 0 && <span className="tchip">{pro.languages.join(', ')}</span>}

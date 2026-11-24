@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import LicenseTag from './LicenseTag';
 import Link from 'next/link';
 import { deletePost, togglePin } from '@/app/social/actions';
 import { TRADES, type Trade } from '@/lib/catalog';
@@ -18,7 +19,7 @@ export default async function PostCard({ p, tr, lang, mine, meId = null, path = 
     <article className="card post" id={`post-${p.id}`} style={{ ['--acc' as string]: p.pro.accent }}>
       <header className="post-head">
         <Link href={`/${p.pro.slug}`} className="post-ava"><Figure name={p.pro.name} accent={p.pro.accent} photo={p.pro.photoUrl} /></Link>
-        <span><Link href={`/${p.pro.slug}`}><b>{p.pro.name}</b></Link><br /><span className="mu xs">{tr(TRADES[p.pro.trade as Trade]?.name ?? '')} · {dateLabel(p.createdAt, lang)}</span></span>
+        <span><Link href={`/${p.pro.slug}`}><b>{p.pro.name}</b></Link><br /><span className="mu xs">{tr(TRADES[p.pro.trade as Trade]?.name ?? '')} · {dateLabel(p.createdAt, lang)}</span><br /><LicenseTag license={p.pro.license} tr={tr} className="lic-tag xs" /></span>
         <span className="chips" style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}>{p.audience === 'friends' && <span className="badge n" title={tr('Only your pro friends see this')}>🔒 {tr('Friends only')}</span>}{p.pinned && <span className="badge cu">📌 {tr('Pinned')}</span>}<span className={`badge ${p.tag === 'partner' ? 'p' : 'n'}`}>{tr(POST_TAGS[p.tag])}</span></span>
       </header>
       {p.body && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{p.body}</p>}

@@ -1269,3 +1269,9 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .star-pick{display:flex;gap:4px}.star-pick button{font-size:38px;line-height:1;background:none;border:0;cursor:pointer;color:var(--line);padding:0 2px;transition:transform .12s ease,color .12s ease}
 .star-pick button.on{color:#E8B33C}.star-pick button:hover{transform:scale(1.15)}
 .qr-each{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.qr-each label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mu)}
+/* license line */
+.lic-tag{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;text-decoration:none;white-space:nowrap}
+.lic-tag.ok{color:#3FB27F}.lic-tag.ok:hover{text-decoration:underline}
+.lic-tag.none{color:var(--mu)}
+.lic-tag.xs{font-size:11.5px}
+.tchip.lic-tag{font-size:13px}

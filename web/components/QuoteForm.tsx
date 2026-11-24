@@ -9,7 +9,7 @@ import { CA_PRO_NOTE } from '@/lib/legal-short';
 
 type Opt = { id: string; label: string };
 /** Pro writes a quote right in the chat: lines (labor, materials, trip, urgency, discount), what is included, how long it is valid. */
-export default function QuoteForm({ conv, services, jobs }: { conv: string; services: Opt[]; jobs: Opt[] }) {
+export default function QuoteForm({ conv, services, jobs, licensed = true }: { conv: string; services: Opt[]; jobs: Opt[]; licensed?: boolean }) {
   const t = useT(); const lang = useLang();
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<QuoteLine[]>([{ kind: 'labor', label: '', amount: 0 }, { kind: 'material', label: '', amount: 0 }]);
@@ -40,9 +40,10 @@ export default function QuoteForm({ conv, services, jobs }: { conv: string; serv
       <textarea className="inp" name="notes" maxLength={1000} placeholder={t('What may need a separate agreement (e.g. if the valve body is damaged)')} style={{ minHeight: 56 }} />
       <label className="f sm">{t('About how long the job takes')}<input className="inp" name="duration" maxLength={60} placeholder={t('e.g. 2-3 hours, 1 day')} /></label>
       <label className="sm mu">{t('Valid until (optional)')} <input className="inp" type="date" name="valid_until" style={{ width: 'auto', padding: '6px 8px' }} /></label>
+      {!licensed && total >= 1000 && <div className="err" role="alert">🔒 {t('Without a CSLB license you can only quote jobs under $1,000 in total (labor and materials). Lower the total or add your license in “Edit profile”.')}</div>}
       {total > 500 && <div className="canote">⚖ {CA_PRO_NOTE[lang] ?? CA_PRO_NOTE.en}</div>}
       <Disclaimer style={{ margin: 0 }} />
-      <div className="chips"><button className="btn sm">{t('Send quote')}</button><button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>{t('Cancel')}</button></div>
+      <div className="chips"><button className="btn sm" disabled={!licensed && total >= 1000}>{t('Send quote')}</button><button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>{t('Cancel')}</button></div>
     </ActionForm>
   );
 }

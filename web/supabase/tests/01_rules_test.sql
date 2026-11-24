@@ -778,4 +778,26 @@ do $$ declare cv uuid; k int; who uuid[] := array['00000000-0000-0000-0000-00000
   end loop;
 end $$;
 select pg_temp.ok((select response_minutes from public.pros where id = '00000000-0000-0000-0000-0000000000b2') = 20, 'response time is the median of the first replies (20 min)');
+
+-- 0044 license rules: without a license a quote of $1,000 or more is refused; a quote keeps the license number
+select pg_temp.act(null); reset role;
+update public.pros set license_status = 'none', license_no = null, company_id = null where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ declare cv uuid; begin
+  select id into cv from public.conversations where pro_id = auth.uid() and client_id = '00000000-0000-0000-0000-0000000000c1';
+  perform public.send_quote(cv, 'Big job', '[{"kind":"labor","label":"Work","amount":1000}]'::jsonb);
+  raise exception 'FAIL: unlicensed pro sent a $1,000 quote';
+exception when others then if sqlerrm not like '%license needed%' then raise; end if; end $$;
+do $$ declare cv uuid; begin
+  select id into cv from public.conversations where pro_id = auth.uid() and client_id = '00000000-0000-0000-0000-0000000000c1';
+  perform public.send_quote(cv, 'Small job', '[{"kind":"labor","label":"Work","amount":999}]'::jsonb);
+end $$;
+select pg_temp.act(null); reset role;
+update public.pros set license_status = 'verified', license_no = '1148295' where id = '00000000-0000-0000-0000-0000000000b2';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+do $$ declare cv uuid; begin
+  select id into cv from public.conversations where pro_id = auth.uid() and client_id = '00000000-0000-0000-0000-0000000000c1';
+  perform public.send_quote(cv, 'Big job', '[{"kind":"labor","label":"Work","amount":2500}]'::jsonb);
+end $$;
+select pg_temp.ok((select pro_license from public.quotes where pro_id = auth.uid() order by created_at desc, version desc limit 1) = '1148295', 'a licensed pro sends a $2,500 quote and it keeps the license number');
 \echo ALL RULE TESTS PASSED

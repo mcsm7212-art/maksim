@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { acceptQuote, declineQuote, withdrawQuote } from '@/app/orders/actions';
 import { LINE_KINDS, type QuoteLine } from '@/lib/orders';
 import Disclaimer from './Disclaimer';
+import LicenseTag from './LicenseTag';
 import { useT } from './I18n';
 
 export type QuoteView = { id: string; conv: string; title: string; lines: QuoteLine[]; total: number; includes: string | null; notes: string | null;
-  validUntil: string | null; duration?: string | null; version: number; status: string; bookingId: string | null; at: string };
+  validUntil: string | null; duration?: string | null; license?: string | null; version: number; status: string; bookingId: string | null; at: string };
 const usd = (n: number) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** A quote inside the chat: clear lines, total, and Accept / Decline for the client. */
@@ -18,6 +19,7 @@ export default function QuoteCard({ q, role, inOrder }: { q: QuoteView; role: 'c
     <div className={`card quote ${q.status}`} style={{ alignSelf: 'stretch', opacity: old ? 0.6 : 1 }}>
       <div className="quote-head"><span>🧾 <b>{q.title}</b>{q.version > 1 && <span className="mu xs"> · {t('version {n}', { n: q.version })}</span>}</span>
         <span className={`badge ${q.status === 'accepted' ? 'ok' : q.status === 'sent' ? 'cu' : 'n'}`}>{t(STATUS[q.status] ?? q.status)}</span></div>
+      <LicenseTag license={q.license} tr={t} className="lic-tag xs" />
       <table className="qtable"><tbody>
         {q.lines.map((l, i) => <tr key={i}><td className="mu xs">{t(LINE_KINDS[l.kind] ?? 'Other')}</td><td>{l.label}</td><td className="r">{l.kind === 'discount' ? '−' : ''}{usd(Number(l.amount))}</td></tr>)}
         <tr className="tot"><td /><td>{t('Total')}</td><td className="r">{usd(q.total)}</td></tr>

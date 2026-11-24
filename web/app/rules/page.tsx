@@ -19,6 +19,28 @@ export default async function Rules() {
         <li>{tr("Search order uses a cautious score: a pro with one 5-star review does not jump ahead of a pro with forty 4.9 reviews.")}</li>
         <li>{tr("Readers can mark a review as helpful.")}</li>
       </ul>
+      <h3 id="license">{tr("License shown everywhere")}</h3><p className="mu">{tr("A pro with a checked CSLB license shows the number in the profile, in posts and in every quote, with a link to the state record. A pro without a license is marked “No contractor license” and cannot send a quote of ,000 or more.")}</p>
+      <h3 id="messages">{tr("Messages")}</h3>
+      <ul className="mu" style={{ lineHeight: 1.6 }}>
+        <li>{tr("The client always writes first. A pro cannot write or call a client who did not contact them.")}</li>
+        <li>{tr("Be polite: no insults, threats or pressure.")}</li>
+        <li>{tr("Never pay with gift cards, and do not send money to a person you have not met. NovaFides never asks you for money or for a code from an email.")}</li>
+        <li>{tr("No advertising of other services and no messages unrelated to the job.")}</li>
+        <li>{tr("Agree on the price in a quote on the site: then both sides have the same record if something goes wrong.")}</li>
+      </ul>
+      <h3 id="problems">{tr("If something goes wrong")}</h3>
+      <ul className="mu" style={{ lineHeight: 1.6 }}>
+        <li>{tr("Open the order and press “Report a problem”. The other side sees it and can answer.")}</li>
+        <li>{tr("If you cannot agree, a NovaFides moderator looks at the chat, the quote and the photos and writes the result in the order.")}</li>
+        <li>{tr("NovaFides is not a party to your agreement and does not refund money. For work by a licensed contractor you can also file a complaint with CSLB; a licensed contractor carries a bond.")}</li>
+      </ul>
+      <h3 id="limits">{tr("Warnings, limits and removal")}</h3>
+      <ul className="mu" style={{ lineHeight: 1.6 }}>
+        <li>{tr("Warning: rude messages, wrong information in a profile, a first no-show.")}</li>
+        <li>{tr("Temporary limit: repeated warnings, advertising, pressure to change a review.")}</li>
+        <li>{tr("Removal: fake reviews, a false license or identity, threats, fraud, unsafe behavior at a visit.")}</li>
+        <li>{tr("You can appeal any decision by email. A person, not a program, reads the appeal and answers.")}</li>
+      </ul>
       <h3>{tr("Companies")}</h3><p className="mu">{tr("If you choose a technician, the company cannot replace them without your OK. If the office assigned the technician, it may change them and you get a notification.")}</p>
       <h3>{tr("Handyman limits")}</h3><p className="mu">{tr("In California, a person without a contractor license may only take jobs under $1,000 total (labor and materials), that need no building permit and with no hired workers. A bigger job cannot be split into small ones.")}</p>
       <h3>{tr("Prices for pros")}</h3><p className="mu">{tr("During the launch NovaFides is free for pros and clients. When a subscription for pros is introduced, we will announce it at least 30 days in advance by email and in every pro account, with the exact start date and price. Nothing is charged without that notice. Pros who joined during the launch keep special terms. For clients, searching and booking stay free.")}</p>

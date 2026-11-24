@@ -214,6 +214,7 @@ const PRIVACY_EN: LegalDoc = {
   sections: [
     { h: '1. What we collect', p: [
       'Account: email, name, role (client, pro, company). Pros and companies: business name, trade, CSLB license number, photo, service area, prices, schedule, work photos and, for verification, identity and insurance information.',
+      'Phone and location: a phone number is optional. A client\'s number goes only to the one pro the client sends it to (a call-back request or a booking). A pro chooses who sees their number: everyone, or only clients whose job they confirmed. When a pro goes online with location, the position is rounded to about half a mile before it is saved; the exact position is never stored or shown. An address you type in a booking form is sent to an OpenStreetMap search service to suggest matching addresses.',
       'Requests and jobs: the service, notes, photos you attach, city and ZIP, the address for a booked visit, quotes, order status, invoices, parts installed, reviews and ratings.',
       'Messages and community: chats, posts, comments, questions, answers, saved pros, colleague lists and, if you turn it on, neighbor settings (city, street without house number, interests).',
       'Technical: device and browser data, pages viewed, cookies needed to keep you signed in and to remember your language, theme and sound setting.',
@@ -224,7 +225,7 @@ const PRIVACY_EN: LegalDoc = {
     ] },
     { h: '3. Who receives it', p: [
       'The pro or company you choose receives your request, photos and messages; your full address is shared only after you book a visit. Your public review shows your first name and last initial. Pros see private client ratings from other pros only as described in our rules.',
-      'Service providers that work for us under contract: Supabase (database, storage, sign-in), Vercel (hosting), Resend (email), Anthropic (AI photo analysis and reply tone check), Google (fonts, and the background-removal model downloaded to your device). Authorities, when the law requires.',
+      'Service providers that work for us under contract: Supabase (database, storage, sign-in), Vercel (hosting), Anthropic (AI photo analysis and reply tone check), Google (fonts, and the background-removal model downloaded to your device). Authorities, when the law requires.',
       'We do not sell your personal information and do not share it for cross-context behavioral advertising. When you click an Amazon or other store link, that store may collect information under its own policy.',
     ] },
     { h: '4. How long we keep it', p: [
@@ -248,6 +249,7 @@ const PRIVACY_ES: LegalDoc = {
   sections: [
     { h: '1. Qué recopilamos', p: [
       'Cuenta: correo, nombre, función (cliente, profesional, empresa). Profesionales y empresas: nombre comercial, oficio, número de licencia CSLB, foto, zona de servicio, precios, horario, fotos de trabajos y, para la verificación, datos de identidad y seguro.',
+      'Teléfono y ubicación: el número de teléfono es opcional. El número de un cliente llega solo al profesional al que el cliente lo envía (solicitud de llamada o reserva). El profesional elige quién ve su número: todos, o solo los clientes cuyo trabajo confirmó. Cuando un profesional se conecta con ubicación, la posición se redondea a unos 800 metros antes de guardarse; la posición exacta nunca se guarda ni se muestra. La dirección que escribes en un formulario de reserva se envía a un servicio de búsqueda de OpenStreetMap para sugerir direcciones.',
       'Solicitudes y trabajos: el servicio, notas, fotos adjuntas, ciudad y código postal, la dirección de una visita reservada, presupuestos, estado del pedido, facturas, piezas instaladas, reseñas y calificaciones.',
       'Mensajes y comunidad: chats, publicaciones, comentarios, preguntas, respuestas, profesionales guardados, listas de colegas y, si lo activa, ajustes de vecinos (ciudad, calle sin número, intereses).',
       'Datos técnicos: dispositivo y navegador, páginas vistas, cookies necesarias para mantener la sesión y recordar idioma, tema y sonido.',
@@ -258,7 +260,7 @@ const PRIVACY_ES: LegalDoc = {
     ] },
     { h: '3. Quién la recibe', p: [
       'El profesional o la empresa que usted elija recibe su solicitud, fotos y mensajes; su dirección completa se comparte solo después de reservar una visita. Su reseña pública muestra su nombre y la inicial del apellido.',
-      'Proveedores que trabajan para nosotros por contrato: Supabase (base de datos, almacenamiento, acceso), Vercel (alojamiento), Resend (correo), Anthropic (análisis de fotos con IA y revisión del tono), Google (fuentes y el modelo para quitar el fondo, descargado a su dispositivo). Autoridades, cuando la ley lo exija.',
+      'Proveedores que trabajan para nosotros por contrato: Supabase (base de datos, almacenamiento, acceso), Vercel (alojamiento), Anthropic (análisis de fotos con IA y revisión del tono), Google (fuentes y el modelo para quitar el fondo, descargado a su dispositivo). Autoridades, cuando la ley lo exija.',
       'No vendemos su información personal ni la compartimos para publicidad conductual entre contextos. Si hace clic en un enlace de Amazon u otra tienda, esa tienda puede recopilar información según su propia política.',
     ] },
     { h: '4. Cuánto tiempo la guardamos', p: [
@@ -282,6 +284,7 @@ const PRIVACY_RU: LegalDoc = {
   sections: [
     { h: '1. Что мы собираем', p: [
       'Аккаунт: почта, имя, роль (клиент, мастер, компания). Мастера и компании: название, специальность, номер лицензии CSLB, фото, район работы, цены, расписание, фото работ и, для проверки, данные о личности и страховке.',
+      'Телефон и местоположение: номер телефона необязателен. Номер клиента получает только тот мастер, которому клиент сам его отправил (заказ звонка или запись). Мастер сам выбирает, кто видит его номер: все или только клиенты, чей заказ он подтвердил. Когда мастер выходит онлайн с геолокацией, место округляется примерно до километра перед сохранением; точное место не хранится и не показывается. Адрес, который вы вводите в форме записи, отправляется в поисковый сервис OpenStreetMap, чтобы подсказать подходящие адреса.',
       'Запросы и заказы: услуга, описание, приложенные фото, город и ZIP, адрес забронированного визита, сметы, статус заказа, счета, установленные детали, отзывы и оценки.',
       'Сообщения и сообщество: чаты, посты, комментарии, вопросы, ответы, сохранённые мастера, списки коллег и, если вы включили, настройки «Соседи» (город, улица без номера дома, интересы).',
       'Технические данные: устройство и браузер, просмотренные страницы, cookie, нужные, чтобы вы оставались в аккаунте и чтобы запомнить язык, тему и звук.',
@@ -292,7 +295,7 @@ const PRIVACY_RU: LegalDoc = {
     ] },
     { h: '3. Кто их получает', p: [
       'Выбранный вами мастер или компания получают ваш запрос, фото и сообщения; полный адрес передаётся только после бронирования визита. В публичном отзыве видны ваше имя и первая буква фамилии.',
-      'Сервисы, которые работают на нас по договору: Supabase (база данных, хранение файлов, вход), Vercel (хостинг), Resend (почта), Anthropic (анализ фото с помощью ИИ и проверка тона ответа), Google (шрифты и модель для удаления фона, которая скачивается на ваше устройство). Государственные органы — когда этого требует закон.',
+      'Сервисы, которые работают на нас по договору: Supabase (база данных, хранение файлов, вход), Vercel (хостинг), Anthropic (анализ фото с помощью ИИ и проверка тона ответа), Google (шрифты и модель для удаления фона, которая скачивается на ваше устройство). Государственные органы — когда этого требует закон.',
       'Мы не продаём ваши личные данные и не передаём их для поведенческой рекламы. Если вы переходите по ссылке на Amazon или в другой магазин, этот магазин может собирать данные по своим правилам.',
     ] },
     { h: '4. Сколько мы их храним', p: [

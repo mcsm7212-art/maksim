@@ -81,7 +81,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
       </div>
 
       {(qs ?? []).length > 0 && <><h3 style={{ marginTop: 22 }}>{tr('Quote')}</h3>
-        <div className="list">{(qs ?? []).slice().reverse().map((q: any) => <QuoteCard key={q.id} role={role} inOrder q={{ id: q.id, conv: q.conversation_id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes, validUntil: q.valid_until, duration: q.duration, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }} />)}</div>
+        <div className="list">{(qs ?? []).slice().reverse().map((q: any) => <QuoteCard key={q.id} role={role} inOrder q={{ id: q.id, conv: q.conversation_id, title: q.title, lines: q.lines ?? [], total: Number(q.total), includes: q.includes, notes: q.notes, validUntil: q.valid_until, duration: q.duration, license: q.pro_license, version: q.version, status: q.status, bookingId: q.booking_id, at: q.created_at }} />)}</div>
         {role === 'pro' && conv?.id && !['done', 'cancelled'].includes(o.status) && <p className="mu xs">{tr('Scope changed? Send a new version of the quote in the chat: the client accepts it and the agreed price updates.')}</p>}</>}
 
       {(o.notes || (o.photos ?? []).length > 0) && <><h3 style={{ marginTop: 22 }}>{tr('Request')}</h3>
