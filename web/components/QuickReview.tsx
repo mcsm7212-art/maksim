@@ -14,7 +14,7 @@ export default function QuickReview({ id, name }: { id: string; name: string }) 
     <form action={submitReview} className="card quick-review" id="rate">
       <input type="hidden" name="id" value={id} />
       <b>★ {t('How was the job with {name}?', { name })}</b>
-      <div className="stars" role="radiogroup" aria-label={t('Your rating')} onMouseLeave={() => setHover(0)}>
+      <div className="star-pick" role="radiogroup" aria-label={t('Your rating')} onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((v) => <button type="button" key={v} role="radio" aria-checked={n === v} aria-label={`${v}`} className={(hover || n) >= v ? 'on' : ''} onMouseEnter={() => setHover(v)} onClick={() => pick(v)}>★</button>)}
       </div>
       {SKILLS.map(([k]) => <input key={k} type="hidden" name={k} value={sk[k] ?? n} />)}
