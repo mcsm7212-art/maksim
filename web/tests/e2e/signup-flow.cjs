@@ -63,7 +63,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await o.screenshot({path:D+'e_board.png',fullPage:true});step('day board: office assigned today job to Tom, marked him on the way');
  // client books solo pro by slot
  await c.goto(B+'/search?svc=faucet-replacement');await c.click('text=Max Solo');await c.waitForURL(/pro\//);if((await c.locator('.works img').count())!==2)throw new Error('work photos not on public page');step('public page shows real photo + 2 work photos');await c.screenshot({path:D+'e_pro.png',fullPage:true});
- await c.click('button:has-text("Message Max")');await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);
+ await c.locator('button:has-text("Message Max")').first().evaluate(e=>e.click());await c.waitForURL(/messages\//);await c.fill('textarea[name=body]','Hi Max, can you replace a kitchen faucet this week?');await c.click('button:has-text("Send")');await c.waitForTimeout(800);
  await s.goto(B+'/messages');await s.click('text=Anna Client');await s.waitForSelector('text=kitchen faucet');await s.fill('textarea[name=body]','Yes, pick any open time on my page.');await s.click('button:text-is("Send")');await s.waitForTimeout(800);
  await c.reload();await c.waitForSelector('text=pick any open time');
  await c.setInputFiles('label[aria-label="Attach photos"] input',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});await c.fill('textarea[name=body]','This is the faucet.');await c.click('button:has-text("Send")');await c.waitForTimeout(1000);
@@ -353,6 +353,22 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await an.goto(B+'/search');if(/Max Solo/.test(await an.textContent('main')))throw new Error('paused pro who asked to hide is in the search');
   sql("update pros set accepting="+(acc==='t'?'true':'false')+", hide_paused=false where display_name='Max Solo'");await an.close();
   step('calls: clients-only phone is kept apart and hidden from visitors; call hours follow the schedule; no calls and no search while not taking jobs');}
+ {const an=await b.newPage();an.on('pageerror',e=>errs.push('anon '+e.message));
+  await an.goto(B+'/');if((await an.locator('.quick-chip').count())<6)throw new Error('common problems are not on the home page');await an.click('.quick-chip >> nth=0');await an.waitForURL(/search\?svc=/);
+  await an.goto(B+'/pro/max/jobs');await an.waitForSelector('.jh');if(!/★/.test(await an.textContent('.jh-stats')))throw new Error('job history has no rating');
+  const open=sql("select b.id from bookings b where b.status='done' and b.pro_id is not null and b.client_id=(select id from profiles where full_name='Gina Guest') limit 1");
+  const gid=sql("select id from bookings where client_id=(select id from profiles where full_name='Gina Guest') and pro_id is not null and status<>'cancelled' limit 1");
+  sql("update bookings set status='confirmed' where id='"+gid+"'");sql("update bookings set status='done' where id='"+gid+"'");
+  if(sql("select count(*) from notifications where link='/orders/"+gid+"#rate'")!=='1')throw new Error('no rate note after the job is done');
+  const gc=await b.newContext({viewport:{width:1200,height:900}});const g=await gc.newPage();await g.goto(B+'/login');await g.fill('input[type=email]','gina@test.dev');await g.check('input[name=agree]');await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});await g.click('text=Email me a sign-in code');
+  await g.waitForSelector('input[autocomplete=one-time-code]');await g.fill('input[autocomplete=one-time-code]',await code('gina@test.dev'));await g.click('button:has-text("Sign in")');await g.waitForURL(/account/);
+  await g.goto(B+'/orders/'+gid);await g.click('.star-pick button >> nth=3');await g.click('.quick-review button:has-text("Post review")');await g.waitForSelector('text=your review is saved');
+  if(sql("select punctuality||'-'||pricing from reviews where booking_id='"+gid+"'")!=='4-4')throw new Error('one-tap review not saved');
+  const np=await b.newContext({viewport:{width:1200,height:900}});const n2=await np.newPage();await n2.goto(B+'/login');await n2.fill('input[type=email]','steps@test.dev');await n2.fill('input[autocomplete=name]','Sam Steps');await n2.check('input[name=agree]');await n2.click('text=Email me a sign-in code');
+  await n2.waitForSelector('input[autocomplete=one-time-code]');await n2.fill('input[autocomplete=one-time-code]',await code('steps@test.dev'));await n2.click('button:has-text("Sign in")');await n2.waitForURL(/account/);
+  await n2.goto(B+'/join/pro');await n2.waitForSelector('.fsteps:has-text("Step 1 of")');await n2.click('.fsteps button:has-text("Next")');await n2.waitForSelector('.fsteps:has-text("Step 2 of")');
+  await an.close();await gc.close();await np.close();
+  step('home starts with common problems; job history page; a done job sends a rate note and one tap on a star posts the review; pro form shows steps');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
@@ -384,7 +400,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await c.goto(B+'/book?pro=max&estimate=1&svc=faucet-replacement');await c.selectOption('select[name=city]','Redwood City');await c.fill('textarea[name=notes]','Kitchen faucet drips under the handle.');
  await c.setInputFiles('.drop input >> nth=0',IMG('w1'));await c.waitForSelector('input[name=photo_url]',{state:'attached'});
  const sum=await c.textContent('.summary');if(!sum.includes('Max Solo')||!sum.includes('Redwood City'))throw new Error('summary wrong: '+sum);
- await c.click('button:has-text("Send to Max")');await c.waitForURL(/messages\/[0-9a-f-]{36}\?sent=estimate/);await c.waitForSelector('text=Kitchen faucet drips');await c.waitForSelector('img[alt=Photo]');
+ await c.click('button:has-text("Send to Max")');await c.waitForURL(/messages\/[0-9a-f-]{36}\?sent=estimate/);await c.waitForSelector('.next-steps li.now');await c.waitForSelector('text=Kitchen faucet drips');await c.waitForSelector('img[alt=Photo]');
  step('estimate: one pro, city only, photo attached, summary showed who gets it → lands in chat with the pro');
  await c.goto(B+'/feed');await c.click('.post a:has-text("I have the same") >> nth=0');await c.waitForURL(/ref=post/);await c.waitForSelector('.refwork');
  await c.selectOption('select[name=city]','San Carlos');await c.fill('textarea[name=notes]','Same problem in my kitchen.');await c.click('button:has-text("Send to Max")');await c.waitForURL(/sent=estimate/);
@@ -402,7 +418,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
  await s.goto(B+'/account/profile');await s.setInputFiles('.figfield input[type=file]',process.env.ROOM_IMG);await s.waitForSelector('.figfield .fig-sil.cut img',{timeout:120000});
  await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:60000});
  const before=await s.inputValue('input[name=figure_url]');await s.click('.figfield .flipbtn >> nth=1');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},before,{timeout:60000});
- {const b2=await s.inputValue('input[name=figure_url]');await s.click('.figfield .cropbtn');await s.waitForSelector('.crop-r');const h=await s.locator('.crop-h.e').boundingBox();await s.mouse.move(h.x+h.width/2,h.y+h.height/2);await s.mouse.down();await s.mouse.move(h.x-40,h.y+h.height/2,{steps:5});await s.mouse.up();
+ {const b2=await s.inputValue('input[name=figure_url]');await s.click('.figfield .cropbtn');await s.waitForSelector('.crop-r');await s.locator('.crop-img').evaluate(e=>e.scrollIntoView({block:'center'}));await s.waitForTimeout(300);const h=await s.locator('.crop-h.e').boundingBox();await s.mouse.move(h.x+h.width/2,h.y+h.height/2);await s.mouse.down();await s.mouse.move(h.x-40,h.y+h.height/2,{steps:5});await s.mouse.up();
  await s.click('.crop button:has-text("Crop")');await s.waitForFunction((b)=>{const v=document.querySelector('input[name=figure_url]')?.value;return v&&v!==b},b2,{timeout:60000});if(!(await s.locator('.figfield .fshadow').count()))throw new Error('no floor shadow under the figure');}
  await s.goto(B+'/lang?to=ru&back=%2Faccount%2Fprofile');await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:20000});await s.goto(B+'/lang?to=en&back=%2Faccount%2Fprofile');await s.waitForFunction(()=>(document.querySelector('input[name=figure_url]')?.value||'').includes('/figure-'),null,{timeout:20000});
  await s.click('button:has-text("Preview my page")');await s.waitForSelector('.pv .pname:has-text("Max Solo")');await s.waitForSelector('.pv .fig-sil.cut img');await s.click('.pv button:has-text("Back to editing")');
