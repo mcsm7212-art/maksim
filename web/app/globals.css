@@ -1245,15 +1245,18 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .next-steps li.now{color:var(--ink);border-color:var(--cu);box-shadow:0 0 0 2px color-mix(in srgb,var(--cu) 30%,transparent)}.next-steps li.now i{background:var(--cu);color:#1A120B}
 .next-steps small{display:block;color:var(--cu-l,#C08A62);font-size:11.5px;font-weight:600;margin-top:2px}
 .wait-badge{color:#E0B040;font-weight:600;white-space:nowrap}
-/* long form as steps */
-.fsteps{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:25;display:flex;flex-direction:column;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
-.fsteps-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14.5px}
-.fsteps-now{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fsteps-dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.fsteps-dots button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mu);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:transform .12s ease}
+/* long form as steps: one compact row under the header */
+.fsteps{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.fsteps-top{display:contents;font-size:14px}
+.fsteps-now{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.fsteps-top .btn{order:3;flex:none;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsteps-dots{display:flex;align-items:center;gap:5px;flex:none}
+.fsteps-dots .mu{display:none}
+.fsteps-dots button{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mu);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;padding:0;transition:transform .12s ease}
 .fsteps-dots button:hover{transform:scale(1.12)}
 .fsteps-dots button.done{background:#3FB27F;border-color:#3FB27F;color:#0C0C0E}
 .fsteps-dots button.now{box-shadow:0 0 0 2px var(--cu)}
+@media (max-width:700px){.fsteps-dots{display:none}}
 /* job history; quick review */
 .jh{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .jh-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.jh-head b{flex:1 1 200px}
