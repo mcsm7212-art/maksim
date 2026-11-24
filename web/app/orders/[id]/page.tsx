@@ -4,6 +4,8 @@ import Disclaimer from '@/components/Disclaimer';
 import { notFound, redirect } from 'next/navigation';
 import ActionForm from '@/components/ActionForm';
 import QuoteCard from '@/components/QuoteCard';
+import NextSteps from '@/components/NextSteps';
+import QuickReview from '@/components/QuickReview';
 import { confirmDone, orderStatus, pickTime, reportProblem } from '../actions';
 import { getMe } from '@/lib/auth';
 import { serviceById } from '@/lib/catalog';
@@ -36,6 +38,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
     sb.from('pro_photos').select('id, url, kind').eq('booking_id', id),
   ]);
   const ph = orderPhrase(o, role); const step = stepIndex(o);
+  const reviewed = role === 'client' && o.status === 'done' ? Boolean((await sb.from('reviews').select('id').eq('booking_id', id).maybeSingle()).data) : false;
   const slots = role === 'client' && o.status === 'needs_time' && o.pro?.slug ? dayViews((await getPro(o.pro.slug))!, tr) : [];
   const accepted = (qs ?? []).filter((q: any) => q.status === 'accepted').pop() as any;
   const svc = accepted?.title || svcName(serviceById(o.service_id ?? ''), lang) || tr('Estimate visit');
@@ -43,6 +46,8 @@ export default async function Order({ params, searchParams }: { params: Promise<
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow"><Link href="/orders">{tr('Orders')}</Link></div>
+      {sent && o.status === 'assigning' && <NextSteps tr={tr} now={1} steps={['Request sent', 'The office picks a technician', 'The technician comes; the price is in the quote before work']} />}
+      {sent && o.status === 'requested' && <NextSteps tr={tr} now={1} steps={['Request sent', 'The pro confirms the time', 'The pro comes; the price is in the quote before work']} />}
       {sent && <div className="note" style={{ marginBottom: 12 }}>✓ {tr(o.status === 'assigning' ? 'Request sent. The office picks a technician; you will see who is coming here.' : 'Request sent. This is not a confirmed visit yet: the pro confirms the time and you get a notification.')}</div>}
       <h2 style={{ marginBottom: 4 }}>{svc}</h2>
       <div className="mu sm">{role === 'client' ? <>{tr('Your pro')}: {o.pro ? <Link href={`/pro/${o.pro.slug}`}>{o.pro.display_name}</Link> : o.company?.name}</> : tr('Client')}
@@ -67,7 +72,8 @@ export default async function Order({ params, searchParams }: { params: Promise<
         </div>}
         {role === 'client' && o.status === 'done' && !o.client_confirmed_at && <form action={confirmDone} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="id" value={id} />
           <button className="btn sm">✓ {tr('Confirm the job is complete')}</button><span className="mu xs">{tr('If something is wrong, report a problem below instead.')}</span></form>}
-        {role === 'client' && o.status === 'done' && o.client_confirmed_at && <Link className="btn ghost sm" href="/account" style={{ alignSelf: 'flex-start' }}>★ {tr('Rate your pro')}</Link>}
+        {role === 'client' && o.status === 'done' && o.pro && !reviewed && <QuickReview id={id} name={String(o.pro.display_name ?? '').split(' ')[0]} />}
+        {role === 'client' && o.status === 'done' && reviewed && <span className="okmsg sm">★ {tr('Thank you: your review is saved.')}</span>}
         <div className="chips">
           {conv?.id && <Link className="btn ghost sm" href={`/messages/${conv.id}`}>💬 {tr('Chat')}</Link>}
           {['needs_time', 'requested', 'confirmed'].includes(o.status) && <form action={orderStatus}><input type="hidden" name="id" value={id} /><input type="hidden" name="status" value="cancelled" /><button className="btn ghost sm">{tr('Cancel order')}</button></form>}

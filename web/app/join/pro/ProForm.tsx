@@ -8,6 +8,7 @@ import { accentFromUniform } from '@/lib/colors';
 import Figure from '@/components/Figure';
 import Icon from '@/components/Icon';
 import FormDraft, { ClearBtn } from '@/components/FormDraft';
+import FormSteps from '@/components/FormSteps';
 import CustomServices from '@/components/CustomServices';
 import TradeRequest from '@/components/TradeRequest';
 import WeekHours from '@/components/WeekHours';
@@ -113,9 +114,10 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
 
   return (
     <form ref={formRef} action={action} className="list" onInput={() => setTimeout(recheck, 0)} onChange={() => setTimeout(recheck, 0)}>
+      <FormSteps form={formRef} />
       {invite && <input type="hidden" name="invite" value={invite} />}
       {companyName && <div className="note">{tt("You are joining")} <b>{companyName}</b> {tt("as a technician.")}{prefill?.name ? ` ${tt("The office filled in the basics: check them, add your real photo and your services.")}` : ""}</div>}
-      <div className="card formcard">
+      <div className="card formcard" data-step={tt('About you')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt("About you")}</h3>
         <span className="mu xs">✎ {tt("Write your profile in English: most clients in the Bay Area read English.")}</span>
         {!edit && <div className="note xs">⏱ {tt('To create the profile you only need your name and trade. Photo, services, prices, map and work photos can be added now or later in your account.')}</div>}
@@ -152,7 +154,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <label className="f">{tt("Your skills, separated by commas")}<span className="fieldwrap"><input className="inp" name="skills" defaultValue={I?.skills} maxLength={300} placeholder={tt('Tankless water heaters, Repipes, Leak detection')} /><ClearBtn /></span></label>
         <label className="chk"><input type="checkbox" name="insured" defaultChecked={I?.insured} /> {tt("I carry liability insurance")}</label>
       </div>
-      <div className="card formcard">
+      <div className="card formcard" data-step={tt('Service area on the map')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt('Service area on the map')}</h3>
         <span className="mu sm">{tt('Draw where you work: clients inside this area see you first.')}</span>
         <label className="f">{tt("Area you serve")} <span className="mu xs">({tt('fills in from the map, you can edit it')})</span><span className="fieldwrap"><input className="inp" name="area" ref={areaRef} onInput={() => { areaAuto.current = false; }} placeholder="Redwood City" defaultValue={I?.area ?? prefill?.area} /><ClearBtn /></span></label>
@@ -160,7 +162,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         {trade === 'handyman' && <span className="mu xs">{tt("Handymen can take jobs under $1,000 total (labor and materials), no permits, nothing inside walls (California B&P Code §7048).")}</span>}
       </div>
 
-      <div className="card formcard">
+      <div className="card formcard" data-step={tt('Photo and page color')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt("Photo and page color")}</h3>
         <FigureField name={name} initialFigure={I?.figure ?? null} initialPhoto={I?.photo ?? null} accent={accent} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_photo`}
           onAccent={(c) => setFigAccent(c)} onChange={({ figure: f, photo: p }) => { setFigure(f); setPhoto(p); if (!f) setFigAccent(null); }} bindMirror={(fn) => { mirrorFig.current = fn; }} onPreview={() => openPreview()} />
@@ -170,14 +172,14 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <span className="mu xs">{tt("Only a real photo of you. We may clean up the background and light, never your face or clothes.")}</span>
       </div>
 
-      {!edit && <div className="card formcard">
+      {!edit && <div className="card formcard" data-step={tt('Photos of your work')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt("Photos of your work")}</h3>
         <span className="mu sm">{tt("Add photos of jobs you have done, in any order: installs, repairs, before and after. Clients look at these first. You can add more later.")}</span>
         <PhotoPicker name="work_url" prefix="work" max={24} label={tt('Add work photos')} draftKey="nf_draft_pro-new_work" />
         <span className="mu xs">{tt("Only your own work. No faces of clients, house numbers or addresses in the photos.")}</span>
       </div>}
 
-      {!edit && <div className="card formcard">
+      {!edit && <div className="card formcard" data-step={tt('Your reviews on other sites')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt('Your reviews on other sites')} <span className="mu sm">· {tt('optional')}</span></h3>
         <span className="mu sm">{tt('Already have reviews on Yelp, Google or Thumbtack? Paste the links: clients see buttons to your profiles there, so you do not start from zero. We show only links, never copy ratings. You can add them later too.')}</span>
         <div className="row2">
@@ -187,7 +189,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
       </div>}
 
 
-      <div className="card formcard">
+      <div className="card formcard" data-step={tt('Services and your prices')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt("Services and your prices")}</h3>
         {trade !== 'other' && <span className="mu xs">{tt("Leave a price empty to use the Bay Area average. Recommended for new pros: about 5% under average until you have reviews.")}</span>}
         {licWait && <div className="note xs lic-note wait">⏳ {tt('Your license is being checked. Jobs marked “waiting” are saved now and shown to clients after the admin approves your license.')}</div>}
@@ -209,7 +211,7 @@ export default function ProForm({ invite, companyName, initial, prefill }: { inv
         <CustomServices key={trade === 'other' ? 'own' : 'std'} grouped={trade === 'other'} initial={I?.custom ?? []} licensed={licensed || licWait} waiting={licWait} draftKey={`nf_draft_${edit ? 'pro-edit' : 'pro-new'}_custom`} />
       </div>
 
-      <div className="card formcard">
+      <div className="card formcard" data-step={tt('Working hours')} style={{ scrollMarginTop: 150 }}>
         <h3 style={{ margin: 0 }}>{tt("Working hours")}</h3>
         <span className="mu xs">{tt('Turn days on or off and set the hours for each day. Clients book only inside these hours.')}</span>
         <WeekHours initial={I?.hours ?? null} />

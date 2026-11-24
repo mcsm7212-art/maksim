@@ -73,7 +73,7 @@ export async function submitReview(f: FormData) {
     body: s(f, 'body').slice(0, 2000) || null,
   }).select('id').single();
   if (!error && r) await sb.from('review_private').insert({ review_id: r.id, would_hire_again: s(f, 'again') !== '0' });
-  revalidatePath('/account');
+  revalidatePath('/account'); revalidatePath(`/orders/${b.id}`);
 }
 
 export async function addPhotos(f: FormData) {

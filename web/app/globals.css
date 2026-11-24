@@ -1232,3 +1232,37 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .opt-set>label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.opt-set>label>input{margin-top:4px;flex:none}
 .go-online{display:flex;flex-direction:column;gap:10px;padding:14px 16px;flex-basis:100%;border-color:#3FB27F}
 .go-online .sa-map{height:240px}.go-wait{display:grid;place-items:center;color:var(--mu);font-size:14px}
+/* home: common problems; "what happens next"; waiting badge */
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;max-width:780px}
+.quick-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-decoration:none;font-size:14.5px;font-weight:500;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.quick-chip i{font-style:normal;font-size:17px}
+.quick-chip:hover{transform:translateY(-2px);border-color:var(--cu-l,#C08A62);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.next-steps{list-style:none;margin:10px 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.next-steps{grid-template-columns:1fr}}
+.next-steps li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--mu)}
+.next-steps li i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;background:var(--card2,rgba(128,128,128,.18));color:var(--mu)}
+.next-steps li.done{color:var(--ink)}.next-steps li.done i{background:#3FB27F;color:#0C0C0E}
+.next-steps li.now{color:var(--ink);border-color:var(--cu);box-shadow:0 0 0 2px color-mix(in srgb,var(--cu) 30%,transparent)}.next-steps li.now i{background:var(--cu);color:#1A120B}
+.next-steps small{display:block;color:var(--cu-l,#C08A62);font-size:11.5px;font-weight:600;margin-top:2px}
+.wait-badge{color:#E0B040;font-weight:600;white-space:nowrap}
+/* long form as steps */
+.fsteps{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:25;display:flex;flex-direction:column;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.fsteps-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14.5px}
+.fsteps-now{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsteps-dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fsteps-dots button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mu);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:transform .12s ease}
+.fsteps-dots button:hover{transform:scale(1.12)}
+.fsteps-dots button.done{background:#3FB27F;border-color:#3FB27F;color:#0C0C0E}
+.fsteps-dots button.now{box-shadow:0 0 0 2px var(--cu)}
+/* job history; quick review */
+.jh{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.jh-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.jh-head b{flex:1 1 200px}
+.jh-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.jh-photos a{position:relative;display:block}.jh-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block}
+.jh-photos small{position:absolute;left:6px;bottom:6px;padding:2px 7px;border-radius:99px;background:rgba(0,0,0,.65);color:#fff;font-size:11px}
+.jh-rev{margin:0;padding:8px 12px;border-left:3px solid var(--acc,var(--cu));font-size:14.5px}
+.jh-stats{display:flex;flex-direction:column;gap:2px;text-align:right;font-size:13.5px;color:var(--mu)}.jh-stats b{color:var(--ink);font-size:18px}
+.quick-review{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-color:var(--cu);scroll-margin-top:90px}
+.stars{display:flex;gap:4px}.stars button{font-size:38px;line-height:1;background:none;border:0;cursor:pointer;color:var(--line);padding:0 2px;transition:transform .12s ease,color .12s ease}
+.stars button.on{color:#E8B33C}.stars button:hover{transform:scale(1.15)}
+.qr-each{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.qr-each label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mu)}

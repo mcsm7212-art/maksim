@@ -93,7 +93,9 @@ export default async function ProDesk({ me, row, tr, lang, find }: { me: { id: s
             <Link key={c.id} className={`desk-msg${unread.has(c.id) ? ' new' : ''}`} href={`/messages/${c.id}`}>
               <span>{unread.has(c.id) && <i className="dot-new" aria-label={tr('New')} />}<b>{nameOf(c)}</b>{c.quiet && <span className="badge n" title={tr('Wrote while you were not taking jobs')}>🔕 {tr('while paused')}</span>}
                 <br /><span className="mu xs">{m ? (String(m.body).startsWith(CALLBACK) ? `📞 ${tr('Call-back request')}` : `${m.sender_id === me.id ? tr('You') + ': ' : ''}${String(m.body).slice(0, 70)}`) : tr('No messages yet')}</span></span>
-              {m && <small className="mu">{ago(m.created_at, tr)}</small>}
+              {m && (m.sender_id !== me.id && Date.now() - new Date(m.created_at).getTime() > 36e5
+                ? <small className="wait-badge" title={tr('Clients see how fast you usually reply. Answer to keep your time short.')}>⏰ {tr('waits')} {ago(m.created_at, tr)}</small>
+                : <small className="mu">{ago(m.created_at, tr)}</small>)}
             </Link>); })}
           {!(convs ?? []).length && <span className="mu sm">{tr('No messages yet. Clients write to you from your page.')}</span>}
         </div>

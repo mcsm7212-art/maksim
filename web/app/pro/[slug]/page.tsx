@@ -320,6 +320,7 @@ export default async function ProPage({ params, searchParams }: Props) {
 
         <div className="blk">
           <h2 className="h-ic"><Ic3d name="reviews" size={40} />{tr('Reviews')} <small>{pro.reviewCount}</small></h2>
+          {!pro.isDemo && <Link className="btn ghost sm" href={`/pro/${pro.slug}/jobs`} style={{ alignSelf: 'flex-start' }}>📒 {tr('Job history: every finished job with photos and reviews')} →</Link>}
           <p className="mu xs" style={{ marginTop: -6 }}>{tr('Every review stays visible. A review counts less in the rating only when its author follows an unusual pattern, and a moderator checks it.')} <Link href="/rules#reviews">{tr('How the rating works')}</Link></p>
           <div className="list">
             {pro.reviews.filter((r) => (r.weight ?? 1) >= 1).map((r) => reviewCard(r))}

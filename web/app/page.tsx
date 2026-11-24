@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import ProCard from '@/components/ProCard';
 import SearchBox from '@/components/SearchBox';
-import { TRADES, type Trade, TRADE_KEYS, tradeLabel } from '@/lib/catalog';
+import { serviceById, TRADES, type Trade, TRADE_KEYS, tradeLabel } from '@/lib/catalog';
 import { listPros, openSlots } from '@/lib/data';
 import { getLoc } from '@/lib/loc';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -12,6 +12,12 @@ import { showDemo } from '@/lib/demo-view';
 import { popularIds } from '@/lib/social';
 import { listQuestions } from '@/lib/community';
 import { getT } from '@/lib/i18n';
+
+// Common problems on the first screen: one tap leads to the pros who do this job.
+const QUICK: [string, string, string][] = [
+  ['💧', 'pipe-leak-repair', 'Water leak'], ['🚿', 'sink-tub-or-shower-drain-clearing', 'Clogged drain'], ['🚽', 'running-toilet-repair', 'Toilet keeps running'], ['🔥', 'water-heater-repair', 'No hot water'],
+  ['⚡', 'troubleshooting-tripping-breaker-partial-outage', 'Breaker trips'], ['🔌', 'outlet-replacement', 'Outlet does not work'], ['📺', 'tv-wall-mounting', 'Mount a TV'], ['🚪', 'door-repair-and-adjustment', 'Door sticks'],
+];
 
 export default async function Home() {
   const pros = await listPros(); const t = await getT();
@@ -49,9 +55,12 @@ export default async function Home() {
       <section className="hero pad"><div className={`in hero-grid${lineup.length ? '' : ' solo'}`}>
         <div>
           <div className="eyebrow">{t('Bay Area · San Francisco to San Jose')}</div>
-          <h1>{t('Pick your pro.')}<br /><span>{t('Only they will call you.')}</span></h1>
-          <p>{t('Verified plumbers, electricians, handymen and builders with real photos, their own work and honest reviews. You choose one pro. Your request goes only to them.')}</p>
+          <h1>{t('What happened at home?')}<br /><span>{t('Pick one pro. Only they will call you.')}</span></h1>
+          <p>{t('Type the problem in your own words or tap a common one. You see verified local pros with faces, prices and honest reviews, and choose one.')}</p>
           <SearchBox loc={loc.text} />
+          <div className="quick" aria-label={t('Common problems')}>
+            {QUICK.filter(([, id]) => serviceById(id)).map(([icon, id, label]) => <Link key={id} href={`/search?svc=${id}`} className="quick-chip"><i aria-hidden>{icon}</i>{t(label)}</Link>)}
+          </div>
           <p className="sbox-only">{t('Your request goes only to the pro you choose.')}</p>
         </div>
         {lineup.length > 0 && <div className="lineup" aria-label={t('Pros on NovaFides')}>

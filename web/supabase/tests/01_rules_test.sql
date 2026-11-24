@@ -765,4 +765,17 @@ select public.move_online_spot(37.4852, -122.2364, 'Redwood City');
 select pg_temp.ok((select online_lat = 37.49 and online_area = 'Redwood City' from public.pros where id = auth.uid()), 'the area moves while driving');
 select public.set_online_spot(0);
 select pg_temp.ok((select online_lat is null and online_until is null and not online_live from public.pros where id = auth.uid()), 'going offline clears the place');
+
+-- 0042 response time: the middle value of the first replies, shown from 3 chats
+select pg_temp.act(null); reset role;
+update public.pros set response_minutes = null where id = '00000000-0000-0000-0000-0000000000b2';
+delete from public.conversations where pro_id = '00000000-0000-0000-0000-0000000000b2';
+do $$ declare cv uuid; k int; who uuid[] := array['00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000a1']::uuid[]; begin
+  for k in 1..3 loop
+    insert into public.conversations (client_id, pro_id) values (who[k], '00000000-0000-0000-0000-0000000000b2') returning id into cv;
+    insert into public.messages (conversation_id, sender_id, body, created_at) values (cv, who[k], 'Hello, can you help?', now() - interval '2 hours');
+    insert into public.messages (conversation_id, sender_id, body, created_at) values (cv, '00000000-0000-0000-0000-0000000000b2', 'Yes, I can.', now() - interval '2 hours' + make_interval(mins => k * 10));
+  end loop;
+end $$;
+select pg_temp.ok((select response_minutes from public.pros where id = '00000000-0000-0000-0000-0000000000b2') = 20, 'response time is the median of the first replies (20 min)');
 \echo ALL RULE TESTS PASSED
