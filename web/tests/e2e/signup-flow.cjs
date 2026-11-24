@@ -369,6 +369,13 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   await n2.goto(B+'/join/pro');await n2.waitForSelector('.fsteps:has-text("Step 1 of")');await n2.click('.fsteps button:has-text("Next")');await n2.waitForSelector('.fsteps:has-text("Step 2 of")');
   await an.close();await gc.close();await np.close();
   step('home starts with common problems; job history page; a done job sends a rate note and one tap on a star posts the review; pro form shows steps');}
+ {const an=await b.newPage();an.on('pageerror',e=>errs.push('anon '+e.message));
+  await an.goto(B+'/pro/max');await an.waitForSelector('a.lic-tag.ok[href*="cslb.ca.gov"]');
+  const un=sql("select slug from pros where license_status<>'verified' and company_id is null and status='verified' and is_demo is not true limit 1");
+  if(un){await an.goto(B+'/pro/'+un);await an.waitForSelector('.lic-tag.none:has-text("No contractor license")');}
+  if(!/^\d{5,8}$/.test(sql("select pro_license from quotes where pro_id=(select id from pros where slug='max') order by created_at desc limit 1")))throw new Error('quote has no license number');
+  await an.goto(B+'/rules');await an.waitForSelector('#messages');await an.waitForSelector('#limits');await an.goto(B+'/privacy');if(!/Phone and location/.test(await an.textContent('main'))||/Resend/.test(await an.textContent('main')))throw new Error('privacy text not updated');
+  await an.close();step('license line: CSLB number with a link or “No contractor license”; quotes keep the license number; rules for messages, problems and appeals; privacy covers phone and location');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
