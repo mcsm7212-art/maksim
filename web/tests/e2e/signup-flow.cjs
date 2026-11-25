@@ -376,6 +376,12 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(!/^\d{5,8}$/.test(sql("select pro_license from quotes where pro_id=(select id from pros where slug='max') order by created_at desc limit 1")))throw new Error('quote has no license number');
   await an.goto(B+'/rules');await an.waitForSelector('#messages');await an.waitForSelector('#limits');await an.goto(B+'/privacy');if(!/Phone and location/.test(await an.textContent('main'))||/Resend/.test(await an.textContent('main')))throw new Error('privacy text not updated');
   await an.close();step('license line: CSLB number with a link or “No contractor license”; quotes keep the license number; rules for messages, problems and appeals; privacy covers phone and location');}
+ {const an=await b.newPage();an.on('pageerror',e=>errs.push('anon '+e.message));
+  await an.goto(B+'/');const hm=await an.textContent('main');if(!/Pros do not pay us for your contact/.test(hm)||/Only they will call you/.test(hm))throw new Error('home does not state the one rule');
+  await an.goto(B+'/rules');if(!/ask up to three at once/.test(await an.textContent('main')))throw new Error('rules do not state the one rule');
+  if(await an.locator('header .nav a[href="/questions"]').count())throw new Error('Questions is in the menu with fewer than 5 verified pros');
+  await an.goto(B+'/questions');if((await an.title()).length<3)throw new Error('questions page does not open by address');
+  await an.close();step('one rule in all texts: compare, ask up to three, you choose one; empty sections leave the menu but open by address');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
