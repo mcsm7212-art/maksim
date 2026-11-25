@@ -16,7 +16,7 @@ import { getT } from '@/lib/i18n';
 // Common problems on the first screen: one tap leads to the pros who do this job.
 const QUICK: [string, string, string][] = [
   ['💧', 'pipe-leak-repair', 'Water leak'], ['🚿', 'sink-tub-or-shower-drain-clearing', 'Clogged drain'], ['🚽', 'running-toilet-repair', 'Toilet keeps running'], ['🔥', 'water-heater-repair', 'No hot water'],
-  ['⚡', 'troubleshooting-tripping-breaker-partial-outage', 'Breaker trips'], ['🔌', 'outlet-replacement', 'Outlet does not work'], ['📺', 'tv-wall-mounting', 'Mount a TV'], ['🚪', 'door-repair-adjustment', 'Door sticks'],
+  ['⚡', 'troubleshooting-tripping-breaker-partial-outage', 'Breaker trips'], ['🔌', 'outlet-replacement', 'Outlet does not work'], ['📺', 'tv-wall-mounting', 'Mount a TV'], ['🚪', 'door-repair-and-adjustment', 'Door sticks'],
 ];
 
 export default async function Home() {

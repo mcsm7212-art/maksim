@@ -354,7 +354,7 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   sql("update pros set accepting="+(acc==='t'?'true':'false')+", hide_paused=false where display_name='Max Solo'");await an.close();
   step('calls: clients-only phone is kept apart and hidden from visitors; call hours follow the schedule; no calls and no search while not taking jobs');}
  {const an=await b.newPage();an.on('pageerror',e=>errs.push('anon '+e.message));
-  await an.goto(B+'/');if((await an.locator('.quick-chip').count())<6)throw new Error('common problems are not on the home page');await an.click('.quick-chip >> nth=0');await an.waitForURL(/search\?svc=/);
+  await an.goto(B+'/');if((await an.locator('.quick-chip').count())!==8)throw new Error('common problems are not on the home page');await an.click('.quick-chip >> nth=0');await an.waitForURL(/search\?svc=/);
   await an.goto(B+'/pro/max/jobs');await an.waitForSelector('.jh');if(!/★/.test(await an.textContent('.jh-stats')))throw new Error('job history has no rating');
   const open=sql("select b.id from bookings b where b.status='done' and b.pro_id is not null and b.client_id=(select id from profiles where full_name='Gina Guest') limit 1");
   const gid=sql("select id from bookings where client_id=(select id from profiles where full_name='Gina Guest') and pro_id is not null and status<>'cancelled' limit 1");
