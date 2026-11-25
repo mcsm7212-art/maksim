@@ -9,8 +9,8 @@ export default async function Join() {
     <section className="sec pad"><div className="in">
       <div className="eyebrow">{tr("For pros & companies")}</div>
       <h2>{tr("No lead fees. Free during the launch.")}</h2>
-      <p style={{ fontSize: 18, margin: '0 0 8px' }}><b>{tr('Not a lead auction.')}</b> {tr('A client’s request is never sold to five pros who then race to call first. The client picks you, and the request goes only to you.')}</p>
-      <p className="mu" style={{ maxWidth: '62ch' }}>{tr("Clients choose you directly. A request goes only to you, never to five competitors. Your reviews, job counts and skills stay with you.")}</p>
+      <p style={{ fontSize: 18, margin: '0 0 8px' }}><b>{tr('Not a lead auction.')}</b> {tr('A client’s request is never sold to pros who then race to call first. The client picks pros by name, at most three, and you see how many got the request.')}</p>
+      <p className="mu" style={{ maxWidth: '62ch' }}>{tr("Clients choose you by name. A request is never passed to anyone the client did not pick, and you never pay for it. Your reviews, job counts and skills stay with you.")}</p>
       <div className="note" style={{ margin: '14px 0 4px', maxWidth: '70ch' }}>
         <b>{tr("Free during the launch")}</b><br />
         {tr("Right now NovaFides charges nothing: no subscription, no lead fees, no card needed. A subscription will start only later, and only after we notify every pro by email and in the account at least 30 days in advance, with the exact start date. Pros who join now keep special terms.")}

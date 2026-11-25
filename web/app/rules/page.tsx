@@ -5,7 +5,7 @@ export default async function Rules() {
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow">{tr("How NovaFides works")}</div><h2>{tr("Rules for clients and pros")}</h2>
-      <h3>{tr("One pro per request")}</h3><p className="mu">{tr("Your request goes only to the pro or company you choose. We never sell leads. Pros never pay per lead: when paid plans start, it will be one simple flat subscription.")}</p>
+      <h3>{tr("You choose who gets your request")}</h3><p className="mu">{tr("You see every pro, compare them and can ask up to three at once: each pro sees how many got the same request. Nobody else receives it, and the job goes to the one pro you choose. We never sell leads. Pros never pay per lead: when paid plans start, it will be one simple flat subscription.")}</p>
       <h3>{tr("Verified identity")}</h3><p className="mu">{tr("Every pro is tied to an ID check and, for plumbing and electrical, a CSLB license. One person, one profile. Deleting a profile does not erase its reviews.")}</p>
       <h3 id="reviews">{tr("Reviews")}</h3><p className="mu">{tr("Only clients with a finished booking can review. You rate five skills: punctuality, workmanship, cleanliness, communication and pricing transparency. Honest negative reviews are never removed. Pros may post one calm public reply of up to 600 characters. Reviews that are fake, abusive or not about the job can be reported to a moderator.")}</p>
       <h3>{tr("How the rating works")}</h3>

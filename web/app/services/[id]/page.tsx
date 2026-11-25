@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
   if (!s) return { title: 'Service not found', robots: { index: false } };
   return {
     title: `${s.name} in the Bay Area: typical price ${usd(s.lo)}–${usd(s.hi)}`,
-    description: `${s.name}: typical Bay Area total ${usd(s.lo)}–${usd(s.hi)}${s.permit ? ', permit usually required' : ''}. What changes the price, and verified pros who do this job. You choose one pro; your request goes only to them.`,
+    description: `${s.name}: typical Bay Area total ${usd(s.lo)}–${usd(s.hi)}${s.permit ? ', permit usually required' : ''}. What changes the price, and verified pros who do this job. Compare pros and ask up to three; your request goes only to the ones you choose.`,
     alternates: { canonical: `${SITE}/services/${s.id}` },
   };
 }

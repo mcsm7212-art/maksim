@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { siteState } from '@/lib/site-state';
 import Link from 'next/link';
 import { getMe } from '@/lib/auth';
 import { isLive } from '@/lib/supabase/config';
@@ -24,6 +25,7 @@ export default async function Header() {
     const { data } = await (await supabaseServer()).from('notifications').select('link').eq('user_id', me.id).is('read_at', null).limit(100);
     newAny = (data ?? []).length; newMsgs = (data ?? []).filter((n) => String(n.link ?? '').startsWith('/messages/')).length;
   }
+  const site = await siteState();
   return (
     <>
       {!isLive() && <div className="demo">{t('Demo mode: sample pros, sign-up turns on when the database is connected.')}</div>}
@@ -36,8 +38,8 @@ export default async function Header() {
           </Link>
           <nav className="nav" aria-label="Main">
             <NavLink href="/search">{t('Find a pro')}</NavLink>
-            <NavLink href="/online">● {t('Online now')}</NavLink>
-            <NavLink href="/questions">{t('Questions')}</NavLink>
+            {site.show.online && <NavLink href="/online">● {t('Online now')}</NavLink>}
+            {site.show.questions && <NavLink href="/questions">{t('Questions')}</NavLink>}
             {!me && <NavLink href="/join">{t('For pros')}</NavLink>}
           </nav>
           <div className="hdr-me">
@@ -64,9 +66,9 @@ export default async function Header() {
             <Suspense><LangSwitch /></Suspense>
             <MoreMenu>
               <Link2 href="/companies" className="mm"><Ic3d name="company" size={38} /><span><b>{t('Companies')}</b><small>{t('Licensed companies and their teams')}</small></span></Link2>
-              <Link2 href="/online" className="mm in-nav"><Ic3d name="location" size={38} /><span><b>{t('Online now')} <i className="dot-live" /></b><small>{t('Pros on the site right now, by city')}</small></span></Link2>
-              <Link2 href="/feed" className="mm"><Ic3d name="handyman" size={38} /><span><b>{t('Work & tips')}</b><small>{t('Real jobs and advice from pros')}</small></span></Link2>
-              <Link2 href="/questions" className="mm in-nav"><Ic3d name="chat" size={38} /><span><b>{t('Questions')}</b><small>{t('Ask, verified pros answer')}</small></span></Link2>
+              {site.show.online && <Link2 href="/online" className="mm in-nav"><Ic3d name="location" size={38} /><span><b>{t('Online now')} <i className="dot-live" /></b><small>{t('Pros on the site right now, by city')}</small></span></Link2>}
+              {site.show.feed && <Link2 href="/feed" className="mm"><Ic3d name="handyman" size={38} /><span><b>{t('Work & tips')}</b><small>{t('Real jobs and advice from pros')}</small></span></Link2>}
+              {site.show.questions && <Link2 href="/questions" className="mm in-nav"><Ic3d name="chat" size={38} /><span><b>{t('Questions')}</b><small>{t('Ask, verified pros answer')}</small></span></Link2>}
               <Link2 href="/photo" className="mm"><Ic3d name="photo-search" size={38} /><span><b>{t('Search by photo')}</b><small>{t('Snap the problem, find the job')}</small></span></Link2>
               {!me?.pro && <Link2 href="/join" className="mm in-nav"><Ic3d name="verified" size={38} /><span><b>{t('For pros')}</b><small>{t('Free during the launch')}</small></span></Link2>}
               <span className="mm-sect phone-only">{t('Interface settings')}</span>

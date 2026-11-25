@@ -13,8 +13,8 @@ import './globals.css';
 // The tab title and description follow the visitor's language.
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  const title = `NovaFides · ${t('Pick your pro.')} ${t('Only they will call you.')}`;
-  const description = t('Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.');
+  const title = `NovaFides · ${t('Compare local pros. You choose who gets your request.')}`;
+  const description = t('Find a verified plumber, electrician, handyman or builder in the Bay Area. Real photos, real work, honest reviews. Compare pros and ask up to three; your request goes only to the ones you choose. Free for clients.');
   return {
     metadataBase: new URL(SITE),
     title: { default: title, template: '%s · NovaFides' },

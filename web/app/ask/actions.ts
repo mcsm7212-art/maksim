@@ -25,8 +25,10 @@ export async function askEstimate(_p: AskState, f: FormData): Promise<AskState> 
   const sb = await supabaseServer(); const tr = makeT(await getLang());
   const photos = f.getAll('photo_url').map(String).filter((u) => ownPhotoUrl(u, me.id)).slice(0, 6);
   const { data: ids } = await sb.from('pros').select('id').in('slug', pros).eq('is_demo', false);
-  let sent = 0;
-  for (const p of ids ?? []) if (await requestToPro(sb, me.id, p.id, `📋 ${tr('Estimate request')}\n${tr('Area')}: ${[city, zip].filter(Boolean).join(' ')}\n${text}`, photos)) sent++;
+  let sent = 0; const n = (ids ?? []).length;
+  // Each pro sees how many pros got the same request: nobody bids blind.
+  const many = n > 1 ? `\n👥 ${tr('The client sent this request to {n} pros', { n })}` : '';
+  for (const p of ids ?? []) if (await requestToPro(sb, me.id, p.id, `📋 ${tr('Estimate request')}\n${tr('Area')}: ${[city, zip].filter(Boolean).join(' ')}\n${text}${many}`, photos)) sent++;
   if (!sent) return { error: 'Could not send. Please try again.' };
   redirect('/messages?sent=ask');
 }

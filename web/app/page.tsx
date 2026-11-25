@@ -55,13 +55,13 @@ export default async function Home() {
       <section className="hero pad"><div className={`in hero-grid${lineup.length ? '' : ' solo'}`}>
         <div>
           <div className="eyebrow">{t('Bay Area · San Francisco to San Jose')}</div>
-          <h1>{t('What happened at home?')}<br /><span>{t('Pick one pro. Only they will call you.')}</span></h1>
+          <h1>{t('What happened at home?')}<br /><span>{t('See every pro, compare and ask. You choose one.')}</span></h1>
           <p>{t('Type the problem in your own words or tap a common one. You see verified local pros with faces, prices and honest reviews, and choose one.')}</p>
           <SearchBox loc={loc.text} />
           <div className="quick" aria-label={t('Common problems')}>
             {QUICK.filter(([, id]) => serviceById(id)).map(([icon, id, label]) => <Link key={id} href={`/search?svc=${id}`} className="quick-chip"><i aria-hidden>{icon}</i>{t(label)}</Link>)}
           </div>
-          <p className="sbox-only">{t('Your request goes only to the pro you choose.')}</p>
+          <p className="sbox-only">{t('Your request goes only to the pros you pick yourself. Pros do not pay us for your contact.')}</p>
         </div>
         {lineup.length > 0 && <div className="lineup" aria-label={t('Pros on NovaFides')}>
           {lineup.map((p, i) => (
@@ -107,7 +107,7 @@ export default async function Home() {
         <div className="eyebrow">{t('How it works')}</div><h2>{t('Three simple steps')}</h2>
         <ol className="steps3">
           <li className="card"><img className="ic3d sm" src="/icons/3d/photo-search.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Describe or take a photo')}</b><span className="mu sm">{t('Type it in your own words or snap the problem. We suggest the job and the typical price.')}</span></li>
-          <li className="card"><img className="ic3d sm" src="/icons/3d/verified.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Choose one pro')}</b><span className="mu sm">{t('Compare faces, checked licenses, real work photos, prices and honest reviews. Your request goes only to the pro you pick.')}</span></li>
+          <li className="card"><img className="ic3d sm" src="/icons/3d/verified.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Compare and choose')}</b><span className="mu sm">{t('See everyone: faces, checked licenses, real work photos, prices and honest reviews. Ask up to 3 pros at once. The job goes to the one you choose.')}</span></li>
           <li className="card"><img className="ic3d sm" src="/icons/3d/chat.webp" alt="" width={60} height={60} loading="lazy" /><b>{t('Agree in the chat')}</b><span className="mu sm">{t('The pro sends a clear quote. You accept, pick a time, and everything stays in your order and in My home.')}</span></li>
         </ol>
       </div></section>
@@ -165,7 +165,7 @@ export default async function Home() {
       <section className="sec pad"><div className="in">
         <div className="eyebrow">{t('Why NovaFides')}</div><h2>{t('Fair for clients. Fair for pros.')}</h2>
         <div className="trust">
-          <div className="card"><span className="ic"><Icon name="pin" size={20} /></span><b>{t('One pro per request')}</b><span className="mu">{t('Your job is never sold to five contractors.')}</span></div>
+          <div className="card"><span className="ic"><Icon name="pin" size={20} /></span><b>{t('Only the pros you pick')}</b><span className="mu">{t('Your request is never sold or passed to anyone you did not choose. Pros do not pay us for your contact.')}</span></div>
           <div className="card"><span className="ic"><Icon name="shield" size={20} /></span><b>{t('Verified licenses')}</b><span className="mu">{t('CSLB license and ID checked. One person, one profile.')}</span></div>
           <div className="card"><span className="ic"><Icon name="camera" size={20} /></span><b>{t('Real work photos')}</b><span className="mu">{t('Pros show their own work, with before and after photos from every job.')}</span></div>
           <div className="card"><span className="ic"><Icon name="spark" size={20} /></span><b>{t('Honest reviews')}</b><span className="mu">{t('Five skills rated after every job. A review is never removed for being negative; fake, threatening or abusive ones are hidden by published rules.')}</span></div>

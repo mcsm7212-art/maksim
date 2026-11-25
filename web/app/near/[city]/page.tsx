@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props) {
   if (!c) return { title: 'City not found', robots: { index: false } };
   return {
     title: `Plumbers, electricians, handymen and builders in ${c.name}`,
-    description: `Verified home pros who work in and near ${c.name}, CA: real photos, real work, honest reviews. You choose one pro; your request goes only to them. Free for clients.`,
+    description: `Verified home pros who work in and near ${c.name}, CA: real photos, real work, honest reviews. Compare pros and ask up to three; your request goes only to the ones you choose. Free for clients.`,
     alternates: { canonical: `${SITE}/near/${citySlug(c.name)}` },
   };
 }
@@ -35,7 +35,7 @@ export default async function CityPage({ params }: Props) {
     <section className="sec pad"><div className="in" style={{ maxWidth: 900 }}>
       <div className="eyebrow">{tr('Bay Area · San Francisco to San Jose')}</div>
       <h2>{tr('Home pros in {city}', { city: c.name })}</h2>
-      <p className="mu" style={{ maxWidth: '64ch' }}>{tr('Verified pros who work in and near {city}: real photos, their own work and honest reviews. You choose one pro; your request goes only to them.', { city: c.name })}</p>
+      <p className="mu" style={{ maxWidth: '64ch' }}>{tr('Verified pros who work in and near {city}: real photos, their own work and honest reviews. Compare them and ask up to three; your request goes only to the ones you choose.', { city: c.name })}</p>
       <div className="chips"><Link className="btn" href={`/search?loc=${encodeURIComponent(c.name)}`}>{tr('Find a pro')}</Link><Link className="btn ghost" href="/services">{tr('Services and typical prices')}</Link></div>
       {TRADE_KEYS.map((t) => {
         const list = near.filter((p) => p.trade === t).slice(0, 4);

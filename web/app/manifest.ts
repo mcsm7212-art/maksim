@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 // Lets people add NovaFides to their phone's home screen like an app.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'NovaFides Marketplace', short_name: 'NovaFides', description: 'Pick your pro. Only they will call you. Verified home pros in the Bay Area.',
+    name: 'NovaFides Marketplace', short_name: 'NovaFides', description: 'Compare local pros. You choose who gets your request. Verified home pros in the Bay Area.',
     start_url: '/', scope: '/', display: 'standalone', background_color: '#0C0C0E', theme_color: '#0C0C0E', orientation: 'portrait',
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
