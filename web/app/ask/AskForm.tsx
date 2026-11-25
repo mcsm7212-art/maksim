@@ -4,16 +4,17 @@ import { useActionState, useState } from 'react';
 import { askEstimate } from './actions';
 import { useT } from '@/components/I18n';
 import PhotoPicker from '@/components/PhotoPicker';
+import GuestGate from '@/components/GuestGate';
 
 /** "Compare offers": the client describes the job once and picks up to 3 pros by name. Nobody else gets it. */
-export default function AskForm({ pros, cities, initial }: { pros: { slug: string; name: string; sub: string }[]; cities: string[]; initial?: string }) {
+export default function AskForm({ pros, cities, initial, guest, next }: { pros: { slug: string; name: string; sub: string }[]; cities: string[]; initial?: string; guest?: boolean; next?: string }) {
   const [state, action, pending] = useActionState(askEstimate, undefined);
   const [picked, setPicked] = useState<string[]>([]); const t = useT();
   const names = pros.filter((p) => picked.includes(p.slug)).map((p) => p.name);
   return (
     <form action={action} className="list">
       <label className="f">{t('What needs doing?')}<textarea className="inp" name="text" required defaultValue={initial} placeholder={t('E.g. water stain on the ceiling under the upstairs bathroom, appeared last week.')} /></label>
-      <PhotoPicker name="photo_url" prefix="request" max={6} label={t('Add photos of the problem')} />
+      <PhotoPicker name="photo_url" prefix="request" max={6} label={t('Add photos of the problem')} lazy={guest} />
       <div className="chips">
         <select className="inp" name="city" defaultValue="" style={{ width: 'auto' }} aria-label={t('City')}><option value="">{t('City')}…</option>{cities.map((c) => <option key={c} value={c}>{c}</option>)}</select>
         <input className="inp" name="zip" inputMode="numeric" maxLength={5} placeholder="ZIP" aria-label="ZIP" style={{ width: 110 }} />
@@ -32,6 +33,7 @@ export default function AskForm({ pros, cities, initial }: { pros: { slug: strin
       {state?.error && <div className="err" role="alert">{t(state.error)}</div>}
       {state?.demo && <div className="note">{t('Demo mode: nothing was sent.')}</div>}
       <Disclaimer style={{ margin: 0 }} />
+      {guest && <GuestGate cta={t('Send to the chosen pros')} loginNext={next ?? '/ask'} />}
       <button className="btn" disabled={pending}>{pending ? t('Sending…') : t('Send to the chosen pros')}</button>
       <span className="mu xs">{t('Each pro gets it in a separate chat and can answer or send a quote. City or ZIP is enough for now.')}</span>
     </form>

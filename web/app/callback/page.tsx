@@ -5,6 +5,9 @@ import Figure from '@/components/Figure';
 import { getPro } from '@/lib/data';
 import { getT } from '@/lib/i18n';
 import { requestCallback, sendFirstMessage } from './actions';
+import GuestGate from '@/components/GuestGate';
+import { getMe } from '@/lib/auth';
+import { isLive } from '@/lib/supabase/config';
 
 export const metadata = { title: 'Contact a pro', robots: { index: false } };
 
@@ -13,6 +16,7 @@ export default async function Callback({ searchParams }: { searchParams: Promise
   const sp = await searchParams; const tr = await getT();
   const pro = sp.pro ? await getPro(sp.pro) : null; if (!pro) notFound();
   const first = pro.name.split(' ')[0]; const msg = Boolean(sp.msg);
+  const guest = isLive() && !(await getMe());
   return (
     <section className="sec pad" style={{ ['--acc' as string]: pro.accent }}><div className="in" style={{ maxWidth: 620 }}>
       <div className="eyebrow">{msg ? tr('Message') : tr('Request a call back')}</div>
@@ -40,6 +44,7 @@ export default async function Callback({ searchParams }: { searchParams: Promise
         <label className="f">{msg ? tr('Your message') : tr('Short description of the problem (optional)')}
           <textarea className="inp" name="problem" maxLength={msg ? 1000 : 600} required={msg} placeholder={tr('E.g. Water heater leaks from the bottom, 40 gallons, about 10 years old.')} /></label>
         <span className="mu xs">{msg ? tr('The chat opens with this message. You can add photos there.') : tr('Your number goes only to {name}, in your chat. It is not shown anywhere else.', { name: first })}</span>
+        {guest && !pro.isDemo && <GuestGate cta={msg ? tr('Send') : tr('Ask {name} to call me', { name: first })} loginNext={`/callback?pro=${pro.slug}${msg ? '&msg=1' : ''}`} />}
         <button className="btn" disabled={pro.isDemo}>{msg ? tr('Send') : tr('Ask {name} to call me', { name: first })}</button>
       </ActionForm>
       <p className="mu xs" style={{ marginTop: 12 }}><Link href={`/book?pro=${pro.slug}&estimate=1`}>{tr('Ask for estimate')}</Link> · <Link href={`/book?pro=${pro.slug}`}>{tr('Pick a time')}</Link></p>

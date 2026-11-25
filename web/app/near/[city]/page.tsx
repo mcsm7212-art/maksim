@@ -36,6 +36,7 @@ export default async function CityPage({ params }: Props) {
       <div className="eyebrow">{tr('Bay Area · San Francisco to San Jose')}</div>
       <h2>{tr('Home pros in {city}', { city: c.name })}</h2>
       <p className="mu" style={{ maxWidth: '64ch' }}>{tr('Verified pros who work in and near {city}: real photos, their own work and honest reviews. Compare them and ask up to three; your request goes only to the ones you choose.', { city: c.name })}</p>
+      {!near.filter((p) => !p.isDemo).length && <div className="note" style={{ margin: '12px 0' }}>🕓 <b>{tr('Coming soon to {city}', { city: c.name })}.</b> {tr('No verified pros work here yet. Pros from nearby cities may still come: use the search.')} <Link href="/join">{tr('Are you a pro here? Join free')}</Link></div>}
       <div className="chips"><Link className="btn" href={`/search?loc=${encodeURIComponent(c.name)}`}>{tr('Find a pro')}</Link><Link className="btn ghost" href="/services">{tr('Services and typical prices')}</Link></div>
       {TRADE_KEYS.map((t) => {
         const list = near.filter((p) => p.trade === t).slice(0, 4);

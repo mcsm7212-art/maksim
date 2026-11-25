@@ -1875,6 +1875,12 @@ export const ES: Record<string, string> = {
 "A client’s request is never sold to pros who then race to call first. The client picks pros by name, at most three, and you see how many got the request.": "La solicitud de un cliente nunca se vende a profesionales que luego compiten por llamar primero. El cliente elige por nombre, como máximo a tres, y tú ves cuántos recibieron la solicitud.",
 "Clients choose you by name. A request is never passed to anyone the client did not pick, and you never pay for it. Your reviews, job counts and skills stay with you.": "Los clientes te eligen por nombre. Una solicitud nunca se pasa a nadie que el cliente no eligió, y nunca pagas por ella. Tus reseñas, trabajos y habilidades se quedan contigo.",
 "The client sent this request to {n} pros": "El cliente envió esta solicitud a {n} profesionales",
+"The pros answer with a price and how long it takes": "Los profesionales responden con el precio y cuánto tardan",
+"You compare the answers and choose one": "Comparas las respuestas y eliges a uno",
+"Coming soon to {city}": "Próximamente en {city}",
+"No verified pros work here yet. Pros from nearby cities may still come: use the search.": "Aún no hay profesionales verificados aquí. Los de ciudades cercanas pueden venir: usa la búsqueda.",
+"Are you a pro here? Join free": "¿Eres profesional aquí? Únete gratis",
+"soon": "pronto",
 };
 export const RU: Record<string, string> = {
 "About {name}": "О мастере: {name}",
@@ -3752,4 +3758,10 @@ export const RU: Record<string, string> = {
 "A client’s request is never sold to pros who then race to call first. The client picks pros by name, at most three, and you see how many got the request.": "Заявку клиента не продают мастерам, которые потом наперегонки звонят. Клиент выбирает мастеров по имени, не больше трёх, и вы видите, скольким ушла заявка.",
 "Clients choose you by name. A request is never passed to anyone the client did not pick, and you never pay for it. Your reviews, job counts and skills stay with you.": "Клиенты выбирают вас по имени. Заявку не передают тем, кого клиент не выбирал, и вы за неё не платите. Ваши отзывы, счётчик работ и навыки остаются с вами.",
 "The client sent this request to {n} pros": "Клиент отправил эту заявку {n} мастерам",
+"The pros answer with a price and how long it takes": "Мастера ответят ценой и сроком работы",
+"You compare the answers and choose one": "Вы сравниваете ответы и выбираете одного",
+"Coming soon to {city}": "Скоро в {city}",
+"No verified pros work here yet. Pros from nearby cities may still come: use the search.": "Проверенных мастеров здесь пока нет. Мастера из соседних городов могут приехать: воспользуйтесь поиском.",
+"Are you a pro here? Join free": "Вы мастер из этого города? Присоединяйтесь бесплатно",
+"soon": "скоро",
 };

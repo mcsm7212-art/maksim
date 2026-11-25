@@ -1,3 +1,4 @@
+import NextSteps from '@/components/NextSteps';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getMe } from '@/lib/auth';
@@ -31,7 +32,8 @@ export default async function Messages({ searchParams }: { searchParams: Promise
   return (
     <section className="sec pad"><div className="in" style={{ maxWidth: 760 }}>
       <div className="eyebrow">{tr('Chat')}</div><h2>{tr('Messages')}</h2>
-      {(await searchParams).sent === 'ask' && <div className="note">✓ {tr('Sent only to the pros you chose. Each answers in their own chat below.')}</div>}
+      {(await searchParams).sent === 'ask' && <><div className="note">✓ {tr('Sent only to the pros you chose. Each answers in their own chat below.')}</div>
+        <NextSteps tr={tr} now={1} steps={['Request sent', 'The pros answer with a price and how long it takes', 'You compare the answers and choose one']} /></>}
       <div className="list">
         {(data ?? []).map((c: any) => {
           const iAmClient = c.client_id === me.id;

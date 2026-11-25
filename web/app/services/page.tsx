@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { GROUPS, SERVICES, TRADES, usd, type Trade } from '@/lib/catalog';
 import { CITIES } from '@/lib/areas';
 import { citySlug } from '@/lib/seo';
+import { listPros } from '@/lib/data';
+import { miles, proPoint } from '@/lib/geo';
 import { getLang } from '@/lib/i18n';
 import { makeT, svcName } from '@/lib/i18n-core';
 
@@ -9,6 +11,7 @@ export const metadata = { title: 'Home services and typical Bay Area prices', de
 
 /** All services with typical Bay Area price ranges, grouped by trade. */
 export default async function Services() {
+  const real = (await listPros()).filter((p) => !p.isDemo); // cities with no real pro yet are marked "soon"
   const lang = await getLang(); const tr = makeT(lang);
   const gname = (t: Trade, g: string) => { const s = SERVICES.find((x) => x.trade === t && x.group === g); return lang === 'ru' ? s?.groupRu ?? g : lang === 'es' ? s?.groupEs ?? g : g; };
   return (
@@ -28,7 +31,8 @@ export default async function Services() {
           </div>
         </div>))}
       <h3 style={{ marginTop: 30 }}>{tr('Pros by city')}</h3>
-      <div className="chips">{CITIES.map((c) => <Link key={c.name} className="chip" href={`/near/${citySlug(c.name)}`}>{c.name}</Link>)}</div>
+      <div className="chips">{CITIES.map((c) => { const has = real.some((p) => { const pp = proPoint(p); const d = pp ? miles({ lat: c.lat, lng: c.lon }, pp) : 99; return p.serviceArea ? d <= p.serviceArea.radius + 0.5 : d <= 12; });
+        return <Link key={c.name} className="chip" href={`/near/${citySlug(c.name)}`} style={has ? undefined : { opacity: 0.6 }}>{c.name}{!has && <span className="mu xs"> · {tr('soon')}</span>}</Link>; })}</div>
     </div></section>
   );
 }

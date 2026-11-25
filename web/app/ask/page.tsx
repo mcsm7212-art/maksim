@@ -4,6 +4,8 @@ import { listPros } from '@/lib/data';
 import AskForm from './AskForm';
 import { getT } from '@/lib/i18n';
 import { CITIES } from '@/lib/areas';
+import { getMe } from '@/lib/auth';
+import { isLive } from '@/lib/supabase/config';
 
 export const metadata = { title: 'Describe your job' };
 export default async function Ask({ searchParams }: { searchParams: Promise<{ trade?: string; q?: string }> }) {
@@ -15,7 +17,7 @@ export default async function Ask({ searchParams }: { searchParams: Promise<{ tr
       <div className="eyebrow">{tr('Compare offers')}</div><h2>{tr('Describe your job')}</h2>
       <p className="mu" style={{ maxWidth: '60ch' }}>{tr('Describe the job once and choose up to 3 pros by name. Only they get it. To write to one pro, use the button on their page.')}</p>
       <div className="chips" style={{ marginBottom: 16 }}>{TRADE_KEYS.map((t) => <Link key={t} className="chip" aria-pressed={t === trade} href={`/ask?trade=${t}`}>{tr(TRADES[t].name)}</Link>)}</div>
-      <AskForm key={trade} initial={sp.q} cities={CITIES.map((c) => c.name)} pros={pros.map((p) => ({ slug: p.slug, name: p.name, sub: `${p.company?.name ?? tr('Independent')} · ${p.area} · ★ ${p.rating?.toFixed(2) ?? tr('new')}` }))} />
+      <AskForm key={trade} initial={sp.q} guest={isLive() && !(await getMe())} next={`/ask?trade=${trade}`} cities={CITIES.map((c) => c.name)} pros={pros.map((p) => ({ slug: p.slug, name: p.name, sub: `${p.company?.name ?? tr('Independent')} · ${p.area} · ★ ${p.rating?.toFixed(2) ?? tr('new')}` }))} />
     </div></section>
   );
 }

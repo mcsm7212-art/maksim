@@ -1275,3 +1275,6 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 .lic-tag.none{color:var(--mu)}
 .lic-tag.xs{font-size:11.5px}
 .tchip.lic-tag{font-size:13px}
+/* guest gate: while it is open, the form's own send button is hidden and the gate's button is used */
+form:has(.guest-wait) button:not([type=button]){display:none}
+.guest-go{align-self:stretch}
