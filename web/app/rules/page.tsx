@@ -30,8 +30,8 @@ export default async function Rules() {
       </ul>
       <h3 id="problems">{tr("If something goes wrong")}</h3>
       <ul className="mu" style={{ lineHeight: 1.6 }}>
-        <li>{tr("Open the order and press “Report a problem”. The other side sees it and can answer.")}</li>
-        <li>{tr("If you cannot agree, a NovaFides moderator looks at the chat, the quote and the photos and writes the result in the order.")}</li>
+        <li>{tr("Open the order and press “Report a problem”. The other side sees it and has 48 hours to answer.")}</li>
+        <li>{tr("If you cannot agree, a NovaFides moderator looks at the chat, the quote and the photos, answers within 3 business days and writes the result in the order.")}</li>
         <li>{tr("NovaFides is not a party to your agreement and does not refund money. For work by a licensed contractor you can also file a complaint with CSLB; a licensed contractor carries a bond.")}</li>
       </ul>
       <h3 id="limits">{tr("Warnings, limits and removal")}</h3>
@@ -39,7 +39,7 @@ export default async function Rules() {
         <li>{tr("Warning: rude messages, wrong information in a profile, a first no-show.")}</li>
         <li>{tr("Temporary limit: repeated warnings, advertising, pressure to change a review.")}</li>
         <li>{tr("Removal: fake reviews, a false license or identity, threats, fraud, unsafe behavior at a visit.")}</li>
-        <li>{tr("You can appeal any decision by email. A person, not a program, reads the appeal and answers.")}</li>
+        <li>{tr("You can appeal any decision by email. A person, not a program, reads the appeal and answers within 3 business days.")}</li>
       </ul>
       <h3>{tr("Companies")}</h3><p className="mu">{tr("If you choose a technician, the company cannot replace them without your OK. If the office assigned the technician, it may change them and you get a notification.")}</p>
       <h3>{tr("Handyman limits")}</h3><p className="mu">{tr("In California, a person without a contractor license may only take jobs under $1,000 total (labor and materials), that need no building permit and with no hired workers. A bigger job cannot be split into small ones.")}</p>
