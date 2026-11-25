@@ -390,6 +390,19 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(!/555-0188/.test(sql("select body from messages where sender_id=(select id from profiles where full_name='Greg Guest') limit 1")))throw new Error('guest call-back not saved');
   await gc.close();const an=await b.newPage();await an.goto(B+'/ask');await an.waitForSelector('.guest-wait');await an.goto(B+'/services');const soon=an.locator('a.chip:has-text("soon")');if(!(await soon.count()))throw new Error('no city is marked soon');await soon.first().click();await an.waitForSelector('text=Coming soon to');await an.close();
   step('guest asks for a call back without leaving the form (email code); the ask form has the same gate; a city with no pros says “coming soon”');}
+ {const gc=await b.newContext({viewport:{width:1200,height:900}});const g=await gc.newPage();g.on('pageerror',e=>errs.push('greg '+e.message));
+  await g.goto(B+'/login');await g.fill('input[type=email]','greg@test.dev');await g.check('input[name=agree]');await fetch('http://127.0.0.1:54324/api/v1/messages',{method:'DELETE'});await g.click('text=Email me a sign-in code');
+  await g.waitForSelector('input[autocomplete=one-time-code]');await g.fill('input[autocomplete=one-time-code]',await code('greg@test.dev'));await g.click('button:has-text("Sign in")');await g.waitForURL(/account/);
+  await g.goto(B+'/book?pro=max');await g.click('.day:not(:disabled) >> nth=0');await g.click('.daypick .tbtn label >> nth=0');await g.fill('input[name=address]','55 Oak St');await g.click('.addr-list li >> nth=0');await g.click('button:has-text("Send booking request")');await g.waitForURL(/orders\/[0-9a-f-]{36}/);
+  const oid=g.url().match(/orders\/([0-9a-f-]{36})/)[1];const t0=sql("select starts_at from bookings where id='"+oid+"'");
+  await g.click('summary:has-text("Move the visit")');await g.click('details .day:not(:disabled) >> nth=1');await g.click('details .daypick .tbtn label >> nth=0');await g.click('button:has-text("Send the new time")');await g.waitForSelector('text=New time sent to the pro');
+  if(sql("select starts_at from bookings where id='"+oid+"'")===t0)throw new Error('visit was not moved');
+  for(const st of ['confirmed','in_progress'])sql("update bookings set status='"+st+"' where id='"+oid+"'");
+  await s.goto(B+'/orders/'+oid);await s.click('button:has-text("Job done")');await s.waitForSelector('select[name=days]');await s.selectOption('select[name=days]','90');await s.click('form:has(select[name=days]) button');await s.waitForSelector('text=until');
+  await g.goto(B+'/orders/'+oid);await g.waitForSelector('text=Warranty on the work from the pro');
+  sql("update bookings set done_at=now()-interval '6 days' where id='"+oid+"'");await g.reload();await g.waitForSelector('text=Confirmed by itself');await g.goto(B+'/my-home');await g.waitForSelector('text=Warranty until');
+  if(sql("select count(*) from notifications where user_id=(select id from profiles where full_name='Greg Guest') and link like '/orders/"+oid+"%'")!=='1')throw new Error('more than one note about the finished job');
+  await gc.close();step('order: the client moves a visit, the pro sets a 90-day warranty, a silent job is confirmed after 5 days, My home shows the warranty');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
