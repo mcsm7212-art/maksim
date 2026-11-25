@@ -800,4 +800,26 @@ do $$ declare cv uuid; begin
   perform public.send_quote(cv, 'Big job', '[{"kind":"labor","label":"Work","amount":2500}]'::jsonb);
 end $$;
 select pg_temp.ok((select pro_license from public.quotes where pro_id = auth.uid() order by created_at desc, version desc limit 1) = '1148295', 'a licensed pro sends a $2,500 quote and it keeps the license number');
+
+-- 0045 order extras: warranty by the pro, moving a visit, auto-confirm after 5 silent days
+select pg_temp.act(null); reset role;
+insert into public.bookings (id, client_id, pro_id, starts_at, status) values ('00000000-0000-0000-0000-00000000e045', '00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000b2', '2034-04-04 10:00-08', 'confirmed');
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+select public.reschedule_booking('00000000-0000-0000-0000-00000000e045', '2034-04-05 12:00-08');
+select pg_temp.ok((select status = 'requested' and starts_at = '2034-04-05 12:00-08' from public.bookings where id = '00000000-0000-0000-0000-00000000e045'), 'the client moves a visit and the pro must confirm again');
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select public.set_booking_status('00000000-0000-0000-0000-00000000e045', 'confirmed');
+select public.set_booking_status('00000000-0000-0000-0000-00000000e045', 'in_progress');
+select public.set_booking_status('00000000-0000-0000-0000-00000000e045', 'done');
+select public.set_warranty('00000000-0000-0000-0000-00000000e045', 90);
+select pg_temp.act('00000000-0000-0000-0000-0000000000c2');
+do $$ begin perform public.set_warranty('00000000-0000-0000-0000-00000000e045', 1); raise exception 'FAIL: client set the warranty';
+  exception when others then if sqlerrm not like '%not your job%' then raise; end if; end $$;
+select public.auto_confirm_done();
+select pg_temp.ok((select client_confirmed_at is null and warranty_days = 90 and done_at is not null from public.bookings where id = '00000000-0000-0000-0000-00000000e045'), 'a fresh done job is not confirmed by itself; the warranty is saved');
+select pg_temp.act(null); reset role;
+update public.bookings set done_at = now() - interval '6 days' where id = '00000000-0000-0000-0000-00000000e045';
+select pg_temp.act('00000000-0000-0000-0000-0000000000b2');
+select public.auto_confirm_done();
+select pg_temp.ok((select client_confirmed_at is not null and auto_confirmed from public.bookings where id = '00000000-0000-0000-0000-00000000e045'), 'after 5 silent days the job is confirmed by itself');
 \echo ALL RULE TESTS PASSED

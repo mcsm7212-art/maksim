@@ -21,7 +21,7 @@ export default async function MyHome() {
   const me = await getMe(); if (!me) redirect('/login?next=/my-home');
   const sb = await supabaseServer();
   const { data: jobs } = await sb.from('bookings')
-    .select('id, service_id, starts_at, created_at, price_estimate, client_confirmed_at, pro:pros!bookings_pro_id_fkey(id, slug, display_name, photo_url, accent, trade), quote:quotes!bookings_quote_fk(title, total)')
+    .select('id, service_id, starts_at, created_at, price_estimate, client_confirmed_at, warranty_days, done_at, pro:pros!bookings_pro_id_fkey(id, slug, display_name, photo_url, accent, trade), quote:quotes!bookings_quote_fk(title, total)')
     .eq('client_id', me.id).eq('status', 'done').order('starts_at', { ascending: false, nullsFirst: false }).limit(100);
   const ids = (jobs ?? []).map((j: any) => j.id as string);
   const empty = { data: [] as any[] };
@@ -44,7 +44,8 @@ export default async function MyHome() {
             <article key={j.id} className="card homejob" style={{ ['--acc' as string]: p?.accent ?? '#B57A50' }}>
               <div className="homejob-head">
                 {p && <Link href={`/${p.slug}`} className="post-ava"><Figure name={p.display_name} accent={p.accent ?? '#B57A50'} photo={p.photo_url} /></Link>}
-                <span style={{ minWidth: 0 }}><b>{title}</b><br /><span className="mu xs">{dateLabel(j.starts_at ?? j.created_at, lang)}{p ? ` · ${p.display_name}` : ''}{j.price_estimate != null ? ` · $${Number(j.price_estimate).toLocaleString('en-US')}` : ''}</span></span>
+                <span style={{ minWidth: 0 }}><b>{title}</b><br /><span className="mu xs">{dateLabel(j.starts_at ?? j.created_at, lang)}{p ? ` · ${p.display_name}` : ''}{j.price_estimate != null ? ` · $${Number(j.price_estimate).toLocaleString('en-US')}` : ''}</span>
+                  {j.warranty_days > 0 && j.done_at && <><br /><span className="xs" style={{ color: new Date(j.done_at).getTime() + j.warranty_days * 864e5 > Date.now() ? '#3FB27F' : 'var(--mu)' }}>🛡 {tr('Warranty until {date}', { date: dateLabel(new Date(new Date(j.done_at).getTime() + j.warranty_days * 864e5).toISOString(), lang) })}</span></>}</span>
               </div>
               {ps.length > 0 && <div className="sm">🔩 {tr('Installed')}: {ps.map((x: any) => [x.brand, x.part_no, x.name].filter(Boolean).join(' ')).join('; ')}</div>}
               {ph.length > 0 && <div className="jobstrip">{ph.slice(0, 4).map((x: any) => <a key={x.url} href={x.url} target="_blank" rel="noreferrer"><img src={x.url} alt={x.kind} /></a>)}</div>}

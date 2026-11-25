@@ -6,7 +6,7 @@ import ActionForm from '@/components/ActionForm';
 import QuoteCard from '@/components/QuoteCard';
 import NextSteps from '@/components/NextSteps';
 import QuickReview from '@/components/QuickReview';
-import { confirmDone, orderStatus, pickTime, reportProblem } from '../actions';
+import { confirmDone, orderStatus, pickTime, reportProblem, reschedule, setWarranty } from '../actions';
 import { getMe } from '@/lib/auth';
 import { serviceById } from '@/lib/catalog';
 import AddressInput from '@/components/AddressInput';
@@ -27,6 +27,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
   if (!isLive()) redirect('/orders');
   const me = await getMe(); if (!me) redirect(`/login?next=/orders/${id}`);
   const tr = await getT(); const lang = await getLang(); const sb = await supabaseServer();
+  if (isLive()) await sb.rpc('auto_confirm_done'); // jobs the client left unanswered for 5 days
   const { data: b } = await sb.from('bookings').select('*, pro:pros!bookings_pro_id_fkey(id, slug, display_name, photo_url), company:companies(name, slug)').eq('id', id).maybeSingle();
   if (!b) notFound();
   const o = b as any;
@@ -39,7 +40,10 @@ export default async function Order({ params, searchParams }: { params: Promise<
   ]);
   const ph = orderPhrase(o, role); const step = stepIndex(o);
   const reviewed = role === 'client' && o.status === 'done' ? Boolean((await sb.from('reviews').select('id').eq('booking_id', id).maybeSingle()).data) : false;
-  const slots = role === 'client' && o.status === 'needs_time' && o.pro?.slug ? dayViews((await getPro(o.pro.slug))!, tr) : [];
+  const canMove = role === 'client' && ['requested', 'confirmed'].includes(o.status) && Boolean(o.pro?.slug) && Boolean(o.starts_at);
+  const slots = role === 'client' && (o.status === 'needs_time' || canMove) && o.pro?.slug ? dayViews((await getPro(o.pro.slug))!, tr) : [];
+  const WARRANTY: [number, string][] = [[0, 'No warranty'], [30, '30 days'], [90, '90 days'], [180, '6 months'], [365, '1 year'], [730, '2 years']];
+  const warUntil = o.warranty_days && o.done_at ? new Date(new Date(o.done_at).getTime() + o.warranty_days * 864e5).toISOString() : null;
   const accepted = (qs ?? []).filter((q: any) => q.status === 'accepted').pop() as any;
   const svc = accepted?.title || svcName(serviceById(o.service_id ?? ''), lang) || tr('Estimate visit');
   const next: Record<string, [string, string]> = { requested: ['confirmed', 'Confirm visit'], confirmed: ['on_the_way', 'On my way'], on_the_way: ['in_progress', 'Start work'], in_progress: ['done', 'Job done'] };
@@ -70,8 +74,23 @@ export default async function Order({ params, searchParams }: { params: Promise<
         {role === 'pro' && next[o.status] && <div className="chips">
           <form action={orderStatus}><input type="hidden" name="id" value={id} /><input type="hidden" name="status" value={next[o.status][0]} /><button className="btn sm">{tr(next[o.status][1])}</button></form>
         </div>}
+        {canMove && <details className="notes-box">
+          <summary className="sm">🗓 {tr('Move the visit to another time')}</summary>
+          <ActionForm action={reschedule} className="list" style={{ gap: 8, marginTop: 8 }} okText>
+            <input type="hidden" name="id" value={id} />
+            <SlotPicker days={slots} />
+            <span className="mu xs">{tr('The pro gets the new time and confirms it again. If nothing fits, write in the chat.')}</span>
+            <button className="btn sm" style={{ alignSelf: 'flex-start' }}>{tr('Send the new time')}</button>
+          </ActionForm>
+        </details>}
+        {['in_progress', 'done'].includes(o.status) && (role === 'pro'
+          ? <form action={setWarranty} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="id" value={id} />
+              <label className="sm">🛡 {tr('Warranty on my work')} <select className="inp" name="days" defaultValue={String(o.warranty_days ?? 0)} style={{ width: 'auto', padding: '6px 8px' }}>{WARRANTY.map(([d, l]) => <option key={d} value={d}>{tr(l)}</option>)}</select></label>
+              <button className="btn ghost sm">{tr('Save')}</button>{warUntil && <span className="mu xs">{tr('until {date}', { date: dateLabel(warUntil, lang) })}</span>}</form>
+          : o.warranty_days ? <div className="sm">🛡 {tr('Warranty on the work from the pro')}: <b>{tr(WARRANTY.find(([d]) => d === o.warranty_days)?.[1] ?? '') || `${o.warranty_days} ${tr('days')}`}</b>{warUntil && <span className="mu"> · {tr('until {date}', { date: dateLabel(warUntil, lang) })}</span>}</div> : null)}
+        {o.auto_confirmed && <span className="mu xs">✓ {tr('Confirmed by itself: the client did not answer for 5 days and no problem was reported.')}</span>}
         {role === 'client' && o.status === 'done' && !o.client_confirmed_at && <form action={confirmDone} className="chips" style={{ alignItems: 'center' }}><input type="hidden" name="id" value={id} />
-          <button className="btn sm">✓ {tr('Confirm the job is complete')}</button><span className="mu xs">{tr('If something is wrong, report a problem below instead.')}</span></form>}
+          <button className="btn sm">✓ {tr('Confirm the job is complete')}</button><span className="mu xs">{tr('If something is wrong, report a problem below instead. Without an answer, the job counts as confirmed in 5 days.')}</span></form>}
         {role === 'client' && o.status === 'done' && o.pro && !reviewed && <QuickReview id={id} name={String(o.pro.display_name ?? '').split(' ')[0]} />}
         {role === 'client' && o.status === 'done' && reviewed && <span className="okmsg sm">★ {tr('Thank you: your review is saved.')}</span>}
         <div className="chips">

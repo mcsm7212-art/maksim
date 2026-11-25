@@ -18,6 +18,7 @@ export default async function Orders() {
   if (!isLive()) return <section className="sec pad"><div className="in"><h2>{tr('Orders')}</h2><p className="mu">{tr('Demo mode: nothing was saved. Connect the database to accept real sign-ups.')}</p></div></section>;
   const me = await getMe(); if (!me) redirect('/login?next=/orders');
   const sb = await supabaseServer();
+  await sb.rpc('auto_confirm_done');
   const { data } = await sb.from('bookings').select('id, client_id, pro_id, service_id, status, starts_at, price_estimate, client_confirmed_at, created_at, pro:pros!bookings_pro_id_fkey(display_name), company:companies(name), quote:quotes!bookings_quote_fk(title)')
     .order('created_at', { ascending: false }).limit(100);
   const rows = (data ?? []) as any[];

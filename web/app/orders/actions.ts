@@ -79,6 +79,23 @@ export async function orderStatus(f: FormData) {
   revalidatePath(`/orders/${id}`); revalidatePath('/orders'); revalidatePath('/account');
 }
 
+/** The client moves a visit to another free time; the pro confirms again. */
+export async function reschedule(_p: S, f: FormData): Promise<S> {
+  if (!isLive()) return { error: DEMO };
+  const id = str(f, 'id'); const { sb } = await who(`/orders/${id}`);
+  const t = str(f, 't'); if (!t) return { error: 'Please pick a time.' };
+  const { error } = await sb.rpc('reschedule_booking', { b_id: id, starts: t });
+  if (error) return { error: error.message.includes('cannot be moved') ? 'This visit cannot be moved now. Write to the pro in the chat.' : nice(error.message) };
+  revalidatePath(`/orders/${id}`); revalidatePath('/orders'); revalidatePath('/account');
+  return { ok: 'New time sent to the pro.' };
+}
+/** The pro states the warranty on the work. */
+export async function setWarranty(f: FormData) {
+  const id = str(f, 'id'); const { sb } = await who(`/orders/${id}`);
+  await sb.rpc('set_warranty', { b_id: id, days: Math.max(0, Math.min(3650, Math.round(Number(str(f, 'days')) || 0))) });
+  revalidatePath(`/orders/${id}`); revalidatePath('/my-home');
+}
+
 export async function confirmDone(f: FormData) {
   const id = str(f, 'id');
   const { sb } = await who(`/orders/${id}`);
