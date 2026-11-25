@@ -1278,3 +1278,5 @@ a.desk-msg:hover{border-color:var(--cu-l,#C08A62)}
 /* guest gate: while it is open, the form's own send button is hidden and the gate's button is used */
 form:has(.guest-wait) button:not([type=button]){display:none}
 .guest-go{align-self:stretch}
+.sctl-sort{flex-wrap:wrap}.sctl-why{flex-basis:100%;margin-top:-4px}
+.svc-q{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}

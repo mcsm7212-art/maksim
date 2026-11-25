@@ -18,7 +18,9 @@ export async function createBooking(_prev: BookState, form: FormData): Promise<B
   const other = get('svc') === '__other'; const svcId = other ? '' : get('svc');
   const estimate = (Boolean(get('estimate')) || other) && Boolean(proSlug);
   const phone = get('phone').slice(0, 30).replace(/[^\d+() .-]/g, '');
-  const address = get('address').slice(0, 200), notes = [get('notes').slice(0, 2000), phone.replace(/\D/g, '').length >= 10 ? `📞 ${phone}` : ''].filter(Boolean).join('\n');
+  // answers to the quick questions: only the ready-made English lines, never free text
+  const qa = get('qa').split('\n').map((l) => l.trim()).filter((l) => /^[\w ?,.'"–-]{3,120}$/.test(l)).slice(0, 4).join('\n');
+  const address = get('address').slice(0, 200), notes = [get('notes').slice(0, 2000), qa, phone.replace(/\D/g, '').length >= 10 ? `📞 ${phone}` : ''].filter(Boolean).join('\n');
   const city = CITIES.some((c) => c.name === get('city')) ? get('city') : '', zip = /^\d{5}$/.test(get('zip')) ? get('zip') : '';
   if (!proSlug && !companySlug) return { error: 'Choose a pro or a company.' };
   if (estimate && !city && !zip) return { error: 'Choose your city or enter a ZIP code.' };

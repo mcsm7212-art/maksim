@@ -6,6 +6,7 @@ const SORT_LABEL: Record<string, string> = {
   best: 'Best for you', rating: 'Top rated', near: 'Nearest', similar: 'Chosen by similar clients',
   soon: 'Available soonest', price: 'Lowest price', fast: 'Fastest reply', jobs: 'Most jobs',
 };
+const MAIN = ['best', 'near', 'soon', 'price']; // always on screen; the rest are under "More"
 const FILTER_GROUPS: [string, [string, string][]][] = [
   ['When', [['today', 'Today'], ['tomorrow', 'Tomorrow'], ['weekend', 'Weekend'], ['urgent', '⚡ Urgent calls']]],
   ['Where', [['area', '📍 Works in my area']]],
@@ -28,11 +29,15 @@ export default function SearchControls({ sort, filters, langs, lang, max, hasPri
   const toggle = (f: string) => { const s = new Set(filters); if (s.has(f)) s.delete(f); else s.add(f); go({ f: [...s].join(',') || null }); };
   return (
     <div className="sctl">
-      <label className="sctl-sort">{t('Show first')}
-        <select className="inp" value={sort} onChange={(e) => go({ sort: e.target.value === 'best' ? null : e.target.value })}>
-          {Object.entries(SORT_LABEL).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}
+      <div className="sctl-sort" role="group" aria-label={t('Show first')}>
+        <span>{t('Show first')}</span>
+        {MAIN.map((k) => <button type="button" key={k} className="chip" aria-pressed={sort === k} onClick={() => go({ sort: k === 'best' ? null : k })}>{t(SORT_LABEL[k])}</button>)}
+        <select className="inp" value={MAIN.includes(sort) ? '' : sort} onChange={(e) => go({ sort: e.target.value || null })} aria-label={t('More ways to sort')}>
+          <option value="">{t('More')}…</option>
+          {Object.entries(SORT_LABEL).filter(([k]) => !MAIN.includes(k)).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}
         </select>
-      </label>
+      </div>
+      <span className="mu xs sctl-why">{t('“Best for you” puts first the pros who work in your area, your saved pros, those with open time and a steady rating. Places in the list are never sold.')}</span>
       <details className="sctl-f" open={filters.length > 0 || Boolean(lang) || Boolean(max)}>
         <summary>{t('Filters')}{filters.length + (lang ? 1 : 0) + (max ? 1 : 0) > 0 ? ` · ${filters.length + (lang ? 1 : 0) + (max ? 1 : 0)}` : ''}</summary>
         {FILTER_GROUPS.map(([g, items]) => (

@@ -9,6 +9,7 @@ import { CITIES } from '@/lib/areas';
 import { marketMid, roundPrice, SERVICES, serviceById, usd } from '@/lib/catalog';
 import AddressInput from '@/components/AddressInput';
 import SlotPicker from '@/components/SlotPicker';
+import SvcQuestions from '@/components/SvcQuestions';
 import { getMe } from '@/lib/auth';
 import { dayViews, getCompany, getPro } from '@/lib/data';
 import { slotLabel } from '@/lib/time';
@@ -100,6 +101,7 @@ export default async function Book({ searchParams }: { searchParams: SP }) {
             {svcOptions.map((s) => <option key={s.id} value={s.id}>{svcName(s, lang)}{price(s.id) != null ? ` · ≈ ${usd(price(s.id)!)}` : ''}</option>)}
             {mode === 'book' && <option value={OTHER}>✍ {tr('My job is not in the list: I will describe it')}</option>}
           </select>
+          <SvcQuestions initial={svc?.id} />
           <textarea className="inp" name="notes" maxLength={2000} placeholder={tr('What happened, where in the house, since when. E.g. “Water drips under the kitchen sink when the dishwasher runs.”')} style={{ minHeight: 80 }} />
           <PhotoPicker name="photo_url" prefix="request" max={6} label={tr('Add photos of the problem')} lazy={guest} />
           <span className="mu xs">{tr('Photos help the pro understand the job before coming. No faces or house numbers, please.')}</span>
