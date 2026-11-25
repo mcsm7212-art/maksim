@@ -382,6 +382,14 @@ async function avatar(p){await p.setInputFiles('.figfield input[type=file]',IMG(
   if(await an.locator('header .nav a[href="/questions"]').count())throw new Error('Questions is in the menu with fewer than 5 verified pros');
   await an.goto(B+'/questions');if((await an.title()).length<3)throw new Error('questions page does not open by address');
   await an.close();step('one rule in all texts: compare, ask up to three, you choose one; empty sections leave the menu but open by address');}
+ {const gc=await b.newContext({viewport:{width:1200,height:900}});const g=await gc.newPage();g.on('pageerror',e=>errs.push('guest2 '+e.message));
+  await g.goto(B+'/callback?pro=max');await g.fill('input[name=phone]','(650) 555-0188');await g.fill('textarea[name=problem]','Garbage disposal hums but does not spin.');
+  if(await g.locator('form button:not([type=button]):visible').count())throw new Error('the form button is visible while the guest gate is open');
+  await g.fill('input[data-guest=name]','Greg Guest');await g.fill('input[data-guest=email]','greg@test.dev');await g.check('input[data-guest=agree]');await g.click('.guest-go');
+  await g.waitForSelector('.code-step input');await g.fill('.code-step input',await code('greg@test.dev'));await g.click('button:has-text("Confirm and send")');await g.waitForURL(/\/messages\/.*sent=callback/);await g.waitForSelector('.next-steps li.now');
+  if(!/555-0188/.test(sql("select body from messages where sender_id=(select id from profiles where full_name='Greg Guest') limit 1")))throw new Error('guest call-back not saved');
+  await gc.close();const an=await b.newPage();await an.goto(B+'/ask');await an.waitForSelector('.guest-wait');await an.goto(B+'/services');const soon=an.locator('a.chip:has-text("soon")');if(!(await soon.count()))throw new Error('no city is marked soon');await soon.first().click();await an.waitForSelector('text=Coming soon to');await an.close();
+  step('guest asks for a call back without leaving the form (email code); the ask form has the same gate; a city with no pros says “coming soon”');}
  {const fk=await user(b,'fake@test.local','Fred Fake');await fk.goto(B+'/join/pro');await fk.fill('input[name=name]','Fred Fake');await fk.fill('input[name=license]','8246895');
   await fk.click('summary:has-text("Water Heaters")');await fk.waitForSelector('.lic-review input[name=license_review]:checked',{timeout:15000});await fk.check('input[name=svc_tank-water-heater-replacement]');await fk.check('input[name=svc_faucet-replacement]');await fk.check('input[name=agree]');
   if(!(await fk.locator('.sv-row.wait:has(input[name=svc_tank-water-heater-replacement])').count()))throw new Error('permit job not marked waiting');
